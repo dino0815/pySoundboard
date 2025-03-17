@@ -33,7 +33,7 @@ class SoundButton(Gtk.Box):
         
         # Container für Button und DrawingArea
         self.button_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.button_container.set_size_request(button_config['width'], button_config['height'] + button_config['scale_height'] + button_config['spacing'])
+        self.button_container.set_size_request(button_config['width'], button_config['height'] + button_config['volume_height'] + button_config['spacing'])
         self.button_container.set_vexpand(False)
         self.button_container.set_hexpand(False)
         
@@ -50,31 +50,31 @@ class SoundButton(Gtk.Box):
         self.drawing_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.drawing_area.connect("button-press-event", self.on_button_press)
         
-        # Schieberegler erstellen
-        self.scale = Gtk.Scale(orientation=Gtk.Orientation.VERTICAL)
-        scale_config = self.config['scale']
-        self.scale.set_range(scale_config['min'], scale_config['max'])
-        self.scale.set_value(self.button_config['volume'])
-        self.scale.set_draw_value(False)  # Keine numerische Anzeige
-        self.scale.set_vexpand(False)
-        self.scale.set_hexpand(False)
-        self.scale.set_size_request(button_config['scale_width'], button_config['height'])  # Gleiche Höhe wie Button
-        self.scale.set_inverted(True)  # Umkehrung der Richtung (oben = laut, unten = leise)
-        self.scale.connect("value-changed", self.on_scale_changed)
+        # Lautstärkeregler erstellen
+        self.volume_slider = Gtk.Scale(orientation=Gtk.Orientation.VERTICAL)
+        volume_config = self.config['volume']
+        self.volume_slider.set_range(volume_config['min'], volume_config['max'])
+        self.volume_slider.set_value(self.button_config['volume'])
+        self.volume_slider.set_draw_value(False)  # Keine numerische Anzeige
+        self.volume_slider.set_vexpand(False)
+        self.volume_slider.set_hexpand(False)
+        self.volume_slider.set_size_request(button_config['volume_width'], button_config['height'])  # Gleiche Höhe wie Button
+        self.volume_slider.set_inverted(True)  # Umkehrung der Richtung (oben = laut, unten = leise)
+        self.volume_slider.connect("value-changed", self.on_volume_changed)
         
-        # Container für den Schieberegler
-        scale_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        scale_container.set_vexpand(False)
-        scale_container.set_hexpand(False)
-        scale_container.set_size_request(button_config['scale_width'], button_config['height'])
-        scale_container.pack_start(self.scale, False, False, 0)
+        # Container für den Lautstärkeregler
+        volume_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        volume_container.set_vexpand(False)
+        volume_container.set_hexpand(False)
+        volume_container.set_size_request(button_config['volume_width'], button_config['height'])
+        volume_container.pack_start(self.volume_slider, False, False, 0)
         
         # Widgets zum Container hinzufügen
         self.button_container.pack_start(self.drawing_area, False, False, 0)
         
         # Widgets zum Hauptcontainer hinzufügen
         self.pack_start(self.button_container, False, False, 0)
-        self.pack_start(scale_container, False, False, button_config['spacing'])
+        self.pack_start(volume_container, False, False, button_config['spacing'])
         
         # Debug-Ausgabe
         print(f"SoundButton {self.position + 1} erstellt - Position: x={self.offset_x}, y={self.offset_y}")
@@ -89,7 +89,7 @@ class SoundButton(Gtk.Box):
         if self.position >= len(self.config.get('buttons', [])):
             return {
                 'position': self.position,
-                'volume': self.config['scale']['default'],
+                'volume': self.config['volume']['default'],
                 'text': f"Button {self.position + 1}"
             }
         
@@ -102,7 +102,7 @@ class SoundButton(Gtk.Box):
         # Fallback: Neue Konfiguration
         return {
             'position': self.position,
-            'volume': self.config['scale']['default'],
+            'volume': self.config['volume']['default'],
             'text': f"Button {self.position + 1}"
         }
     
@@ -125,8 +125,8 @@ class SoundButton(Gtk.Box):
                 'soundbutton': {
                     'width': 300,
                     'height': 150,
-                    'scale_height': 30,
-                    'scale_width': 200,
+                    'volume_height': 30,
+                    'volume_width': 200,
                     'margin': 10,
                     'spacing': 5
                 },
@@ -140,7 +140,7 @@ class SoundButton(Gtk.Box):
                     'text_x': 17,
                     'text_y': 20
                 },
-                'scale': {
+                'volume': {
                     'min': 0,
                     'max': 100,
                     'default': 50
@@ -433,9 +433,9 @@ class SoundButton(Gtk.Box):
         self.drawing_area.queue_draw()  # Neu zeichnen
         self.save_config()  # Speichern
     
-    def on_scale_changed(self, scale):
-        """Callback für Änderungen am Schieberegler"""
-        value = scale.get_value()
+    def on_volume_changed(self, volume_slider):
+        """Callback für Änderungen am Lautstärkeregler"""
+        value = volume_slider.get_value()
         self.button_config['volume'] = value
         if self.sound:
             self.sound.set_volume(value / 100.0)  # Lautstärke auf 0-1 skalieren

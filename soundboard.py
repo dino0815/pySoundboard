@@ -20,7 +20,7 @@ class SoundboardWindow(Gtk.Window):
         
         # Minimale Fenstergröße setzen
         button_config = self.config['soundbutton']
-        min_height = button_config['height'] + button_config['scale_height'] + button_config['spacing'] + 20  # 20 Pixel für Rahmen
+        min_height = button_config['height'] + button_config['volume_height'] + button_config['spacing'] + 20  # 20 Pixel für Rahmen
         self.set_size_request(button_config['width'], min_height)
         
         # Hauptcontainer
@@ -58,7 +58,7 @@ class SoundboardWindow(Gtk.Window):
             # Wenn gespeicherte Buttons existieren, diese verwenden
             for saved_button in saved_buttons:
                 position = saved_button['position']
-                offset_x = position * (button_config['width'] + button_config['scale_height'] + button_config['spacing'] * 2)
+                offset_x = position * (button_config['width'] + button_config['volume_height'] + button_config['spacing'])
                 offset_y = 0
                 button = SoundButton(position=position, offset_x=offset_x, offset_y=offset_y, config=self.config, on_delete=self.delete_button)
                 self.buttons.append(button)
@@ -90,18 +90,32 @@ class SoundboardWindow(Gtk.Window):
             return {
                 'window': {
                     'width': 1000,
-                    'height': 300,
+                    'height': 200,
                     'title': "Soundboard"
                 },
                 'soundbutton': {
                     'width': 300,
-                    'height': 200,
-                    'button_height': 150,
-                    'scale_height': 30,
-                    'scale_width': 200,
+                    'height': 150,
+                    'volume_height': 30,
+                    'volume_width': 200,
                     'margin': 10,
                     'spacing': 5,
                     'initial_count': 3
+                },
+                'button': {
+                    'radius': 15,
+                    'delete_button_size': 30,
+                    'text_size': 20,
+                    'background_color': '#CCCCCC',
+                    'delete_button_color': '#CC3333',
+                    'text_color': '#000000',
+                    'text_x': 17,
+                    'text_y': 20
+                },
+                'volume': {
+                    'min': 0,
+                    'max': 100,
+                    'default': 50
                 }
             }
     
@@ -109,23 +123,21 @@ class SoundboardWindow(Gtk.Window):
         """Aktualisiert die Positionen aller Buttons"""
         button_config = self.config['soundbutton']
         for i, button in enumerate(self.buttons):
-            button.position = i  # Aktualisiere die Position
-            offset_x = i * (button_config['width'] + button_config['scale_height'] + button_config['spacing'] * 2)  # Anpassung für vertikalen Slider
-            offset_y = 0
-            button.set_offset(offset_x, offset_y)
+            offset_x = i * (button_config['width'] + button_config['volume_height'] + button_config['spacing'])  # Anpassung für vertikalen Lautstärkeregler
+            button.set_offset(offset_x, 0)
         self.update_scrolled_window_size()
     
     def update_scrolled_window_size(self):
-        """Aktualisiert die Größe der ScrolledWindow basierend auf der Anzahl der Buttons"""
+        """Aktualisiert die Größe des ScrolledWindow basierend auf der Anzahl der Buttons"""
         button_config = self.config['soundbutton']
-        total_width = len(self.buttons) * (button_config['width'] + button_config['scale_height'] + button_config['spacing'] * 2) + 2 * button_config['margin']  # Anpassung für vertikalen Slider
+        total_width = len(self.buttons) * (button_config['width'] + button_config['volume_height'] + button_config['spacing']) + 2 * button_config['margin']  # Anpassung für vertikalen Lautstärkeregler
         self.scrolled.set_min_content_width(total_width)
     
     def add_new_button(self, widget):
         """Fügt einen neuen SoundButton hinzu"""
         position = len(self.buttons)
         button_config = self.config['soundbutton']
-        offset_x = position * (button_config['width'] + button_config['scale_height'] + button_config['spacing'] * 2)  # Anpassung für vertikalen Slider
+        offset_x = position * (button_config['width'] + button_config['volume_height'] + button_config['spacing'])  # Anpassung für vertikalen Lautstärkeregler
         offset_y = 0
         
         button = SoundButton(position=position, offset_x=offset_x, offset_y=offset_y, config=self.config, on_delete=self.delete_button)
@@ -181,7 +193,7 @@ class SoundboardWindow(Gtk.Window):
         """Reagiert auf Fenstergrößenänderungen"""
         height = self.get_allocated_height()
         button_config = self.config['soundbutton']
-        min_height = button_config['height'] + button_config['scale_height'] + button_config['spacing'] + 20  # 20 Pixel für Rahmen
+        min_height = button_config['height'] + button_config['volume_height'] + button_config['spacing'] + 20  # 20 Pixel für Rahmen
         if height < min_height:
             self.set_size_request(-1, min_height)  # -1 bedeutet, die Breite nicht zu ändern
 
