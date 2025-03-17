@@ -337,21 +337,36 @@ class SoundButton(Gtk.Box):
         return True
     
     def show_text_dialog(self):
-        """Zeigt einen Dialog zum Ändern des Button-Texts"""
-        dialog = Gtk.Dialog(title="Button-Text ändern", transient_for=self.get_toplevel(), flags=0)
+        """Zeigt einen Dialog zum Ändern des Button-Texts und der Audiodatei"""
+        dialog = Gtk.Dialog(title="Button-Einstellungen", transient_for=self.get_toplevel(), flags=0)
         dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK)
         
         # Container für den Inhalt
         content_area = dialog.get_content_area()
         
-        # Label
-        label = Gtk.Label(label="Neuer Text für Button " + str(self.position + 1) + ":")
-        content_area.pack_start(label, True, True, 0)
+        # Label und Textfeld für den Button-Text
+        text_label = Gtk.Label(label="Button-Text:")
+        content_area.pack_start(text_label, True, True, 0)
         
-        # Textfeld
-        entry = Gtk.Entry()
-        entry.set_text(self.button_config['text'])
-        content_area.pack_start(entry, True, True, 0)
+        text_entry = Gtk.Entry()
+        text_entry.set_text(self.button_config.get('text', f"Button {self.position + 1}"))
+        content_area.pack_start(text_entry, True, True, 0)
+        
+        # Label und Container für die Audiodatei
+        file_label = Gtk.Label(label="Audiodatei:")
+        content_area.pack_start(file_label, True, True, 0)
+        
+        file_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        file_entry = Gtk.Entry()
+        file_entry.set_text(self.button_config.get('audio_file', ''))
+        file_entry.set_hexpand(True)
+        file_box.pack_start(file_entry, True, True, 0)
+        
+        browse_button = Gtk.Button(label="Durchsuchen")
+        browse_button.connect("clicked", self.on_browse_clicked, file_entry)
+        file_box.pack_start(browse_button, False, False, 5)
+        
+        content_area.pack_start(file_box, True, True, 0)
         
         # Dialog anzeigen
         dialog.show_all()
@@ -360,12 +375,57 @@ class SoundButton(Gtk.Box):
         response = dialog.run()
         
         if response == Gtk.ResponseType.OK:
-            new_text = entry.get_text()
+            new_text = text_entry.get_text()
+            new_file = file_entry.get_text()
+            
             if new_text.strip():  # Nur wenn der Text nicht leer ist
                 self.button_config['text'] = new_text
                 print(f"Button {self.position + 1} - Text auf '{new_text}' geändert")
-                self.drawing_area.queue_draw()  # Neu zeichnen
-                self.save_config()  # Speichern
+            
+            if new_file.strip():  # Nur wenn eine Datei ausgewählt wurde
+                self.button_config['audio_file'] = new_file
+                print(f"Button {self.position + 1} - Audiodatei auf '{new_file}' gesetzt")
+            
+            self.drawing_area.queue_draw()  # Neu zeichnen
+            self.save_config()  # Speichern
+        
+        dialog.destroy()
+    
+    def on_browse_clicked(self, button, entry):
+        """Öffnet einen Dateiauswahl-Dialog"""
+        dialog = Gtk.FileChooserDialog(
+            title="Audiodatei auswählen",
+            transient_for=self.get_toplevel(),
+            action=Gtk.FileChooserAction.OPEN
+        )
+        
+        # Filter für Audiodateien
+        audio_filter = Gtk.FileFilter()
+        audio_filter.set_name("Audiodateien")
+        audio_filter.add_mime_type("audio/*")
+        dialog.add_filter(audio_filter)
+        
+        # Alle Dateien
+        all_filter = Gtk.FileFilter()
+        all_filter.set_name("Alle Dateien")
+        all_filter.add_pattern("*")
+        dialog.add_filter(all_filter)
+        
+        # Buttons
+        dialog.add_buttons(
+            Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OPEN, Gtk.ResponseType.OK
+        )
+        
+        # Aktuelles Verzeichnis setzen
+        dialog.set_current_folder(".")
+        
+        # Dialog anzeigen
+        response = dialog.run()
+        
+        if response == Gtk.ResponseType.OK:
+            filename = dialog.get_filename()
+            entry.set_text(filename)
         
         dialog.destroy()
     
