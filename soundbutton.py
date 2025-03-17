@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 import cairo
 import json
 import pygame
@@ -9,16 +9,40 @@ import os
 from settings_dialog import SettingsDialog
 
 class SoundButton(Gtk.Box):
+    # Konstanten für die Konfiguration
+    DEFAULT_CONFIG = {
+        'soundbutton': {
+            'width': 300,
+            'height': 150,
+            'volume_height': 30,
+            'volume_width': 200,
+            'margin': 10,
+            'spacing': 5
+        },
+        'button': {
+            'radius': 15,
+            'delete_button_size': 30,
+            'text_size': 20,
+            'background_color': '#CCCCCC',
+            'delete_button_color': '#CC3333',
+            'text_color': '#000000',
+            'text_x': 17,
+            'text_y': 20
+        },
+        'volume': {
+            'min': 0,
+            'max': 100,
+            'default': 50
+        }
+    }
+    
     def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
-        self.position = position  # Speichere die Position
-        self.offset_x = offset_x  # X-Offset für die Position
-        self.offset_y = offset_y  # Y-Offset für die Position
+        self.position = position
+        self.offset_x = offset_x
+        self.offset_y = offset_y
         self.config = config or self.load_config()
-        self.on_delete = on_delete  # Callback für das Löschen
-        
-        # pygame für Sound initialisieren
-        pygame.mixer.init()
+        self.on_delete = on_delete
         
         # Sound-Status
         self.sound = None
@@ -28,53 +52,8 @@ class SoundButton(Gtk.Box):
         # Button-spezifische Konfiguration laden
         self.button_config = self.get_button_config()
         
-        # Größen aus der Konfiguration
-        button_config = self.config['soundbutton']
-        
-        # Container für Button und DrawingArea
-        self.button_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.button_container.set_size_request(button_config['width'], button_config['height'] + button_config['volume_height'] + button_config['spacing'])
-        self.button_container.set_vexpand(False)
-        self.button_container.set_hexpand(False)
-        
-        # DrawingArea für den Button
-        self.drawing_area = Gtk.DrawingArea()
-        self.drawing_area.set_size_request(button_config['width'], button_config['height'])
-        self.drawing_area.set_vexpand(False)
-        self.drawing_area.set_hexpand(False)
-        
-        # Event-Handler für Zeichnen
-        self.drawing_area.connect("draw", self.on_draw)
-        
-        # Event-Handler für Mausklicks
-        self.drawing_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
-        self.drawing_area.connect("button-press-event", self.on_button_press)
-        
-        # Lautstärkeregler erstellen
-        self.volume_slider = Gtk.Scale(orientation=Gtk.Orientation.VERTICAL)
-        volume_config = self.config['volume']
-        self.volume_slider.set_range(volume_config['min'], volume_config['max'])
-        self.volume_slider.set_value(self.button_config['volume'])
-        self.volume_slider.set_draw_value(False)  # Keine numerische Anzeige
-        self.volume_slider.set_vexpand(False)
-        self.volume_slider.set_hexpand(False)
-        self.volume_slider.set_size_request(button_config['volume_width'], button_config['height'])  # Gleiche Höhe wie Button
-        self.volume_slider.set_inverted(True)  # Umkehrung der Richtung (oben = laut, unten = leise)
-        self.volume_slider.connect("value-changed", self.on_volume_changed)
-        
-        # Container für den Lautstärkeregler
-        volume_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        volume_container.set_vexpand(False)
-        volume_container.set_hexpand(False)
-        volume_container.set_size_request(button_config['volume_width'], button_config['height'])
-        volume_container.pack_start(self.volume_slider, False, False, 0)
-        
-        # Widgets zum Container hinzufügen
-        self.button_container.pack_start(self.drawing_area, False, False, 0)
-        
-        # Widgets zum Hauptcontainer hinzufügen
-        self.pack_start(self.button_container, False, False, 0)
-        self.pack_start(volume_container, False, False, button_config['spacing'])
+        # UI erstellen
+        self._setup_ui()
         
         # Debug-Ausgabe
         print(f"SoundButton {self.position + 1} erstellt - Position: x={self.offset_x}, y={self.offset_y}")
@@ -83,9 +62,63 @@ class SoundButton(Gtk.Box):
         # Widgets anzeigen
         self.show_all()
     
+    def _setup_ui(self):
+        """Erstellt die Benutzeroberfläche"""
+        button_config = self.config['soundbutton']
+        
+        # Container für Button und Regler
+        self.button_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.button_container.set_size_request(button_config['width'], button_config['height'])
+        self.button_container.set_vexpand(False)
+        self.button_container.set_hexpand(False)
+        
+        # DrawingArea für den Button
+        self._create_drawing_area(button_config)
+        
+        # Lautstärkeregler
+        self._create_volume_slider(button_config)
+        
+        # Widgets zum Button-Container hinzufügen
+        self.button_container.pack_start(self.drawing_area, False, False, 0)
+        self.button_container.pack_start(self.volume_container, False, False, button_config['spacing'])
+        
+        # Widgets zum Hauptcontainer hinzufügen
+        self.pack_start(self.button_container, False, False, 0)
+    
+    def _create_drawing_area(self, button_config):
+        """Erstellt die DrawingArea für den Button"""
+        self.drawing_area = Gtk.DrawingArea()
+        self.drawing_area.set_size_request(button_config['width'], button_config['height'])
+        self.drawing_area.set_vexpand(False)
+        self.drawing_area.set_hexpand(False)
+        
+        # Event-Handler
+        self.drawing_area.connect("draw", self.on_draw)
+        self.drawing_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.drawing_area.connect("button-press-event", self.on_button_press)
+    
+    def _create_volume_slider(self, button_config):
+        """Erstellt den Lautstärkeregler"""
+        self.volume_slider = Gtk.Scale(orientation=Gtk.Orientation.VERTICAL)
+        volume_config = self.config['volume']
+        self.volume_slider.set_range(volume_config['min'], volume_config['max'])
+        self.volume_slider.set_value(self.button_config['volume'])
+        self.volume_slider.set_draw_value(False)
+        self.volume_slider.set_vexpand(False)
+        self.volume_slider.set_hexpand(False)
+        self.volume_slider.set_size_request(button_config['volume_width'], button_config['height'])
+        self.volume_slider.set_inverted(True)
+        self.volume_slider.connect("value-changed", self.on_volume_changed)
+        
+        # Container für den Lautstärkeregler
+        self.volume_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.volume_container.set_vexpand(False)
+        self.volume_container.set_hexpand(False)
+        self.volume_container.set_size_request(button_config['volume_width'], button_config['height'])
+        self.volume_container.pack_start(self.volume_slider, False, False, 0)
+    
     def get_button_config(self):
         """Lädt die Button-spezifische Konfiguration"""
-        # Für neue Buttons immer eine neue Konfiguration erstellen
         if self.position >= len(self.config.get('buttons', [])):
             return {
                 'position': self.position,
@@ -93,13 +126,11 @@ class SoundButton(Gtk.Box):
                 'text': f"Button {self.position + 1}"
             }
         
-        # Für existierende Buttons die gespeicherte Konfiguration laden
         buttons = self.config.get('buttons', [])
         for button in buttons:
             if button['position'] == self.position:
-                return button.copy()  # Erstelle eine Kopie der Konfiguration
+                return button.copy()
         
-        # Fallback: Neue Konfiguration
         return {
             'position': self.position,
             'volume': self.config['volume']['default'],
@@ -121,41 +152,17 @@ class SoundButton(Gtk.Box):
                 return json.load(f)
         except FileNotFoundError:
             print("Warnung: config.json nicht gefunden, verwende Standardwerte")
-            return {
-                'soundbutton': {
-                    'width': 300,
-                    'height': 150,
-                    'volume_height': 30,
-                    'volume_width': 200,
-                    'margin': 10,
-                    'spacing': 5
-                },
-                'button': {
-                    'radius': 15,
-                    'delete_button_size': 30,
-                    'text_size': 20,
-                    'background_color': '#CCCCCC',
-                    'delete_button_color': '#CC3333',
-                    'text_color': '#000000',
-                    'text_x': 17,
-                    'text_y': 20
-                },
-                'volume': {
-                    'min': 0,
-                    'max': 100,
-                    'default': 50
-                }
-            }
+            return self.DEFAULT_CONFIG.copy()
     
     def set_offset(self, offset_x, offset_y):
         """Setzt den Offset des Buttons"""
         self.offset_x = offset_x
         self.offset_y = offset_y
         print(f"SoundButton {self.position + 1} - Offset aktualisiert: x={self.offset_x}, y={self.offset_y}")
-        self.drawing_area.queue_draw()  # Neu zeichnen bei Änderung
+        self.drawing_area.queue_draw()
     
     def rounded_rectangle(self, cr, x, y, width, height, radius):
-        # Hilfsfunktion zum Zeichnen eines abgerundeten Rechtecks
+        """Zeichnet ein abgerundetes Rechteck"""
         degrees = 3.14159 / 180.0
         
         cr.new_sub_path()
@@ -213,10 +220,11 @@ class SoundButton(Gtk.Box):
             cr.stroke()
     
     def on_draw(self, widget, cr):
+        """Zeichnet den Button"""
         button_config = self.config['button']
         button_size = self.config['soundbutton']
         
-        # Abgerundetes Rechteck als Hintergrund zeichnen
+        # Hintergrund
         bg_color = self.hex_to_rgb(button_config['background_color'])
         cr.set_source_rgb(*bg_color)
         self.rounded_rectangle(cr, 0, 0, button_size['width'], button_size['height'], button_config['radius'])
@@ -224,36 +232,49 @@ class SoundButton(Gtk.Box):
         
         # Bild zeichnen, falls vorhanden
         if 'image_file' in self.button_config and self.button_config['image_file']:
-            try:
-                # Bild laden und skalieren
-                image = cairo.ImageSurface.create_from_png(self.button_config['image_file'])
-                # Bild auf Button-Größe skalieren
-                cr.save()
-                # Bild in der Mitte des Buttons platzieren
-                image_width = image.get_width()
-                image_height = image.get_height()
-                scale_x = button_size['width'] / image_width
-                scale_y = button_size['height'] / image_height
-                scale = min(scale_x, scale_y) * 0.8  # 80% der maximalen Größe
-                
-                # Bild zentrieren
-                x = (button_size['width'] - image_width * scale) / 2
-                y = (button_size['height'] - image_height * scale) / 2
-                
-                cr.translate(x, y)
-                cr.scale(scale, scale)
-                cr.set_source_surface(image, 0, 0)
-                cr.paint()
-                cr.restore()
-            except Exception as e:
-                print(f"Fehler beim Laden des Bildes: {e}")
+            self._draw_image(cr, button_size)
         
-        # Lösch-Button (X) mit draw_control_button zeichnen
+        # Lösch-Button
+        self._draw_delete_button(cr, button_config, button_size)
+        
+        # Text
+        self._draw_text(cr, button_config)
+        
+        # Steuerungsbuttons
+        self._draw_control_buttons(cr, button_config, button_size)
+        
+        return False
+    
+    def _draw_image(self, cr, button_size):
+        """Zeichnet das Button-Bild"""
+        try:
+            image = cairo.ImageSurface.create_from_png(self.button_config['image_file'])
+            cr.save()
+            
+            # Bild skalieren und zentrieren
+            image_width = image.get_width()
+            image_height = image.get_height()
+            scale_x = button_size['width'] / image_width
+            scale_y = button_size['height'] / image_height
+            scale = min(scale_x, scale_y) * 0.8
+            
+            x = (button_size['width'] - image_width * scale) / 2
+            y = (button_size['height'] - image_height * scale) / 2
+            
+            cr.translate(x, y)
+            cr.scale(scale, scale)
+            cr.set_source_surface(image, 0, 0)
+            cr.paint()
+            cr.restore()
+        except Exception as e:
+            print(f"Fehler beim Laden des Bildes: {e}")
+    
+    def _draw_delete_button(self, cr, button_config, button_size):
+        """Zeichnet den Lösch-Button"""
         delete_size = button_config['delete_button_size']
         delete_x = button_size['width'] - delete_size - 10
         delete_y = 10
         
-        # Steuerungsbutton-Konfiguration für den Lösch-Button verwenden
         control_config = button_config['control_buttons']
         self.draw_control_button(
             cr,
@@ -264,30 +285,26 @@ class SoundButton(Gtk.Box):
             self.hex_to_rgb(control_config['border_color']),
             self.hex_to_rgb(control_config['symbol_color']),
             control_config['border_width'],
-            "delete"  # Neuer Symboltyp für den Lösch-Button
+            "delete"
         )
-        
-        # Text auf dem Button
+    
+    def _draw_text(self, cr, button_config):
+        """Zeichnet den Button-Text"""
         text_color = self.hex_to_rgb(button_config['text_color'])
         cr.set_source_rgb(*text_color)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
         cr.set_font_size(button_config['text_size'])
         cr.move_to(button_config['text_x'], button_config['text_y'])
         cr.show_text(self.button_config['text'])
-        
-        # Steuerungsbuttons zeichnen
+    
+    def _draw_control_buttons(self, cr, button_config, button_size):
+        """Zeichnet die Steuerungsbuttons"""
         control_config = button_config['control_buttons']
         control_size = control_config['size']
         spacing = control_config['spacing']
         
-        # Berechne die Y-Position der Steuerungsbuttons
-        # Position = Button-Höhe - Control-Button-Größe - Abstand zum unteren Rand
         y_offset = button_size['height'] - control_size - spacing
-        
-        # Berechne die Gesamtbreite der Steuerungsbuttons
         total_control_width = 3 * control_size + 2 * spacing
-        
-        # Berechne die Startposition, damit die Buttons zentriert sind
         start_x = (button_size['width'] - total_control_width) / 2
         
         # Play-Button
@@ -328,50 +345,75 @@ class SoundButton(Gtk.Box):
             control_config['border_width'],
             "loop"
         )
-        
-        return False
     
     def play_sound(self):
         """Spielt den Sound ab"""
         if 'audio_file' in self.button_config and self.button_config['audio_file']:
             try:
-                # Wenn bereits ein Sound läuft, diesen stoppen
                 if self.sound and self.is_playing:
-                    self.sound.stop()
+                    self.stop_sound()
                 
-                # Sound laden und abspielen
                 self.sound = pygame.mixer.Sound(self.button_config['audio_file'])
-                self.sound.set_volume(self.button_config['volume'] / 100.0)  # Lautstärke auf 0-1 skalieren
+                self.sound.set_volume(self.button_config['volume'] / 100.0)
+                
                 self.sound.play()
                 self.is_playing = True
+                
                 print(f"Button {self.position + 1} - Sound wird abgespielt")
             except Exception as e:
                 print(f"Fehler beim Abspielen des Sounds: {e}")
+                self.stop_sound()
     
     def stop_sound(self):
         """Stoppt den Sound"""
         if self.sound and self.is_playing:
-            self.sound.stop()
-            self.is_playing = False
-            print(f"Button {self.position + 1} - Sound gestoppt")
+            try:
+                self.sound.stop()
+                self.is_playing = False
+                print(f"Button {self.position + 1} - Sound gestoppt")
+            except Exception as e:
+                print(f"Fehler beim Stoppen des Sounds: {e}")
     
     def toggle_loop(self):
         """Schaltet die Schleifenwiedergabe ein/aus"""
         if self.sound:
-            self.is_looping = not self.is_looping
-            if self.is_looping:
-                self.sound.play(-1)  # -1 bedeutet endlose Schleife
-                print(f"Button {self.position + 1} - Schleifenwiedergabe aktiviert")
-            else:
-                self.sound.stop()
-                self.is_playing = False
-                print(f"Button {self.position + 1} - Schleifenwiedergabe deaktiviert")
+            try:
+                self.is_looping = not self.is_looping
+                if self.is_looping:
+                    self.sound.play(-1)
+                    print(f"Button {self.position + 1} - Schleifenwiedergabe aktiviert")
+                else:
+                    self.stop_sound()
+                    print(f"Button {self.position + 1} - Schleifenwiedergabe deaktiviert")
+            except Exception as e:
+                print(f"Fehler beim Umschalten der Schleifenwiedergabe: {e}")
+                self.stop_sound()
     
     def on_button_press(self, widget, event):
+        """Handler für Mausklicks"""
         button_config = self.config['button']
         button_size = self.config['soundbutton']
         
-        # Prüfe, ob der Lösch-Button geklickt wurde
+        # Lösch-Button
+        if self._is_delete_button_clicked(event, button_config, button_size):
+            if self.on_delete:
+                self.on_delete(self)
+            return True
+        
+        # Control-Buttons
+        if self._is_control_button_clicked(event, button_config, button_size):
+            return True
+        
+        # Rechtsklick
+        if event.button == 3:
+            self.show_text_dialog()
+            return True
+        
+        print(f"Außerhalb aller Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
+        return True
+    
+    def _is_delete_button_clicked(self, event, button_config, button_size):
+        """Prüft, ob der Lösch-Button geklickt wurde"""
         delete_size = button_config['delete_button_size']
         delete_x = button_size['width'] - delete_size - 10
         delete_y = 10
@@ -379,107 +421,49 @@ class SoundButton(Gtk.Box):
         if (delete_x <= event.x <= delete_x + delete_size and 
             delete_y <= event.y <= delete_y + delete_size):
             print(f"Lösch-Button von Button {self.position + 1} wurde geklickt!")
-            if self.on_delete:
-                self.on_delete(self)
             return True
-        
-        # Control-Buttons überprüfen
+        return False
+    
+    def _is_control_button_clicked(self, event, button_config, button_size):
+        """Prüft, ob ein Control-Button geklickt wurde"""
         control_config = button_config['control_buttons']
         control_size = control_config['size']
         spacing = control_config['spacing']
         
-        # Berechne die Y-Position der Steuerungsbuttons
         y_offset = button_size['height'] - control_size - spacing
-        
-        # Berechne die Gesamtbreite der Steuerungsbuttons
         total_control_width = 3 * control_size + 2 * spacing
-        
-        # Berechne die Startposition, damit die Buttons zentriert sind
         start_x = (button_size['width'] - total_control_width) / 2
         
-        # Prüfe, ob der Klick im Bereich der Control-Buttons ist
-        if (y_offset <= event.y <= y_offset + control_size):
+        if y_offset <= event.y <= y_offset + control_size:
             # Play-Button
-            if (start_x <= event.x <= start_x + control_size):
+            if start_x <= event.x <= start_x + control_size:
                 print(f"Play-Button von Button {self.position + 1} wurde geklickt!")
                 self.play_sound()
                 return True
             
             # Stop-Button
-            if (start_x + control_size + spacing <= event.x <= start_x + 2 * control_size + spacing):
+            if start_x + control_size + spacing <= event.x <= start_x + 2 * control_size + spacing:
                 print(f"Stop-Button von Button {self.position + 1} wurde geklickt!")
                 self.stop_sound()
                 return True
             
             # Loop-Button
-            if (start_x + 2 * (control_size + spacing) <= event.x <= start_x + 3 * control_size + 2 * spacing):
+            if start_x + 2 * (control_size + spacing) <= event.x <= start_x + 3 * control_size + 2 * spacing:
                 print(f"Loop-Button von Button {self.position + 1} wurde geklickt!")
                 self.toggle_loop()
                 return True
-        
-        # Rechtsklick auf den Button-Hintergrund
-        if event.button == 3:  # 3 ist der Rechtsklick
-            self.show_text_dialog()
-            return True
-        
-        # Wenn der Klick außerhalb aller Buttons war
-        print(f"Außerhalb aller Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
-        return True
+        return False
     
     def show_text_dialog(self):
-        """Zeigt einen Dialog zum Ändern des Button-Texts, der Audiodatei und des Bildes"""
+        """Zeigt den Einstellungsdialog"""
         dialog = SettingsDialog(self.get_toplevel(), self.button_config, self.position)
         dialog.show()
-        self.drawing_area.queue_draw()  # Neu zeichnen
+        self.drawing_area.queue_draw()
     
     def on_volume_changed(self, volume_slider):
-        """Callback für Änderungen am Lautstärkeregler"""
+        """Handler für Änderungen am Lautstärkeregler"""
         value = volume_slider.get_value()
         self.button_config['volume'] = value
         if self.sound:
-            self.sound.set_volume(value / 100.0)  # Lautstärke auf 0-1 skalieren
-        print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt")
-    
-    def on_position_changed(self, position_slider):
-        """Callback für Änderungen am Positionsregler"""
-        value = position_slider.get_value()
-        self.button_config['position'] = value
-        
-        if self.sound and self.is_playing:
-            try:
-                # Berechne die neue Position in Millisekunden
-                new_position = (value / 100.0) * self.sound_length
-                # Stoppe den aktuellen Sound
-                self.stop_sound()
-                # Starte den Sound neu
-                self.play_sound()
-            except Exception as e:
-                print(f"Fehler beim Ändern der Position: {e}")
-                self.stop_sound()
-        
-        print(f"Button {self.position + 1} - Position auf {value}% gesetzt")
-    
-    def save_config(self):
-        """Speichert die aktuelle Button-Konfiguration"""
-        try:
-            with open('config.json', 'r') as f:
-                config = json.load(f)
-        except FileNotFoundError:
-            config = self.config
-        
-        # Aktualisiere oder füge die Button-Konfiguration hinzu
-        buttons = config.get('buttons', [])
-        found = False
-        for button in buttons:
-            if button['position'] == self.position:
-                button.update(self.button_config)
-                found = True
-                break
-        if not found:
-            buttons.append(self.button_config)
-        
-        config['buttons'] = buttons
-        
-        # Speichere die aktualisierte Konfiguration
-        with open('config.json', 'w') as f:
-            json.dump(config, f, indent=4) 
+            self.sound.set_volume(value / 100.0)
+        print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt") 
