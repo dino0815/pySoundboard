@@ -80,7 +80,7 @@ class SoundboardWindow(Gtk.Window):
         # Add-Button erstellen
         self.add_button = Gtk.Button(label="+")
         self.add_button.connect("clicked", self.add_new_button)
-        self.button_box.pack_start(self.add_button, False, False, 0)
+        self.button_box.pack_end(self.add_button, False, False, 0)  # Änderung von pack_start zu pack_end
     
     def _connect_signals(self):
         """Verbindet die Signal-Handler"""
