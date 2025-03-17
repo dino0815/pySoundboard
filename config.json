@@ -1,21 +1,22 @@
 {
     "window": {
         "width": 1000,
-        "height": 300,
+        "height": 200,
         "title": "Soundboard"
     },
     "soundbutton": {
         "width": 200,
         "height": 100,
-        "scale_height": 15,
-        "scale_width": 200,
+        "button_height": 150,
+        "scale_height": 100,
+        "scale_width": 15,
         "margin": 10,
         "spacing": 5,
         "initial_count": 3
     },
     "button": {
         "radius": 15,
-        "delete_button_size": 20,
+        "delete_button_size": 30,
         "text_size": 20,
         "background_color": "#CCCCCC",
         "delete_button_color": "#CC3333",
@@ -23,10 +24,11 @@
         "text_x": 17,
         "text_y": 20,
         "control_buttons": {
-            "size": 30,
-            "spacing": 10,
-            "background_color": "#E0E0E0",
-            "border_color": "#808080",
+            "size": 25,
+            "spacing": 5,
+            "y_offset": 110,
+            "background_color": "#FFFFFF",
+            "border_color": "#000000",
             "symbol_color": "#000000",
             "border_width": 1
         }

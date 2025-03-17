@@ -57,15 +57,23 @@ class SoundButton(Gtk.Box):
         self.scale.set_draw_value(False)  # Keine numerische Anzeige
         self.scale.set_vexpand(False)
         self.scale.set_hexpand(False)
-        self.scale.set_size_request(button_config['scale_height'], button_config['height'] + button_config['scale_height'] + button_config['spacing'])
+        self.scale.set_size_request(button_config['scale_width'], button_config['height'])  # Gleiche Höhe wie Button
+        self.scale.set_inverted(True)  # Umkehrung der Richtung (oben = laut, unten = leise)
         self.scale.connect("value-changed", self.on_scale_changed)
+        
+        # Container für den Schieberegler
+        scale_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        scale_container.set_vexpand(False)
+        scale_container.set_hexpand(False)
+        scale_container.set_size_request(button_config['scale_width'], button_config['height'])
+        scale_container.pack_start(self.scale, False, False, 0)
         
         # Widgets zum Container hinzufügen
         self.button_container.pack_start(self.drawing_area, False, False, 0)
         
         # Widgets zum Hauptcontainer hinzufügen
         self.pack_start(self.button_container, False, False, 0)
-        self.pack_start(self.scale, False, False, button_config['spacing'])
+        self.pack_start(scale_container, False, False, button_config['spacing'])
         
         # Debug-Ausgabe
         print(f"SoundButton {self.position + 1} erstellt - Position: x={self.offset_x}, y={self.offset_y}")
