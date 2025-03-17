@@ -19,13 +19,13 @@ class SoundButton(Gtk.Box):
         
         # Größen aus der Konfiguration
         button_config = self.config['soundbutton']
-        self.set_size_request(button_config['width'], button_config['height'])
+        self.set_size_request(button_config['width'], button_config['height'] + button_config['scale_height'] + button_config['spacing'])
         self.set_vexpand(False)
         self.set_hexpand(False)
         
         # DrawingArea für den Button
         self.drawing_area = Gtk.DrawingArea()
-        self.drawing_area.set_size_request(button_config['width'], button_config['button_height'])
+        self.drawing_area.set_size_request(button_config['width'], button_config['height'])
         self.drawing_area.set_vexpand(False)
         self.drawing_area.set_hexpand(False)
         
@@ -41,7 +41,7 @@ class SoundButton(Gtk.Box):
         scale_config = self.config['scale']
         self.scale.set_range(scale_config['min'], scale_config['max'])
         self.scale.set_value(self.button_config['volume'])
-        self.scale.set_draw_value(True)
+        self.scale.set_draw_value(False)  # Keine numerische Anzeige
         self.scale.set_vexpand(False)
         self.scale.set_hexpand(False)
         self.scale.set_size_request(button_config['scale_width'], button_config['scale_height'])
@@ -99,8 +99,7 @@ class SoundButton(Gtk.Box):
             return {
                 'soundbutton': {
                     'width': 300,
-                    'height': 200,
-                    'button_height': 150,
+                    'height': 150,
                     'scale_height': 30,
                     'scale_width': 200,
                     'margin': 10,
@@ -172,14 +171,21 @@ class SoundButton(Gtk.Box):
             cr.fill()
         elif symbol_type == "loop":
             # Unendlichkeitssymbol (∞)
-            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)  # Fetter für bessere Sichtbarkeit
-            cr.set_font_size(size * 0.9)  # Etwas größer
-            # Zentriere das Symbol
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+            cr.set_font_size(size * 0.9)
             extents = cr.text_extents("∞")
             text_x = x + (size - extents.width) / 2 -2
-            text_y = y + (size + extents.height) / 2 + 1  # Leicht nach oben verschieben
+            text_y = y + (size + extents.height) / 2 + 1
             cr.move_to(text_x, text_y)
             cr.show_text("∞")
+        elif symbol_type == "delete":
+            # Schwarzes Kreuz
+            padding = 5
+            cr.move_to(x + padding, y + padding)
+            cr.line_to(x + size - padding, y + size - padding)
+            cr.move_to(x + size - padding, y + padding)
+            cr.line_to(x + padding, y + size - padding)
+            cr.stroke()
     
     def on_draw(self, widget, cr):
         button_config = self.config['button']
@@ -188,29 +194,27 @@ class SoundButton(Gtk.Box):
         # Abgerundetes Rechteck als Hintergrund zeichnen
         bg_color = self.hex_to_rgb(button_config['background_color'])
         cr.set_source_rgb(*bg_color)
-        self.rounded_rectangle(cr, 0, 0, button_size['width'], button_size['button_height'], button_config['radius'])
+        self.rounded_rectangle(cr, 0, 0, button_size['width'], button_size['height'], button_config['radius'])
         cr.fill()
         
-        # Lösch-Button (rotes X) zeichnen
+        # Lösch-Button (X) mit draw_control_button zeichnen
         delete_size = button_config['delete_button_size']
         delete_x = button_size['width'] - delete_size - 10
         delete_y = 10
         
-        # Roter Hintergrund für den Lösch-Button
-        delete_color = self.hex_to_rgb(button_config['delete_button_color'])
-        cr.set_source_rgb(*delete_color)
-        self.rounded_rectangle(cr, delete_x, delete_y, delete_size, delete_size, delete_size/2)
-        cr.fill()
-        
-        # Weißes X zeichnen
-        cr.set_source_rgb(1.0, 1.0, 1.0)
-        cr.set_line_width(3)
-        padding = 5
-        cr.move_to(delete_x + padding, delete_y + padding)
-        cr.line_to(delete_x + delete_size - padding, delete_y + delete_size - padding)
-        cr.move_to(delete_x + delete_size - padding, delete_y + padding)
-        cr.line_to(delete_x + padding, delete_y + delete_size - padding)
-        cr.stroke()
+        # Steuerungsbutton-Konfiguration für den Lösch-Button verwenden
+        control_config = button_config['control_buttons']
+        self.draw_control_button(
+            cr,
+            delete_x,
+            delete_y,
+            delete_size,
+            self.hex_to_rgb(control_config['background_color']),
+            self.hex_to_rgb(control_config['border_color']),
+            self.hex_to_rgb(control_config['symbol_color']),
+            control_config['border_width'],
+            "delete"  # Neuer Symboltyp für den Lösch-Button
+        )
         
         # Text auf dem Button
         text_color = self.hex_to_rgb(button_config['text_color'])
@@ -224,7 +228,10 @@ class SoundButton(Gtk.Box):
         control_config = button_config['control_buttons']
         control_size = control_config['size']
         spacing = control_config['spacing']
-        y_offset = control_config['y_offset']
+        
+        # Berechne die Y-Position der Steuerungsbuttons
+        # Position = Button-Höhe - Control-Button-Größe - Abstand zum unteren Rand
+        y_offset = button_size['height'] - control_size - spacing
         
         # Berechne die Gesamtbreite der Steuerungsbuttons
         total_control_width = 3 * control_size + 2 * spacing
@@ -289,8 +296,39 @@ class SoundButton(Gtk.Box):
                 self.on_delete(self)
             return True
         
-        # Wenn der Klick außerhalb des Lösch-Buttons war
-        print(f"Außerhalb des Lösch-Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
+        # Control-Buttons überprüfen
+        control_config = button_config['control_buttons']
+        control_size = control_config['size']
+        spacing = control_config['spacing']
+        
+        # Berechne die Y-Position der Steuerungsbuttons
+        y_offset = button_size['height'] - control_size - spacing
+        
+        # Berechne die Gesamtbreite der Steuerungsbuttons
+        total_control_width = 3 * control_size + 2 * spacing
+        
+        # Berechne die Startposition, damit die Buttons zentriert sind
+        start_x = (button_size['width'] - total_control_width) / 2
+        
+        # Prüfe, ob der Klick im Bereich der Control-Buttons ist
+        if (y_offset <= event.y <= y_offset + control_size):
+            # Play-Button
+            if (start_x <= event.x <= start_x + control_size):
+                print(f"Play-Button von Button {self.position + 1} wurde geklickt!")
+                return True
+            
+            # Stop-Button
+            if (start_x + control_size + spacing <= event.x <= start_x + 2 * control_size + spacing):
+                print(f"Stop-Button von Button {self.position + 1} wurde geklickt!")
+                return True
+            
+            # Loop-Button
+            if (start_x + 2 * (control_size + spacing) <= event.x <= start_x + 3 * control_size + 2 * spacing):
+                print(f"Loop-Button von Button {self.position + 1} wurde geklickt!")
+                return True
+        
+        # Wenn der Klick außerhalb aller Buttons war
+        print(f"Außerhalb aller Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
         return True
     
     def on_scale_changed(self, scale):
