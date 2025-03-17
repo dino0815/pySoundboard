@@ -431,7 +431,6 @@ class SoundButton(Gtk.Box):
         dialog = SettingsDialog(self.get_toplevel(), self.button_config, self.position)
         dialog.show()
         self.drawing_area.queue_draw()  # Neu zeichnen
-        self.save_config()  # Speichern
     
     def on_volume_changed(self, volume_slider):
         """Callback für Änderungen am Lautstärkeregler"""
@@ -440,6 +439,25 @@ class SoundButton(Gtk.Box):
         if self.sound:
             self.sound.set_volume(value / 100.0)  # Lautstärke auf 0-1 skalieren
         print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt")
+    
+    def on_position_changed(self, position_slider):
+        """Callback für Änderungen am Positionsregler"""
+        value = position_slider.get_value()
+        self.button_config['position'] = value
+        
+        if self.sound and self.is_playing:
+            try:
+                # Berechne die neue Position in Millisekunden
+                new_position = (value / 100.0) * self.sound_length
+                # Stoppe den aktuellen Sound
+                self.stop_sound()
+                # Starte den Sound neu
+                self.play_sound()
+            except Exception as e:
+                print(f"Fehler beim Ändern der Position: {e}")
+                self.stop_sound()
+        
+        print(f"Button {self.position + 1} - Position auf {value}% gesetzt")
     
     def save_config(self):
         """Speichert die aktuelle Button-Konfiguration"""

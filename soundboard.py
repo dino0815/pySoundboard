@@ -14,6 +14,9 @@ class SoundboardWindow(Gtk.Window):
         # Konfiguration laden
         self.config = self.load_config()
         
+        # pygame für Sound initialisieren
+        pygame.mixer.init()
+        
         # Fenster-Eigenschaften aus der Konfiguration
         window_config = self.config['window']
         self.set_default_size(window_config['width'], window_config['height'])
@@ -76,6 +79,12 @@ class SoundboardWindow(Gtk.Window):
         
         # Initiale ScrolledWindow-Größe setzen
         self.update_scrolled_window_size()
+        
+        # Signal-Handler für Strg+S
+        self.connect("key-press-event", self.on_key_press)
+        
+        # Signal-Handler für das Schließen des Fensters
+        self.connect("delete-event", self.on_window_delete)
         
         # Alle Widgets anzeigen
         self.show_all()
@@ -196,6 +205,37 @@ class SoundboardWindow(Gtk.Window):
         min_height = button_config['height'] + button_config['volume_height'] + button_config['spacing'] + 20  # 20 Pixel für Rahmen
         if height < min_height:
             self.set_size_request(-1, min_height)  # -1 bedeutet, die Breite nicht zu ändern
+    
+    def on_key_press(self, widget, event):
+        """Handler für Tastatureingaben"""
+        if event.state & Gdk.ModifierType.CONTROL_MASK and event.keyval == Gdk.KEY_s:
+            self.save_all_configs()
+            return True
+        return False
+    
+    def on_window_delete(self, widget, event):
+        """Handler für das Schließen des Fensters"""
+        self.save_all_configs()
+        return False
+    
+    def save_all_configs(self):
+        """Speichert die Konfigurationen aller Buttons"""
+        try:
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+        except FileNotFoundError:
+            config = self.config
+        
+        # Aktualisiere die Button-Konfigurationen
+        buttons = []
+        for button in self.buttons:
+            buttons.append(button.button_config)
+        
+        config['buttons'] = buttons
+        
+        # Speichere die aktualisierte Konfiguration
+        with open('config.json', 'w') as f:
+            json.dump(config, f, indent=4)
 
 def main():
     win = SoundboardWindow()
