@@ -112,7 +112,9 @@ class SoundButton(Gtk.Box):
                     'text_size': 20,
                     'background_color': '#CCCCCC',
                     'delete_button_color': '#CC3333',
-                    'text_color': '#000000'
+                    'text_color': '#000000',
+                    'text_x': 20,
+                    'text_y': 25
                 },
                 'scale': {
                     'min': 0,
@@ -175,9 +177,7 @@ class SoundButton(Gtk.Box):
         cr.set_source_rgb(*text_color)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
         cr.set_font_size(button_config['text_size'])
-        text_x = 20
-        text_y = button_size['button_height'] / 2 + 10
-        cr.move_to(text_x, text_y)
+        cr.move_to(button_config['text_x'], button_config['text_y'])
         cr.show_text(self.button_config['text'])
         
         return False

@@ -20,7 +20,9 @@
         "text_size": 20,
         "background_color": "#CCCCCC",
         "delete_button_color": "#CC0000",
-        "text_color": "#000099"
+        "text_color": "#000099",
+        "text_x": 20,
+        "text_y": 25
     },
     "scale": {
         "min": 0,
