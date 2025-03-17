@@ -60,16 +60,34 @@ class SoundButton(Gtk.Box):
     
     def get_button_config(self):
         """Lädt die Button-spezifische Konfiguration"""
+        # Für neue Buttons immer eine neue Konfiguration erstellen
+        if self.position >= len(self.config.get('buttons', [])):
+            return {
+                'position': self.position,
+                'scale_value': self.config['scale']['default'],
+                'text': f"Button {self.position + 1}"
+            }
+        
+        # Für existierende Buttons die gespeicherte Konfiguration laden
         buttons = self.config.get('buttons', [])
         for button in buttons:
             if button['position'] == self.position:
-                return button
-        # Wenn keine Konfiguration gefunden wurde, erstelle eine neue
+                return button.copy()  # Erstelle eine Kopie der Konfiguration
+        
+        # Fallback: Neue Konfiguration
         return {
             'position': self.position,
             'scale_value': self.config['scale']['default'],
             'text': f"Button {self.position + 1}"
         }
+    
+    def hex_to_rgb(self, hex_color):
+        """Konvertiert einen Hex-Farbcode (#RRGGBB) in RGB-Werte (0-1)"""
+        hex_color = hex_color.lstrip('#')
+        r = int(hex_color[0:2], 16) / 255.0
+        g = int(hex_color[2:4], 16) / 255.0
+        b = int(hex_color[4:6], 16) / 255.0
+        return [r, g, b]
     
     def load_config(self):
         """Lädt die Konfigurationsdatei"""
@@ -92,9 +110,9 @@ class SoundButton(Gtk.Box):
                     'radius': 15,
                     'delete_button_size': 30,
                     'text_size': 20,
-                    'background_color': [0.8, 0.8, 0.8],
-                    'delete_button_color': [0.8, 0.2, 0.2],
-                    'text_color': [0.0, 0.0, 0.0]
+                    'background_color': '#CCCCCC',
+                    'delete_button_color': '#CC3333',
+                    'text_color': '#000000'
                 },
                 'scale': {
                     'min': 0,
@@ -126,7 +144,7 @@ class SoundButton(Gtk.Box):
         button_size = self.config['soundbutton']
         
         # Abgerundetes Rechteck als Hintergrund zeichnen
-        bg_color = button_config['background_color']
+        bg_color = self.hex_to_rgb(button_config['background_color'])
         cr.set_source_rgb(*bg_color)
         self.rounded_rectangle(cr, 0, 0, button_size['width'], button_size['button_height'], button_config['radius'])
         cr.fill()
@@ -137,7 +155,7 @@ class SoundButton(Gtk.Box):
         delete_y = 10
         
         # Roter Hintergrund für den Lösch-Button
-        delete_color = button_config['delete_button_color']
+        delete_color = self.hex_to_rgb(button_config['delete_button_color'])
         cr.set_source_rgb(*delete_color)
         self.rounded_rectangle(cr, delete_x, delete_y, delete_size, delete_size, delete_size/2)
         cr.fill()
@@ -153,7 +171,7 @@ class SoundButton(Gtk.Box):
         cr.stroke()
         
         # Text auf dem Button
-        text_color = button_config['text_color']
+        text_color = self.hex_to_rgb(button_config['text_color'])
         cr.set_source_rgb(*text_color)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
         cr.set_font_size(button_config['text_size'])
