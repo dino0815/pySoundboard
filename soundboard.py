@@ -127,8 +127,37 @@ class SoundboardWindow(Gtk.Window):
     def delete_button(self, button):
         """Löscht einen Button und aktualisiert die Positionen der verbleibenden Buttons"""
         print(f"Lösche Button {button.position + 1}")
+        
+        # Button aus der Liste und GUI entfernen
         self.buttons.remove(button)
         self.button_box.remove(button)
+        
+        # Konfiguration aktualisieren
+        try:
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+            
+            # Entferne den Button aus der gespeicherten Konfiguration
+            if 'buttons' in config:
+                # Entferne den gelöschten Button
+                config['buttons'] = [b for b in config['buttons'] if b['position'] != button.position]
+                
+                # Aktualisiere die Positionen der verbleibenden Buttons
+                for i, b in enumerate(config['buttons']):
+                    b['position'] = i
+                
+                print(f"Konfiguration aktualisiert. Verbleibende Buttons: {len(config['buttons'])}")
+            
+            # Speichere die aktualisierte Konfiguration
+            with open('config.json', 'w') as f:
+                json.dump(config, f, indent=4)
+        except Exception as e:
+            print(f"Fehler beim Aktualisieren der Konfiguration: {e}")
+        
+        # Positionen der verbleibenden Buttons aktualisieren
+        for i, b in enumerate(self.buttons):
+            b.position = i
+            b.button_config['position'] = i
         self.update_button_positions()
     
     def on_destroy(self, widget):
