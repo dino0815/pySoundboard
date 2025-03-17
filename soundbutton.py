@@ -197,6 +197,32 @@ class SoundButton(Gtk.Box):
         self.rounded_rectangle(cr, 0, 0, button_size['width'], button_size['height'], button_config['radius'])
         cr.fill()
         
+        # Bild zeichnen, falls vorhanden
+        if 'image_file' in self.button_config and self.button_config['image_file']:
+            try:
+                # Bild laden und skalieren
+                image = cairo.ImageSurface.create_from_png(self.button_config['image_file'])
+                # Bild auf Button-Größe skalieren
+                cr.save()
+                # Bild in der Mitte des Buttons platzieren
+                image_width = image.get_width()
+                image_height = image.get_height()
+                scale_x = button_size['width'] / image_width
+                scale_y = button_size['height'] / image_height
+                scale = min(scale_x, scale_y) * 0.8  # 80% der maximalen Größe
+                
+                # Bild zentrieren
+                x = (button_size['width'] - image_width * scale) / 2
+                y = (button_size['height'] - image_height * scale) / 2
+                
+                cr.translate(x, y)
+                cr.scale(scale, scale)
+                cr.set_source_surface(image, 0, 0)
+                cr.paint()
+                cr.restore()
+            except Exception as e:
+                print(f"Fehler beim Laden des Bildes: {e}")
+        
         # Lösch-Button (X) mit draw_control_button zeichnen
         delete_size = button_config['delete_button_size']
         delete_x = button_size['width'] - delete_size - 10
@@ -337,7 +363,7 @@ class SoundButton(Gtk.Box):
         return True
     
     def show_text_dialog(self):
-        """Zeigt einen Dialog zum Ändern des Button-Texts und der Audiodatei"""
+        """Zeigt einen Dialog zum Ändern des Button-Texts, der Audiodatei und des Bildes"""
         dialog = Gtk.Dialog(title="Button-Einstellungen", transient_for=self.get_toplevel(), flags=0)
         dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK)
         
@@ -363,10 +389,26 @@ class SoundButton(Gtk.Box):
         file_box.pack_start(file_entry, True, True, 0)
         
         browse_button = Gtk.Button(label="Durchsuchen")
-        browse_button.connect("clicked", self.on_browse_clicked, file_entry)
+        browse_button.connect("clicked", self.on_browse_clicked, file_entry, "audio")
         file_box.pack_start(browse_button, False, False, 5)
         
         content_area.pack_start(file_box, True, True, 0)
+        
+        # Label und Container für das Bild
+        image_label = Gtk.Label(label="Button-Bild:")
+        content_area.pack_start(image_label, True, True, 0)
+        
+        image_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        image_entry = Gtk.Entry()
+        image_entry.set_text(self.button_config.get('image_file', ''))
+        image_entry.set_hexpand(True)
+        image_box.pack_start(image_entry, True, True, 0)
+        
+        image_browse_button = Gtk.Button(label="Durchsuchen")
+        image_browse_button.connect("clicked", self.on_browse_clicked, image_entry, "image")
+        image_box.pack_start(image_browse_button, False, False, 5)
+        
+        content_area.pack_start(image_box, True, True, 0)
         
         # Dialog anzeigen
         dialog.show_all()
@@ -377,6 +419,7 @@ class SoundButton(Gtk.Box):
         if response == Gtk.ResponseType.OK:
             new_text = text_entry.get_text()
             new_file = file_entry.get_text()
+            new_image = image_entry.get_text()
             
             if new_text.strip():  # Nur wenn der Text nicht leer ist
                 self.button_config['text'] = new_text
@@ -386,24 +429,35 @@ class SoundButton(Gtk.Box):
                 self.button_config['audio_file'] = new_file
                 print(f"Button {self.position + 1} - Audiodatei auf '{new_file}' gesetzt")
             
+            if new_image.strip():  # Nur wenn ein Bild ausgewählt wurde
+                self.button_config['image_file'] = new_image
+                print(f"Button {self.position + 1} - Bild auf '{new_image}' gesetzt")
+            
             self.drawing_area.queue_draw()  # Neu zeichnen
             self.save_config()  # Speichern
         
         dialog.destroy()
     
-    def on_browse_clicked(self, button, entry):
+    def on_browse_clicked(self, button, entry, file_type):
         """Öffnet einen Dateiauswahl-Dialog"""
         dialog = Gtk.FileChooserDialog(
-            title="Audiodatei auswählen",
+            title="Datei auswählen",
             transient_for=self.get_toplevel(),
             action=Gtk.FileChooserAction.OPEN
         )
         
-        # Filter für Audiodateien
-        audio_filter = Gtk.FileFilter()
-        audio_filter.set_name("Audiodateien")
-        audio_filter.add_mime_type("audio/*")
-        dialog.add_filter(audio_filter)
+        if file_type == "audio":
+            # Filter für Audiodateien
+            audio_filter = Gtk.FileFilter()
+            audio_filter.set_name("Audiodateien")
+            audio_filter.add_mime_type("audio/*")
+            dialog.add_filter(audio_filter)
+        else:  # image
+            # Filter für Bilddateien
+            image_filter = Gtk.FileFilter()
+            image_filter.set_name("Bilddateien")
+            image_filter.add_mime_type("image/*")
+            dialog.add_filter(image_filter)
         
         # Alle Dateien
         all_filter = Gtk.FileFilter()
