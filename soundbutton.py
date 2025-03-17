@@ -40,7 +40,7 @@ class SoundButton(Gtk.Box):
         self.scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL)
         scale_config = self.config['scale']
         self.scale.set_range(scale_config['min'], scale_config['max'])
-        self.scale.set_value(self.button_config['scale_value'])
+        self.scale.set_value(self.button_config['volume'])
         self.scale.set_draw_value(True)
         self.scale.set_vexpand(False)
         self.scale.set_hexpand(False)
@@ -64,7 +64,7 @@ class SoundButton(Gtk.Box):
         if self.position >= len(self.config.get('buttons', [])):
             return {
                 'position': self.position,
-                'scale_value': self.config['scale']['default'],
+                'volume': self.config['scale']['default'],
                 'text': f"Button {self.position + 1}"
             }
         
@@ -77,7 +77,7 @@ class SoundButton(Gtk.Box):
         # Fallback: Neue Konfiguration
         return {
             'position': self.position,
-            'scale_value': self.config['scale']['default'],
+            'volume': self.config['scale']['default'],
             'text': f"Button {self.position + 1}"
         }
     
@@ -113,8 +113,8 @@ class SoundButton(Gtk.Box):
                     'background_color': '#CCCCCC',
                     'delete_button_color': '#CC3333',
                     'text_color': '#000000',
-                    'text_x': 20,
-                    'text_y': 25
+                    'text_x': 17,
+                    'text_y': 20
                 },
                 'scale': {
                     'min': 0,
@@ -140,6 +140,46 @@ class SoundButton(Gtk.Box):
         cr.arc(x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees)
         cr.arc(x + radius, y + radius, radius, 180 * degrees, 270 * degrees)
         cr.close_path()
+    
+    def draw_control_button(self, cr, x, y, size, bg_color, border_color, symbol_color, border_width, symbol_type):
+        """Zeichnet einen Steuerungsbutton mit Symbol"""
+        # Hintergrund
+        cr.set_source_rgb(*bg_color)
+        self.rounded_rectangle(cr, x, y, size, size, size/4)
+        cr.fill()
+        
+        # Rahmen
+        cr.set_source_rgb(*border_color)
+        cr.set_line_width(border_width)
+        self.rounded_rectangle(cr, x, y, size, size, size/4)
+        cr.stroke()
+        
+        # Symbol
+        cr.set_source_rgb(*symbol_color)
+        cr.set_line_width(2)
+        
+        if symbol_type == "play":
+            # Dreieck für Play
+            cr.move_to(x + size/3, y + size/4)
+            cr.line_to(x + size/3, y + 3*size/4)
+            cr.line_to(x + 2*size/3, y + size/2)
+            cr.close_path()
+            cr.fill()
+        elif symbol_type == "stop":
+            # Quadrat für Stop
+            margin = size/4
+            cr.rectangle(x + margin, y + margin, size - 2*margin, size - 2*margin)
+            cr.fill()
+        elif symbol_type == "loop":
+            # Unendlichkeitssymbol (∞)
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)  # Fetter für bessere Sichtbarkeit
+            cr.set_font_size(size * 0.9)  # Etwas größer
+            # Zentriere das Symbol
+            extents = cr.text_extents("∞")
+            text_x = x + (size - extents.width) / 2 -2
+            text_y = y + (size + extents.height) / 2 + 1  # Leicht nach oben verschieben
+            cr.move_to(text_x, text_y)
+            cr.show_text("∞")
     
     def on_draw(self, widget, cr):
         button_config = self.config['button']
@@ -180,6 +220,57 @@ class SoundButton(Gtk.Box):
         cr.move_to(button_config['text_x'], button_config['text_y'])
         cr.show_text(self.button_config['text'])
         
+        # Steuerungsbuttons zeichnen
+        control_config = button_config['control_buttons']
+        control_size = control_config['size']
+        spacing = control_config['spacing']
+        y_offset = control_config['y_offset']
+        
+        # Berechne die Gesamtbreite der Steuerungsbuttons
+        total_control_width = 3 * control_size + 2 * spacing
+        
+        # Berechne die Startposition, damit die Buttons zentriert sind
+        start_x = (button_size['width'] - total_control_width) / 2
+        
+        # Play-Button
+        self.draw_control_button(
+            cr,
+            start_x,
+            y_offset,
+            control_size,
+            self.hex_to_rgb(control_config['background_color']),
+            self.hex_to_rgb(control_config['border_color']),
+            self.hex_to_rgb(control_config['symbol_color']),
+            control_config['border_width'],
+            "play"
+        )
+        
+        # Stop-Button
+        self.draw_control_button(
+            cr,
+            start_x + control_size + spacing,
+            y_offset,
+            control_size,
+            self.hex_to_rgb(control_config['background_color']),
+            self.hex_to_rgb(control_config['border_color']),
+            self.hex_to_rgb(control_config['symbol_color']),
+            control_config['border_width'],
+            "stop"
+        )
+        
+        # Loop-Button
+        self.draw_control_button(
+            cr,
+            start_x + 2 * (control_size + spacing),
+            y_offset,
+            control_size,
+            self.hex_to_rgb(control_config['background_color']),
+            self.hex_to_rgb(control_config['border_color']),
+            self.hex_to_rgb(control_config['symbol_color']),
+            control_config['border_width'],
+            "loop"
+        )
+        
         return False
     
     def on_button_press(self, widget, event):
@@ -205,8 +296,8 @@ class SoundButton(Gtk.Box):
     def on_scale_changed(self, scale):
         """Callback für Änderungen am Schieberegler"""
         value = scale.get_value()
-        self.button_config['scale_value'] = value
-        print(f"Button {self.position + 1} - Schieberegler auf {value} gesetzt")
+        self.button_config['volume'] = value
+        print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt")
     
     def save_config(self):
         """Speichert die aktuelle Button-Konfiguration"""

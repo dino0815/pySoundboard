@@ -22,7 +22,16 @@
         "delete_button_color": "#CC0000",
         "text_color": "#000099",
         "text_x": 20,
-        "text_y": 25
+        "text_y": 25,
+        "control_buttons": {
+            "size": 30,
+            "spacing": 10,
+            "y_offset": 110,
+            "background_color": "#EEEEEE",
+            "border_color": "#999999",
+            "symbol_color": "#000000",
+            "border_width": 2
+        }
     },
     "scale": {
         "min": 0,
@@ -32,12 +41,7 @@
     "buttons": [
         {
             "position": 0,
-            "scale_value": 50,
-            "text": "Button 3"
-        },
-        {
-            "position": 1,
-            "scale_value": 50,
+            "volume": 23.5,
             "text": "Button 3"
         }
     ]
