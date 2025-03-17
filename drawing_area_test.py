@@ -8,6 +8,13 @@ class DrawingAreaWindow(Gtk.Window):
     def __init__(self):
         super().__init__(title="Drawing Area Test")
         
+        # Box für Padding erstellen
+        self.box = Gtk.Box()
+        self.box.set_margin_top(20)
+        self.box.set_margin_bottom(20)
+        self.box.set_margin_start(20)
+        self.box.set_margin_end(20)
+        
         # Drawing Area erstellen
         self.drawing_area = Gtk.DrawingArea()
         self.drawing_area.set_size_request(300, 200)
@@ -19,17 +26,31 @@ class DrawingAreaWindow(Gtk.Window):
         self.drawing_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.drawing_area.connect("button-press-event", self.on_button_press)
         
-        # Drawing Area zum Fenster hinzufügen
-        self.add(self.drawing_area)
+        # Drawing Area zur Box hinzufügen
+        self.box.add(self.drawing_area)
+        
+        # Box zum Fenster hinzufügen
+        self.add(self.box)
         
         # Fenster-Eigenschaften
-        self.set_default_size(300, 200)
+        self.set_default_size(340, 240)  # Größe angepasst für Padding
         self.connect("destroy", Gtk.main_quit)
         
+    def rounded_rectangle(self, cr, x, y, width, height, radius):
+        # Hilfsfunktion zum Zeichnen eines abgerundeten Rechtecks
+        degrees = 3.14159 / 180.0
+        
+        cr.new_sub_path()
+        cr.arc(x + width - radius, y + radius, radius, -90 * degrees, 0)
+        cr.arc(x + width - radius, y + height - radius, radius, 0, 90 * degrees)
+        cr.arc(x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees)
+        cr.arc(x + radius, y + radius, radius, 180 * degrees, 270 * degrees)
+        cr.close_path()
+        
     def on_draw(self, widget, cr):
-        # Hintergrund zeichnen
+        # Abgerundetes Rechteck als Hintergrund zeichnen
         cr.set_source_rgb(0.8, 0.8, 0.8)  # Hellgrau
-        cr.rectangle(0, 0, 300, 200)
+        self.rounded_rectangle(cr, 0, 0, 300, 200, 15)  # Radius 15px
         cr.fill()
         
         # Einen Button-ähnlichen Kreis zeichnen
