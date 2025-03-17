@@ -3,20 +3,28 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import cairo
+import json
 
 class SoundButton(Gtk.Box):
-    def __init__(self, position=0, offset_x=0, offset_y=0):
+    def __init__(self, position=0, offset_x=0, offset_y=0, config=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.position = position  # Speichere die Position
         self.offset_x = offset_x  # X-Offset für die Position
         self.offset_y = offset_y  # Y-Offset für die Position
-        self.set_size_request(300, 200)
+        self.config = config or self.load_config()
+        
+        # Button-spezifische Konfiguration laden
+        self.button_config = self.get_button_config()
+        
+        # Größen aus der Konfiguration
+        button_config = self.config['soundbutton']
+        self.set_size_request(button_config['width'], button_config['height'])
         self.set_vexpand(False)
         self.set_hexpand(False)
         
         # DrawingArea für den Button
         self.drawing_area = Gtk.DrawingArea()
-        self.drawing_area.set_size_request(300, 150)  # Höhe für den Button
+        self.drawing_area.set_size_request(button_config['width'], button_config['button_height'])
         self.drawing_area.set_vexpand(False)
         self.drawing_area.set_hexpand(False)
         
@@ -29,21 +37,70 @@ class SoundButton(Gtk.Box):
         
         # Schieberegler erstellen
         self.scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL)
-        self.scale.set_range(0, 100)  # Wertebereich von 0 bis 100
-        self.scale.set_value(50)  # Standardwert auf 50
-        self.scale.set_draw_value(True)  # Aktuellen Wert anzeigen
+        scale_config = self.config['scale']
+        self.scale.set_range(scale_config['min'], scale_config['max'])
+        self.scale.set_value(self.button_config['scale_value'])
+        self.scale.set_draw_value(True)
         self.scale.set_vexpand(False)
         self.scale.set_hexpand(False)
-        self.scale.set_size_request(200, 30)  # Breite und Höhe des Schiebereglers
+        self.scale.set_size_request(button_config['scale_width'], button_config['scale_height'])
         self.scale.connect("value-changed", self.on_scale_changed)
         
         # Widgets zum Container hinzufügen
         self.pack_start(self.drawing_area, False, False, 0)
-        self.pack_start(self.scale, False, False, 5)  # 5px Abstand
+        self.pack_start(self.scale, False, False, button_config['spacing'])
         
         # Debug-Ausgabe
         print(f"SoundButton {self.position + 1} erstellt - Position: x={self.offset_x}, y={self.offset_y}")
         print(f"SoundButton {self.position + 1} - Offset: x={self.offset_x}, y={self.offset_y}")
+        
+        # Widgets anzeigen
+        self.show_all()
+    
+    def get_button_config(self):
+        """Lädt die Button-spezifische Konfiguration"""
+        buttons = self.config.get('buttons', [])
+        for button in buttons:
+            if button['position'] == self.position:
+                return button
+        # Wenn keine Konfiguration gefunden wurde, erstelle eine neue
+        return {
+            'position': self.position,
+            'scale_value': self.config['scale']['default'],
+            'text': f"Button {self.position + 1}"
+        }
+    
+    def load_config(self):
+        """Lädt die Konfigurationsdatei"""
+        try:
+            with open('config.json', 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            print("Warnung: config.json nicht gefunden, verwende Standardwerte")
+            return {
+                'soundbutton': {
+                    'width': 300,
+                    'height': 200,
+                    'button_height': 150,
+                    'scale_height': 30,
+                    'scale_width': 200,
+                    'margin': 10,
+                    'spacing': 5
+                },
+                'button': {
+                    'radius': 15,
+                    'circle_radius': 50,
+                    'text_size': 20,
+                    'background_color': [0.8, 0.8, 0.8],
+                    'button_color': [0.2, 0.4, 0.8],
+                    'text_color': [1.0, 1.0, 1.0]
+                },
+                'scale': {
+                    'min': 0,
+                    'max': 100,
+                    'default': 50
+                }
+            }
     
     def set_offset(self, offset_x, offset_y):
         """Setzt den Offset des Buttons"""
@@ -64,34 +121,46 @@ class SoundButton(Gtk.Box):
         cr.close_path()
     
     def on_draw(self, widget, cr):
+        button_config = self.config['button']
+        button_size = self.config['soundbutton']
+        
         # Abgerundetes Rechteck als Hintergrund zeichnen
-        cr.set_source_rgb(0.8, 0.8, 0.8)  # Hellgrau
-        self.rounded_rectangle(cr, 0, 0, 300, 150, 15)  # Radius 15px
+        bg_color = button_config['background_color']
+        cr.set_source_rgb(*bg_color)
+        self.rounded_rectangle(cr, 0, 0, button_size['width'], button_size['button_height'], button_config['radius'])
         cr.fill()
         
         # Einen Button-ähnlichen Kreis zeichnen
-        cr.set_source_rgb(0.2, 0.4, 0.8)  # Blau
-        cr.arc(150, 75, 50, 0, 2 * 3.14159)
+        button_color = button_config['button_color']
+        cr.set_source_rgb(*button_color)
+        center_x = button_size['width'] / 2
+        center_y = button_size['button_height'] / 2
+        cr.arc(center_x, center_y, button_config['circle_radius'], 0, 2 * 3.14159)
         cr.fill()
         
         # Text auf dem Button
-        cr.set_source_rgb(1, 1, 1)  # Weiß
+        text_color = button_config['text_color']
+        cr.set_source_rgb(*text_color)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-        cr.set_font_size(20)
-        cr.move_to(130, 85)
-        cr.show_text(f"Button {self.position + 1}")
+        cr.set_font_size(button_config['text_size'])
+        text_x = center_x - 20
+        text_y = center_y + 10
+        cr.move_to(text_x, text_y)
+        cr.show_text(self.button_config['text'])
         
         return False
     
     def on_button_press(self, widget, event):
+        button_config = self.config['button']
+        button_size = self.config['soundbutton']
+        
         # Berechne die Distanz vom Klickpunkt zum Zentrum des Buttons
-        # Die Klickkoordinaten sind bereits relativ zum Button
-        center_x = 150  # Zentrum des Buttons
-        center_y = 75
+        center_x = button_size['width'] / 2
+        center_y = button_size['button_height'] / 2
         distance = ((event.x - center_x) ** 2 + (event.y - center_y) ** 2) ** 0.5
         
         # Wenn der Klick innerhalb des Buttons war
-        if distance <= 50:
+        if distance <= button_config['circle_radius']:
             print(f"Button {self.position + 1} wurde geklickt! Position: x={event.x}, y={event.y}")
             # Hier können Sie weitere Aktionen hinzufügen
         else:
@@ -102,4 +171,30 @@ class SoundButton(Gtk.Box):
     def on_scale_changed(self, scale):
         """Callback für Änderungen am Schieberegler"""
         value = scale.get_value()
-        print(f"Button {self.position + 1} - Schieberegler auf {value} gesetzt") 
+        self.button_config['scale_value'] = value
+        print(f"Button {self.position + 1} - Schieberegler auf {value} gesetzt")
+    
+    def save_config(self):
+        """Speichert die aktuelle Button-Konfiguration"""
+        try:
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+        except FileNotFoundError:
+            config = self.config
+        
+        # Aktualisiere oder füge die Button-Konfiguration hinzu
+        buttons = config.get('buttons', [])
+        found = False
+        for button in buttons:
+            if button['position'] == self.position:
+                button.update(self.button_config)
+                found = True
+                break
+        if not found:
+            buttons.append(self.button_config)
+        
+        config['buttons'] = buttons
+        
+        # Speichere die aktualisierte Konfiguration
+        with open('config.json', 'w') as f:
+            json.dump(config, f, indent=4) 
