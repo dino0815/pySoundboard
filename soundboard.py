@@ -8,12 +8,19 @@ from soundbutton import SoundButton
 class SoundboardWindow(Gtk.Window):
     def __init__(self):
         super().__init__(title="Soundboard")
-        self.config = self.load_config()
         self.buttons = []
+        
+        # Konfiguration laden
+        self.config = self.load_config()
         
         # Fenster-Eigenschaften aus der Konfiguration
         window_config = self.config['window']
         self.set_default_size(window_config['width'], window_config['height'])
+        
+        # Minimale Fenstergröße setzen
+        button_config = self.config['soundbutton']
+        min_height = button_config['height'] + button_config['scale_height'] + button_config['spacing'] + 20  # 20 Pixel für Rahmen
+        self.set_size_request(button_config['width'], min_height)
         
         # Hauptcontainer
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -62,6 +69,9 @@ class SoundboardWindow(Gtk.Window):
         
         # Event-Handler für das Schließen des Fensters
         self.connect("destroy", self.on_destroy)
+        
+        # Event-Handler für Fenstergrößenänderungen
+        self.connect("configure-event", self.on_window_configure)
         
         # Initiale ScrolledWindow-Größe setzen
         self.update_scrolled_window_size()
@@ -166,11 +176,17 @@ class SoundboardWindow(Gtk.Window):
         for button in self.buttons:
             button.save_config()
         Gtk.main_quit()
+    
+    def on_window_configure(self, widget, event):
+        """Reagiert auf Fenstergrößenänderungen"""
+        height = self.get_allocated_height()
+        button_config = self.config['soundbutton']
+        min_height = button_config['height'] + button_config['scale_height'] + button_config['spacing'] + 20  # 20 Pixel für Rahmen
+        if height < min_height:
+            self.set_size_request(-1, min_height)  # -1 bedeutet, die Breite nicht zu ändern
 
 def main():
     win = SoundboardWindow()
-    win.connect("destroy", Gtk.main_quit)
-    win.show_all()
     Gtk.main()
 
 if __name__ == "__main__":
