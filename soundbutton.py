@@ -327,9 +327,47 @@ class SoundButton(Gtk.Box):
                 print(f"Loop-Button von Button {self.position + 1} wurde geklickt!")
                 return True
         
+        # Rechtsklick auf den Button-Hintergrund
+        if event.button == 3:  # 3 ist der Rechtsklick
+            self.show_text_dialog()
+            return True
+        
         # Wenn der Klick außerhalb aller Buttons war
         print(f"Außerhalb aller Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
         return True
+    
+    def show_text_dialog(self):
+        """Zeigt einen Dialog zum Ändern des Button-Texts"""
+        dialog = Gtk.Dialog(title="Button-Text ändern", transient_for=self.get_toplevel(), flags=0)
+        dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        
+        # Container für den Inhalt
+        content_area = dialog.get_content_area()
+        
+        # Label
+        label = Gtk.Label(label="Neuer Text für Button " + str(self.position + 1) + ":")
+        content_area.pack_start(label, True, True, 0)
+        
+        # Textfeld
+        entry = Gtk.Entry()
+        entry.set_text(self.button_config['text'])
+        content_area.pack_start(entry, True, True, 0)
+        
+        # Dialog anzeigen
+        dialog.show_all()
+        
+        # Dialog ausführen
+        response = dialog.run()
+        
+        if response == Gtk.ResponseType.OK:
+            new_text = entry.get_text()
+            if new_text.strip():  # Nur wenn der Text nicht leer ist
+                self.button_config['text'] = new_text
+                print(f"Button {self.position + 1} - Text auf '{new_text}' geändert")
+                self.drawing_area.queue_draw()  # Neu zeichnen
+                self.save_config()  # Speichern
+        
+        dialog.destroy()
     
     def on_scale_changed(self, scale):
         """Callback für Änderungen am Schieberegler"""
