@@ -6,12 +6,13 @@ import cairo
 import json
 
 class SoundButton(Gtk.Box):
-    def __init__(self, position=0, offset_x=0, offset_y=0, config=None):
+    def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.position = position  # Speichere die Position
         self.offset_x = offset_x  # X-Offset für die Position
         self.offset_y = offset_y  # Y-Offset für die Position
         self.config = config or self.load_config()
+        self.on_delete = on_delete  # Callback für das Löschen
         
         # Button-spezifische Konfiguration laden
         self.button_config = self.get_button_config()
@@ -89,11 +90,11 @@ class SoundButton(Gtk.Box):
                 },
                 'button': {
                     'radius': 15,
-                    'circle_radius': 50,
+                    'delete_button_size': 30,
                     'text_size': 20,
                     'background_color': [0.8, 0.8, 0.8],
-                    'button_color': [0.2, 0.4, 0.8],
-                    'text_color': [1.0, 1.0, 1.0]
+                    'delete_button_color': [0.8, 0.2, 0.2],
+                    'text_color': [0.0, 0.0, 0.0]
                 },
                 'scale': {
                     'min': 0,
@@ -130,21 +131,34 @@ class SoundButton(Gtk.Box):
         self.rounded_rectangle(cr, 0, 0, button_size['width'], button_size['button_height'], button_config['radius'])
         cr.fill()
         
-        # Einen Button-ähnlichen Kreis zeichnen
-        button_color = button_config['button_color']
-        cr.set_source_rgb(*button_color)
-        center_x = button_size['width'] / 2
-        center_y = button_size['button_height'] / 2
-        cr.arc(center_x, center_y, button_config['circle_radius'], 0, 2 * 3.14159)
+        # Lösch-Button (rotes X) zeichnen
+        delete_size = button_config['delete_button_size']
+        delete_x = button_size['width'] - delete_size - 10
+        delete_y = 10
+        
+        # Roter Hintergrund für den Lösch-Button
+        delete_color = button_config['delete_button_color']
+        cr.set_source_rgb(*delete_color)
+        self.rounded_rectangle(cr, delete_x, delete_y, delete_size, delete_size, delete_size/2)
         cr.fill()
+        
+        # Weißes X zeichnen
+        cr.set_source_rgb(1.0, 1.0, 1.0)
+        cr.set_line_width(3)
+        padding = 5
+        cr.move_to(delete_x + padding, delete_y + padding)
+        cr.line_to(delete_x + delete_size - padding, delete_y + delete_size - padding)
+        cr.move_to(delete_x + delete_size - padding, delete_y + padding)
+        cr.line_to(delete_x + padding, delete_y + delete_size - padding)
+        cr.stroke()
         
         # Text auf dem Button
         text_color = button_config['text_color']
         cr.set_source_rgb(*text_color)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
         cr.set_font_size(button_config['text_size'])
-        text_x = center_x - 20
-        text_y = center_y + 10
+        text_x = 20
+        text_y = button_size['button_height'] / 2 + 10
         cr.move_to(text_x, text_y)
         cr.show_text(self.button_config['text'])
         
@@ -154,18 +168,20 @@ class SoundButton(Gtk.Box):
         button_config = self.config['button']
         button_size = self.config['soundbutton']
         
-        # Berechne die Distanz vom Klickpunkt zum Zentrum des Buttons
-        center_x = button_size['width'] / 2
-        center_y = button_size['button_height'] / 2
-        distance = ((event.x - center_x) ** 2 + (event.y - center_y) ** 2) ** 0.5
+        # Prüfe, ob der Lösch-Button geklickt wurde
+        delete_size = button_config['delete_button_size']
+        delete_x = button_size['width'] - delete_size - 10
+        delete_y = 10
         
-        # Wenn der Klick innerhalb des Buttons war
-        if distance <= button_config['circle_radius']:
-            print(f"Button {self.position + 1} wurde geklickt! Position: x={event.x}, y={event.y}")
-            # Hier können Sie weitere Aktionen hinzufügen
-        else:
-            print(f"Außerhalb von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
+        if (delete_x <= event.x <= delete_x + delete_size and 
+            delete_y <= event.y <= delete_y + delete_size):
+            print(f"Lösch-Button von Button {self.position + 1} wurde geklickt!")
+            if self.on_delete:
+                self.on_delete(self)
+            return True
         
+        # Wenn der Klick außerhalb des Lösch-Buttons war
+        print(f"Außerhalb des Lösch-Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
         return True
     
     def on_scale_changed(self, scale):

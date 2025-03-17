@@ -52,7 +52,7 @@ class SoundboardWindow(Gtk.Window):
                 position = saved_button['position']
                 offset_x = position * (button_config['width'] + button_config['spacing'])
                 offset_y = 0
-                button = SoundButton(position=position, offset_x=offset_x, offset_y=offset_y, config=self.config)
+                button = SoundButton(position=position, offset_x=offset_x, offset_y=offset_y, config=self.config, on_delete=self.delete_button)
                 self.buttons.append(button)
                 self.button_box.pack_start(button, False, False, 0)
         else:
@@ -98,6 +98,7 @@ class SoundboardWindow(Gtk.Window):
         """Aktualisiert die Positionen aller Buttons"""
         button_config = self.config['soundbutton']
         for i, button in enumerate(self.buttons):
+            button.position = i  # Aktualisiere die Position
             offset_x = i * (button_config['width'] + button_config['spacing'])
             offset_y = 0
             button.set_offset(offset_x, offset_y)
@@ -116,11 +117,18 @@ class SoundboardWindow(Gtk.Window):
         offset_x = position * (button_config['width'] + button_config['spacing'])
         offset_y = 0
         
-        button = SoundButton(position=position, offset_x=offset_x, offset_y=offset_y, config=self.config)
+        button = SoundButton(position=position, offset_x=offset_x, offset_y=offset_y, config=self.config, on_delete=self.delete_button)
         self.buttons.append(button)
         self.button_box.pack_start(button, False, False, 0)
         
         print(f"Neuer SoundButton hinzugefügt. Position: {position + 1}, Gesamtanzahl: {len(self.buttons)}")
+        self.update_button_positions()
+    
+    def delete_button(self, button):
+        """Löscht einen Button und aktualisiert die Positionen der verbleibenden Buttons"""
+        print(f"Lösche Button {button.position + 1}")
+        self.buttons.remove(button)
+        self.button_box.remove(button)
         self.update_button_positions()
     
     def on_destroy(self, widget):

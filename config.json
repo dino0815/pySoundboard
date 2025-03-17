@@ -1,0 +1,79 @@
+{
+    "window": {
+        "width": 1000,
+        "height": 300,
+        "title": "Soundboard"
+    },
+    "soundbutton": {
+        "width": 300,
+        "height": 200,
+        "button_height": 150,
+        "scale_height": 30,
+        "scale_width": 200,
+        "margin": 10,
+        "spacing": 5,
+        "initial_count": 3
+    },
+    "button": {
+        "radius": 15,
+        "delete_button_size": 30,
+        "text_size": 20,
+        "background_color": [
+            0.8,
+            0.8,
+            0.8
+        ],
+        "delete_button_color": [
+            0.8,
+            0.2,
+            0.2
+        ],
+        "text_color": [
+            0.0,
+            0.0,
+            0.0
+        ]
+    },
+    "scale": {
+        "min": 0,
+        "max": 100,
+        "default": 50
+    },
+    "buttons": [
+        {
+            "position": 0,
+            "scale_value": 10.0,
+            "text": "Button 1"
+        },
+        {
+            "position": 6,
+            "scale_value": 9.6,
+            "text": "Button 7"
+        },
+        {
+            "position": 2,
+            "scale_value": 10.3,
+            "text": "Button 3"
+        },
+        {
+            "position": 5,
+            "scale_value": 87.2,
+            "text": "Button 6"
+        },
+        {
+            "position": 4,
+            "scale_value": 11.7,
+            "text": "Button 5"
+        },
+        {
+            "position": 5,
+            "scale_value": 87.2,
+            "text": "Button 6"
+        },
+        {
+            "position": 6,
+            "scale_value": 9.6,
+            "text": "Button 7"
+        }
+    ]
+}
