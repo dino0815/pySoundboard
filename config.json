@@ -1,12 +1,12 @@
 {
     "window": {
-        "width": 781,
-        "height": 225,
+        "width": 474,
+        "height": 95,
         "title": "Soundboard"
     },
     "soundbutton": {
-        "width": 200,
-        "height": 100,
+        "width": 100,
+        "height": 75,
         "button_height": 100,
         "volume_height": 100,
         "volume_width": 15,
@@ -17,7 +17,7 @@
     "button": {
         "radius": 15,
         "delete_button_size": 20,
-        "text_size": 20,
+        "text_size": 13,
         "background_color": "#CCCCCC",
         "delete_button_color": "#CC3333",
         "text_color": "#000000",

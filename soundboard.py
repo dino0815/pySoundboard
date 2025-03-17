@@ -65,40 +65,17 @@ class SoundboardWindow(Gtk.Window):
     def _setup_ui(self):
         """Erstellt die Benutzeroberfläche"""
         # Hauptcontainer
-        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)  # Ändere die Orientierung auf HORIZONTAL
         self.add(self.box)
         
-        # Header mit Plus-Button
-        self._create_header()
-        
-        # ScrolledWindow für die Buttons
-        self._create_scrolled_window()
-    
-    def _create_header(self):
-        """Erstellt die Header-Leiste mit dem Plus-Button"""
-        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        # Leerer Platzhalter links
-        header_box.pack_start(Gtk.Label(), True, True, 0)
-        self.box.pack_start(header_box, False, False, 0)
-    
-    def _create_scrolled_window(self):
-        """Erstellt den scrollbaren Bereich für die Buttons"""
-        self.scrolled = Gtk.ScrolledWindow()
-        self.scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        self.scrolled.set_hexpand(True)
-        self.scrolled.set_vexpand(True)
-        
         # Container für die Buttons
-        self.button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.button_box = self.box  # Direkt die äußere Box verwenden
         button_config = self.config['soundbutton']
         self.button_box.set_spacing(button_config['spacing'])
         self.button_box.set_margin_start(button_config['margin'])
         self.button_box.set_margin_end(button_config['margin'])
         self.button_box.set_margin_top(button_config['margin'])
         self.button_box.set_margin_bottom(button_config['margin'])
-        
-        self.scrolled.add(self.button_box)
-        self.box.pack_start(self.scrolled, True, True, 0)
         
         # Add-Button erstellen
         self.add_button = Gtk.Button(label="+")
@@ -162,9 +139,8 @@ class SoundboardWindow(Gtk.Window):
     
     def update_scrolled_window_size(self):
         """Aktualisiert die Größe des ScrolledWindow"""
-        button_config = self.config['soundbutton']
-        total_width = (len(self.buttons) + 1) * (button_config['width'] + button_config['spacing']) + 2 * button_config['margin']
-        self.scrolled.set_min_content_width(total_width)
+        # Diese Methode wird nicht mehr benötigt, da kein ScrolledWindow verwendet wird
+        pass
     
     def add_new_button(self, widget):
         """Fügt einen neuen SoundButton hinzu"""
