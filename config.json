@@ -16,7 +16,7 @@
     },
     "button": {
         "radius": 15,
-        "delete_button_size": 30,
+        "delete_button_size": 20,
         "text_size": 20,
         "background_color": "#CCCCCC",
         "delete_button_color": "#CC3333",
@@ -41,24 +41,29 @@
     "buttons": [
         {
             "position": 0,
-            "volume": 86.1878453038674,
+            "volume": 85.18518518518519,
             "text": "Schritte",
             "audio_file": "/home/dino/Dokumente/coding/soundboard_1/sounds/Schritte/Schritte im Schnee.mp3",
             "image_file": "/home/dino/Dokumente/coding/Soundboard_3/images/Jonas_Favicon.png"
         },
         {
             "position": 1,
-            "volume": 87.90035587188612,
+            "volume": 18.518518518518523,
             "text": "Glocken",
             "audio_file": "/home/dino/Dokumente/coding/Soundboard_3/sounds/Glocken/Bells.mp3",
             "image_file": "/home/dino/Dokumente/coding/Soundboard_3/images/Gro\u00dferKnochen.png"
         },
         {
             "position": 2,
-            "volume": 50,
+            "volume": 81.4814814814815,
             "text": "next",
             "audio_file": "/home/dino/Dokumente/coding/Soundboard_3/sounds/Knarren 6.wav",
             "image_file": "/home/dino/Dokumente/coding/Soundboard_3/images/StevesGalaxy.png"
+        },
+        {
+            "position": 3,
+            "volume": 50,
+            "text": "Button 4"
         }
     ]
 }

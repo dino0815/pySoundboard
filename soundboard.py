@@ -76,9 +76,12 @@ class SoundboardWindow(Gtk.Window):
     def _create_header(self):
         """Erstellt die Header-Leiste mit dem Plus-Button"""
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        # Leerer Platzhalter links
+        header_box.pack_start(Gtk.Label(), True, True, 0)
+        # Plus-Button rechts
         plus_button = Gtk.Button(label="+")
         plus_button.connect("clicked", self.add_new_button)
-        header_box.pack_start(plus_button, False, False, 0)
+        header_box.pack_end(plus_button, False, False, 0)
         self.box.pack_start(header_box, False, False, 0)
     
     def _create_scrolled_window(self):
