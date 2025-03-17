@@ -2,12 +2,15 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
+import pygame  # Hinzufügen von pygame für die Audio-Wiedergabe
 
 class SettingsDialog:
     def __init__(self, parent_window, button_config, position):
         self.button_config = button_config
         self.position = position
         self.parent_window = parent_window
+        pygame.mixer.init()  # Initialisiere pygame.mixer für die Audio-Wiedergabe
+        self.is_playing = False  # Zustand für die Wiedergabe
     
     def show(self):
         """Zeigt einen Dialog zum Ändern des Button-Texts, der Audiodatei und des Bildes"""
@@ -38,6 +41,11 @@ class SettingsDialog:
         browse_button = Gtk.Button(label="Durchsuchen")
         browse_button.connect("clicked", self.on_browse_clicked, file_entry, "audio")
         file_box.pack_start(browse_button, False, False, 5)
+        
+        # Abspielen-Button für die Audiodatei
+        play_button = Gtk.ToggleButton(label="Abspielen")
+        play_button.connect("toggled", self.on_play_toggled, file_entry)
+        file_box.pack_start(play_button, False, False, 5)
         
         content_area.pack_start(file_box, True, True, 0)
         
@@ -81,6 +89,7 @@ class SettingsDialog:
                 print(f"Button {self.position + 1} - Bild auf '{new_image}' gesetzt")
         
         dialog.destroy()
+        pygame.mixer.quit()  # Beende pygame.mixer nach dem Schließen des Dialogs
     
     def on_browse_clicked(self, button, entry, file_type):
         """Öffnet einen Dateiauswahl-Dialog"""
@@ -125,4 +134,26 @@ class SettingsDialog:
             filename = dialog.get_filename()
             entry.set_text(filename)
         
-        dialog.destroy() 
+        dialog.destroy()
+    
+    def on_play_toggled(self, button, file_entry):
+        """Startet oder stoppt die Wiedergabe der Audiodatei"""
+        file_path = file_entry.get_text().strip()
+        if button.get_active():  # Wenn der Button gedrückt ist
+            if file_path:
+                try:
+                    pygame.mixer.music.load(file_path)
+                    pygame.mixer.music.play()
+                    self.is_playing = True
+                    button.set_label("Stoppen")  # Ändere die Beschriftung
+                except pygame.error as e:
+                    print(f"Fehler beim Abspielen der Datei: {e}")
+                    button.set_active(False)  # Setze den Button zurück
+            else:
+                print("Keine Datei ausgewählt.")
+                button.set_active(False)  # Setze den Button zurück
+        else:  # Wenn der Button losgelassen wird
+            if self.is_playing:
+                pygame.mixer.music.stop()
+                self.is_playing = False
+                button.set_label("Abspielen")  # Ändere die Beschriftung zurück
