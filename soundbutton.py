@@ -9,7 +9,7 @@ import os
 
 class SoundButton(Gtk.Box):
     def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL)
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
         self.position = position  # Speichere die Position
         self.offset_x = offset_x  # X-Offset für die Position
         self.offset_y = offset_y  # Y-Offset für die Position
@@ -29,9 +29,12 @@ class SoundButton(Gtk.Box):
         
         # Größen aus der Konfiguration
         button_config = self.config['soundbutton']
-        self.set_size_request(button_config['width'], button_config['height'] + button_config['scale_height'] + button_config['spacing'])
-        self.set_vexpand(False)
-        self.set_hexpand(False)
+        
+        # Container für Button und DrawingArea
+        self.button_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.button_container.set_size_request(button_config['width'], button_config['height'] + button_config['scale_height'] + button_config['spacing'])
+        self.button_container.set_vexpand(False)
+        self.button_container.set_hexpand(False)
         
         # DrawingArea für den Button
         self.drawing_area = Gtk.DrawingArea()
@@ -47,18 +50,21 @@ class SoundButton(Gtk.Box):
         self.drawing_area.connect("button-press-event", self.on_button_press)
         
         # Schieberegler erstellen
-        self.scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL)
+        self.scale = Gtk.Scale(orientation=Gtk.Orientation.VERTICAL)
         scale_config = self.config['scale']
         self.scale.set_range(scale_config['min'], scale_config['max'])
         self.scale.set_value(self.button_config['volume'])
         self.scale.set_draw_value(False)  # Keine numerische Anzeige
         self.scale.set_vexpand(False)
         self.scale.set_hexpand(False)
-        self.scale.set_size_request(button_config['scale_width'], button_config['scale_height'])
+        self.scale.set_size_request(button_config['scale_height'], button_config['height'] + button_config['scale_height'] + button_config['spacing'])
         self.scale.connect("value-changed", self.on_scale_changed)
         
         # Widgets zum Container hinzufügen
-        self.pack_start(self.drawing_area, False, False, 0)
+        self.button_container.pack_start(self.drawing_area, False, False, 0)
+        
+        # Widgets zum Hauptcontainer hinzufügen
+        self.pack_start(self.button_container, False, False, 0)
         self.pack_start(self.scale, False, False, button_config['spacing'])
         
         # Debug-Ausgabe

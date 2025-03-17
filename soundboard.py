@@ -58,7 +58,7 @@ class SoundboardWindow(Gtk.Window):
             # Wenn gespeicherte Buttons existieren, diese verwenden
             for saved_button in saved_buttons:
                 position = saved_button['position']
-                offset_x = position * (button_config['width'] + button_config['spacing'])
+                offset_x = position * (button_config['width'] + button_config['scale_height'] + button_config['spacing'] * 2)
                 offset_y = 0
                 button = SoundButton(position=position, offset_x=offset_x, offset_y=offset_y, config=self.config, on_delete=self.delete_button)
                 self.buttons.append(button)
@@ -110,7 +110,7 @@ class SoundboardWindow(Gtk.Window):
         button_config = self.config['soundbutton']
         for i, button in enumerate(self.buttons):
             button.position = i  # Aktualisiere die Position
-            offset_x = i * (button_config['width'] + button_config['spacing'])
+            offset_x = i * (button_config['width'] + button_config['scale_height'] + button_config['spacing'] * 2)  # Anpassung für vertikalen Slider
             offset_y = 0
             button.set_offset(offset_x, offset_y)
         self.update_scrolled_window_size()
@@ -118,14 +118,14 @@ class SoundboardWindow(Gtk.Window):
     def update_scrolled_window_size(self):
         """Aktualisiert die Größe der ScrolledWindow basierend auf der Anzahl der Buttons"""
         button_config = self.config['soundbutton']
-        total_width = len(self.buttons) * (button_config['width'] + button_config['spacing']) + 2 * button_config['margin']
+        total_width = len(self.buttons) * (button_config['width'] + button_config['scale_height'] + button_config['spacing'] * 2) + 2 * button_config['margin']  # Anpassung für vertikalen Slider
         self.scrolled.set_min_content_width(total_width)
     
     def add_new_button(self, widget):
         """Fügt einen neuen SoundButton hinzu"""
         position = len(self.buttons)
         button_config = self.config['soundbutton']
-        offset_x = position * (button_config['width'] + button_config['spacing'])
+        offset_x = position * (button_config['width'] + button_config['scale_height'] + button_config['spacing'] * 2)  # Anpassung für vertikalen Slider
         offset_y = 0
         
         button = SoundButton(position=position, offset_x=offset_x, offset_y=offset_y, config=self.config, on_delete=self.delete_button)
