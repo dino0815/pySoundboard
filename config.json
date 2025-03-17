@@ -1,13 +1,13 @@
 {
     "window": {
-        "width": 1000,
-        "height": 200,
+        "width": 781,
+        "height": 225,
         "title": "Soundboard"
     },
     "soundbutton": {
         "width": 200,
         "height": 100,
-        "button_height": 150,
+        "button_height": 100,
         "volume_height": 100,
         "volume_width": 15,
         "margin": 10,
@@ -59,12 +59,6 @@
             "text": "next",
             "audio_file": "/home/dino/Dokumente/coding/Soundboard_3/sounds/Knarren 6.wav",
             "image_file": "/home/dino/Dokumente/coding/Soundboard_3/images/StevesGalaxy.png"
-        },
-        {
-            "position": 3,
-            "volume": 50,
-            "text": "schritt2",
-            "audio_file": "/home/dino/Dokumente/coding/Soundboard_3/sounds/Schritte/Hintergrund 1c - 18.01.15 17.39.mp3"
         }
     ]
 }

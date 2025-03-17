@@ -49,6 +49,7 @@ class SoundboardWindow(Gtk.Window):
         self._load_buttons()
         self._connect_signals()
         self.show_all()
+        self.add_button = None  # Referenz für den Add-Button
     
     def _setup_window(self):
         """Initialisiert die Fenster-Eigenschaften"""
@@ -58,7 +59,7 @@ class SoundboardWindow(Gtk.Window):
         
         # Minimale Fenstergröße setzen
         button_config = self.config['soundbutton']
-        min_height = button_config['height'] + button_config['volume_height'] + button_config['spacing'] + 20
+        min_height = button_config['height'] + 2 * button_config['margin']  # Nur die Höhe der Buttons und Ränder
         self.set_size_request(button_config['width'], min_height)
     
     def _setup_ui(self):
@@ -78,10 +79,6 @@ class SoundboardWindow(Gtk.Window):
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         # Leerer Platzhalter links
         header_box.pack_start(Gtk.Label(), True, True, 0)
-        # Plus-Button rechts
-        plus_button = Gtk.Button(label="+")
-        plus_button.connect("clicked", self.add_new_button)
-        header_box.pack_end(plus_button, False, False, 0)
         self.box.pack_start(header_box, False, False, 0)
     
     def _create_scrolled_window(self):
@@ -102,6 +99,11 @@ class SoundboardWindow(Gtk.Window):
         
         self.scrolled.add(self.button_box)
         self.box.pack_start(self.scrolled, True, True, 0)
+        
+        # Add-Button erstellen
+        self.add_button = Gtk.Button(label="+")
+        self.add_button.connect("clicked", self.add_new_button)
+        self.button_box.pack_start(self.add_button, False, False, 0)
     
     def _connect_signals(self):
         """Verbindet die Signal-Handler"""
@@ -147,21 +149,28 @@ class SoundboardWindow(Gtk.Window):
         """Aktualisiert die Positionen aller Buttons"""
         button_config = self.config['soundbutton']
         for i, button in enumerate(self.buttons):
-            offset_x = i * (button_config['width'] + button_config['volume_height'] + button_config['spacing'])
+            offset_x = i * (button_config['width'] + button_config['spacing'])
             button.set_offset(offset_x, 0)
+        
+        # Position des Add-Buttons aktualisieren
+        if self.add_button:  # Überprüfen, ob der Add-Button existiert
+            next_offset_x = len(self.buttons) * (button_config['width'] + button_config['spacing'])
+            self.button_box.reorder_child(self.add_button, len(self.buttons))  # Add-Button ans Ende verschieben
+            self.add_button.set_size_request(button_config['width'], button_config['height'])
+            self.add_button.set_margin_start(next_offset_x)  # Abstand basierend auf der Anzahl der Buttons
         self.update_scrolled_window_size()
     
     def update_scrolled_window_size(self):
         """Aktualisiert die Größe des ScrolledWindow"""
         button_config = self.config['soundbutton']
-        total_width = len(self.buttons) * (button_config['width'] + button_config['volume_height'] + button_config['spacing']) + 2 * button_config['margin']
+        total_width = (len(self.buttons) + 1) * (button_config['width'] + button_config['spacing']) + 2 * button_config['margin']
         self.scrolled.set_min_content_width(total_width)
     
     def add_new_button(self, widget):
         """Fügt einen neuen SoundButton hinzu"""
         position = len(self.buttons)
         button_config = self.config['soundbutton']
-        offset_x = position * (button_config['width'] + button_config['volume_height'] + button_config['spacing'])
+        offset_x = position * (button_config['width'] + button_config['spacing'])
         
         button = SoundButton(position=position, offset_x=offset_x, offset_y=0, 
                            config=self.config, on_delete=self.delete_button)
@@ -186,16 +195,23 @@ class SoundboardWindow(Gtk.Window):
         self.update_button_positions()
     
     def save_all_configs(self):
-        """Speichert die Konfigurationen aller Buttons"""
+        """Speichert die Konfigurationen aller Buttons und die Fenstergröße"""
         try:
             with open('config.json', 'r') as f:
                 config = json.load(f)
         except FileNotFoundError:
             config = self.config
-        
+
+        # Fenstergröße aktualisieren
+        width, height = self.get_size()
+        config['window']['width'] = width
+        config['window']['height'] = height
+
+        # Buttons-Konfiguration speichern
         buttons = [button.button_config for button in self.buttons]
         config['buttons'] = buttons
-        
+
+        # Konfiguration in die Datei schreiben
         with open('config.json', 'w') as f:
             json.dump(config, f, indent=4)
     
@@ -207,11 +223,9 @@ class SoundboardWindow(Gtk.Window):
     
     def on_window_configure(self, widget, event):
         """Reagiert auf Fenstergrößenänderungen"""
-        height = self.get_allocated_height()
         button_config = self.config['soundbutton']
-        min_height = button_config['height'] + button_config['volume_height'] + button_config['spacing'] + 20
-        if height < min_height:
-            self.set_size_request(-1, min_height)
+        min_height = button_config['height'] + 2 * button_config['margin']  # Nur die Höhe der Buttons und Ränder
+        self.set_size_request(-1, min_height)
     
     def on_key_press(self, widget, event):
         """Handler für Tastatureingaben"""
@@ -230,4 +244,4 @@ def main():
     Gtk.main()
 
 if __name__ == "__main__":
-    main() 
+    main()
