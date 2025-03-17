@@ -4,6 +4,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import cairo
 import json
+import pygame
+import os
 
 class SoundButton(Gtk.Box):
     def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None):
@@ -13,6 +15,14 @@ class SoundButton(Gtk.Box):
         self.offset_y = offset_y  # Y-Offset für die Position
         self.config = config or self.load_config()
         self.on_delete = on_delete  # Callback für das Löschen
+        
+        # pygame für Sound initialisieren
+        pygame.mixer.init()
+        
+        # Sound-Status
+        self.sound = None
+        self.is_playing = False
+        self.is_looping = False
         
         # Button-spezifische Konfiguration laden
         self.button_config = self.get_button_config()
@@ -306,6 +316,42 @@ class SoundButton(Gtk.Box):
         
         return False
     
+    def play_sound(self):
+        """Spielt den Sound ab"""
+        if 'audio_file' in self.button_config and self.button_config['audio_file']:
+            try:
+                # Wenn bereits ein Sound läuft, diesen stoppen
+                if self.sound and self.is_playing:
+                    self.sound.stop()
+                
+                # Sound laden und abspielen
+                self.sound = pygame.mixer.Sound(self.button_config['audio_file'])
+                self.sound.set_volume(self.button_config['volume'] / 100.0)  # Lautstärke auf 0-1 skalieren
+                self.sound.play()
+                self.is_playing = True
+                print(f"Button {self.position + 1} - Sound wird abgespielt")
+            except Exception as e:
+                print(f"Fehler beim Abspielen des Sounds: {e}")
+    
+    def stop_sound(self):
+        """Stoppt den Sound"""
+        if self.sound and self.is_playing:
+            self.sound.stop()
+            self.is_playing = False
+            print(f"Button {self.position + 1} - Sound gestoppt")
+    
+    def toggle_loop(self):
+        """Schaltet die Schleifenwiedergabe ein/aus"""
+        if self.sound:
+            self.is_looping = not self.is_looping
+            if self.is_looping:
+                self.sound.play(-1)  # -1 bedeutet endlose Schleife
+                print(f"Button {self.position + 1} - Schleifenwiedergabe aktiviert")
+            else:
+                self.sound.stop()
+                self.is_playing = False
+                print(f"Button {self.position + 1} - Schleifenwiedergabe deaktiviert")
+    
     def on_button_press(self, widget, event):
         button_config = self.config['button']
         button_size = self.config['soundbutton']
@@ -341,16 +387,19 @@ class SoundButton(Gtk.Box):
             # Play-Button
             if (start_x <= event.x <= start_x + control_size):
                 print(f"Play-Button von Button {self.position + 1} wurde geklickt!")
+                self.play_sound()
                 return True
             
             # Stop-Button
             if (start_x + control_size + spacing <= event.x <= start_x + 2 * control_size + spacing):
                 print(f"Stop-Button von Button {self.position + 1} wurde geklickt!")
+                self.stop_sound()
                 return True
             
             # Loop-Button
             if (start_x + 2 * (control_size + spacing) <= event.x <= start_x + 3 * control_size + 2 * spacing):
                 print(f"Loop-Button von Button {self.position + 1} wurde geklickt!")
+                self.toggle_loop()
                 return True
         
         # Rechtsklick auf den Button-Hintergrund
@@ -487,6 +536,8 @@ class SoundButton(Gtk.Box):
         """Callback für Änderungen am Schieberegler"""
         value = scale.get_value()
         self.button_config['volume'] = value
+        if self.sound:
+            self.sound.set_volume(value / 100.0)  # Lautstärke auf 0-1 skalieren
         print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt")
     
     def save_config(self):

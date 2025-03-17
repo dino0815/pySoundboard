@@ -4,6 +4,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import json
 from soundbutton import SoundButton
+import pygame
 
 class SoundboardWindow(Gtk.Window):
     def __init__(self):
@@ -170,12 +171,11 @@ class SoundboardWindow(Gtk.Window):
             b.button_config['position'] = i
         self.update_button_positions()
     
-    def on_destroy(self, widget):
-        """Speichert die Konfiguration beim Schließen"""
-        print("Speichere Button-Konfigurationen...")
-        for button in self.buttons:
-            button.save_config()
+    def on_destroy(self, *args):
+        """Wird aufgerufen, wenn das Fenster geschlossen wird"""
+        pygame.mixer.quit()  # pygame Sound-System beenden
         Gtk.main_quit()
+        return True
     
     def on_window_configure(self, widget, event):
         """Reagiert auf Fenstergrößenänderungen"""
