@@ -1,6 +1,6 @@
 {
     "window": {
-        "width": 474,
+        "width": 746,
         "height": 95,
         "title": "Soundboard"
     },
@@ -58,6 +58,16 @@
             "text": "next",
             "audio_file": "/home/dino/Dokumente/coding/Soundboard_3/sounds/Knarren 6.wav",
             "image_file": "/home/dino/Dokumente/coding/Soundboard_3/images/StevesGalaxy.png"
+        },
+        {
+            "position": 3,
+            "volume": 50,
+            "text": "Button 4"
+        },
+        {
+            "position": 4,
+            "volume": 50,
+            "text": "Button 5"
         }
     ]
 }

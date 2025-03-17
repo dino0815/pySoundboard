@@ -9,36 +9,46 @@ import pygame
 class SoundboardWindow(Gtk.Window):
     # Konstanten für die Konfiguration
     DEFAULT_CONFIG = {
-        'window': {
-            'width': 1000,
-            'height': 200,
-            'title': "Soundboard"
-        },
-        'soundbutton': {
-            'width': 300,
-            'height': 150,
-            'volume_height': 30,
-            'volume_width': 200,
-            'margin': 10,
-            'spacing': 5,
-            'initial_count': 3
-        },
-        'button': {
-            'radius': 15,
-            'delete_button_size': 30,
-            'text_size': 20,
-            'background_color': '#CCCCCC',
-            'delete_button_color': '#CC3333',
-            'text_color': '#000000',
-            'text_x': 17,
-            'text_y': 20
-        },
-        'volume': {
-            'min': 0,
-            'max': 100,
-            'default': 50
+    "window": {
+        "width": 163,
+        "height": 95,
+        "title": "Soundboard"
+    },
+    "soundbutton": {
+        "width": 100,
+        "height": 75,
+        "volume_height": 100,
+        "volume_width": 15,
+        "margin": 10,
+        "spacing": 5,
+        "initial_count": 3
+    },
+    "button": {
+        "radius": 15,
+        "delete_button_size": 20,
+        "text_size": 13,
+        "background_color": "#CCCCCC",
+        "delete_button_color": "#CC3333",
+        "text_color": "#000000",
+        "text_x": 17,
+        "text_y": 20,
+        "control_buttons": {
+            "size": 25,
+            "spacing": 5,
+            "y_offset": 110,
+            "background_color": "#FFFFFF",
+            "border_color": "#000000",
+            "symbol_color": "#000000",
+            "border_width": 1
         }
-    }
+    },
+    "volume": {
+        "min": 0,
+        "max": 100,
+        "default": 50
+    },
+    "buttons": []
+}
     
     def __init__(self):
         super().__init__(title="Soundboard")
