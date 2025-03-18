@@ -38,9 +38,8 @@ class SoundButton(Gtk.Box):
         # UI erstellen
         self._setup_ui()
         
-        # Styling aktivieren (für normale Buttons)
-        if not is_add_button:
-            self._apply_style()
+        # Styling aktivieren (für alle Buttons)
+        self._apply_style()
         
         if not is_add_button:
             print(f"SoundButton '{self.button_config['text']}' erstellt - Position: x={self.offset_x}, y={self.offset_y}")
@@ -101,20 +100,24 @@ class SoundButton(Gtk.Box):
         # Verwende nun volume_min und volume_max
         self.volume_slider.set_range(sb_config['volume_min'], sb_config['volume_max'])
         self.volume_slider.set_value(int(self.get_button_config().get('volume', sb_config['volume_default'])))
-        self.volume_slider.set_draw_value(True)  # Zeige den Wert an
+        self.volume_slider.set_draw_value(False)  # Zeige den Wert NICHT an
         self.volume_slider.set_digits(0)  # Keine Dezimalstellen
-        self.volume_slider.set_vexpand(False)
+        self.volume_slider.set_vexpand(True)  # Nutze die gesamte verfügbare Höhe
         self.volume_slider.set_hexpand(False)
         self.volume_slider.set_size_request(sb_config['volume_width'], sb_config['button_height'])
         self.volume_slider.set_inverted(True)
+        
+        # Reduziere den Abstand zum Rand, damit mehr Höhe für den Schieberegler bleibt
+        self.volume_slider.set_margin_top(0)
+        self.volume_slider.set_margin_bottom(0)
         self.volume_slider.connect("value-changed", self.on_volume_changed)
         
         # Container für den Lautstärkeregler
         self.volume_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.volume_container.set_vexpand(False)
+        self.volume_container.set_vexpand(True)  # Nutze die gesamte verfügbare Höhe
         self.volume_container.set_hexpand(False)
         self.volume_container.set_size_request(sb_config['volume_width'], sb_config['button_height'])
-        self.volume_container.pack_start(self.volume_slider, False, False, 0)
+        self.volume_container.pack_start(self.volume_slider, True, True, 0)  # True für expand und fill
     
     def get_button_config(self):
         """Lädt die Button-spezifische Konfiguration"""
