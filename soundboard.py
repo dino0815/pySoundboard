@@ -19,9 +19,7 @@ class SoundboardWindow(Gtk.Window):
             "button_height": 75,
             "volume_height": 100,
             "volume_width": 15,
-            "margin": 10,
             "spacing": 5,
-            "initial_count": 0,
             "radius": 15,
             "delete_button_size": 20,
             "text_size": 13,
@@ -90,11 +88,12 @@ class SoundboardWindow(Gtk.Window):
         sb_config = self.config['soundbutton']
         self.flowbox.set_row_spacing(sb_config['spacing'])
         self.flowbox.set_column_spacing(sb_config['spacing'])
-        # Rahmen für äußere Abstände
-        self.flowbox.set_margin_start(sb_config['margin'])
-        self.flowbox.set_margin_end(sb_config['margin'])
-        self.flowbox.set_margin_top(sb_config['margin'])
-        self.flowbox.set_margin_bottom(sb_config['margin'])
+        
+        # Äußere Abstände der FlowBox (auch spacing verwenden)
+        self.flowbox.set_margin_start(sb_config['spacing'])
+        self.flowbox.set_margin_end(sb_config['spacing'])
+        self.flowbox.set_margin_top(sb_config['spacing'])
+        self.flowbox.set_margin_bottom(sb_config['spacing'])
         
         main_box.pack_start(self.flowbox, True, True, 0)
         
@@ -130,11 +129,9 @@ class SoundboardWindow(Gtk.Window):
         """Lädt die gespeicherten Buttons oder erstellt neue"""
         saved_buttons = self.config.get('buttons', [])
         
-        # Lade zuerst alle normalen Buttons
+        # Lade die gespeicherten Buttons
         if saved_buttons:
             self._load_saved_buttons(saved_buttons)
-        else:
-            self._create_initial_buttons()
         
         # Erstelle und füge den Add-Button am Ende hinzu
         self.add_button = SoundButton(position=len(self.buttons), config=self.config, is_add_button=True)
@@ -159,9 +156,8 @@ class SoundboardWindow(Gtk.Window):
         self.flowbox.invalidate_sort()
     
     def _create_initial_buttons(self):
-        """Erstellt die initialen Buttons"""
-        for _ in range(self.config['soundbutton']['initial_count']):
-            self.add_new_button(None)
+        """Diese Methode wird nicht mehr benötigt, da wir immer mit 0 Buttons starten"""
+        pass
     
     def load_config(self):
         """Lädt die Konfigurationsdatei"""

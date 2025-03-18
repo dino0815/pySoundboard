@@ -1,7 +1,7 @@
 {
     "window": {
-        "width": 425,
-        "height": 196,
+        "width": 422,
+        "height": 176,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -9,9 +9,7 @@
         "button_height": 75,
         "volume_height": 100,
         "volume_width": 15,
-        "margin": 10,
         "spacing": 5,
-        "initial_count": 0,
         "radius": 15,
         "delete_button_size": 20,
         "text_size": 13,
@@ -42,6 +40,16 @@
             "position": 1,
             "volume": 50,
             "text": "Button 2"
+        },
+        {
+            "position": 2,
+            "volume": 50,
+            "text": "Button 3"
+        },
+        {
+            "position": 3,
+            "volume": 50,
+            "text": "Button 4"
         }
     ]
 }
