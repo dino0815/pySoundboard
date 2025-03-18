@@ -1,7 +1,7 @@
 {
     "window": {
-        "width": 1021,
-        "height": 441,
+        "width": 443,
+        "height": 85,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -9,7 +9,7 @@
         "height": 75,
         "volume_height": 100,
         "volume_width": 15,
-        "margin": 10,
+        "margin": 5,
         "spacing": 5,
         "initial_count": 3
     },
@@ -40,39 +40,24 @@
     "buttons": [
         {
             "position": 0,
-            "volume": 85.18518518518519,
-            "text": "Schritte",
-            "audio_file": "/home/dino/Dokumente/coding/soundboard_1/sounds/Schritte/Schritte im Schnee.mp3",
-            "image_file": "/home/dino/Dokumente/coding/Soundboard_3/images/Jonas_Favicon.png"
+            "volume": 71,
+            "text": "Knarren",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png"
         },
         {
             "position": 1,
-            "volume": 21.42857142857143,
-            "text": "Glocken",
-            "audio_file": "/home/dino/Dokumente/coding/Soundboard_3/sounds/Glocken/Bells.mp3",
-            "image_file": "/home/dino/Dokumente/coding/Soundboard_3/images/Gro\u00dferKnochen.png"
+            "volume": 48,
+            "text": "Schritte",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Schritte im Schnee.ogg",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png"
         },
         {
             "position": 2,
-            "volume": 81.4814814814815,
-            "text": "next",
-            "audio_file": "/home/dino/Dokumente/coding/Soundboard_3/sounds/Knarren 6.wav",
-            "image_file": "/home/dino/Dokumente/coding/Soundboard_3/images/StevesGalaxy.png"
-        },
-        {
-            "position": 3,
-            "volume": 50,
-            "text": "Button 6"
-        },
-        {
-            "position": 4,
-            "volume": 50,
-            "text": "Button 5"
-        },
-        {
-            "position": 5,
-            "volume": 50,
-            "text": "Button 6"
+            "volume": 83,
+            "text": "Glocken",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Glocken/Bells.mp3",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png"
         }
     ]
 }

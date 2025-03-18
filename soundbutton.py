@@ -80,7 +80,7 @@ class SoundButton(Gtk.Box):
         
         # Widgets zum Button-Container hinzufügen
         self.button_container.pack_start(self.drawing_area, False, False, 0)
-        self.button_container.pack_start(self.volume_container, False, False, button_config['spacing'])
+        self.button_container.pack_start(self.volume_container, False, False, 0)
         
         # Widgets zum Hauptcontainer hinzufügen
         self.pack_start(self.button_container, False, False, 0)
@@ -102,8 +102,9 @@ class SoundButton(Gtk.Box):
         self.volume_slider = Gtk.Scale(orientation=Gtk.Orientation.VERTICAL)
         volume_config = self.config['volume']
         self.volume_slider.set_range(volume_config['min'], volume_config['max'])
-        self.volume_slider.set_value(self.button_config['volume'])
-        self.volume_slider.set_draw_value(False)
+        self.volume_slider.set_value(int(self.button_config['volume']))
+        self.volume_slider.set_draw_value(True)  # Zeige den Wert an
+        self.volume_slider.set_digits(0)  # Keine Dezimalstellen
         self.volume_slider.set_vexpand(False)
         self.volume_slider.set_hexpand(False)
         self.volume_slider.set_size_request(button_config['volume_width'], button_config['height'])
@@ -462,8 +463,8 @@ class SoundButton(Gtk.Box):
     
     def on_volume_changed(self, volume_slider):
         """Handler für Änderungen am Lautstärkeregler"""
-        value = volume_slider.get_value()
+        value = int(volume_slider.get_value())  # Konvertiere zu Ganzzahl
         self.button_config['volume'] = value
         if self.sound:
             self.sound.set_volume(value / 100.0)
-        print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt") 
+        print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt")
