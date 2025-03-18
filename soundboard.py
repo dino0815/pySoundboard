@@ -67,23 +67,20 @@ class SoundboardWindow(Gtk.Window):
         window_config = self.config['window']
         self.set_default_size(window_config['width'], window_config['height'])
         sb_config = self.config['soundbutton']
-        min_height = sb_config['button_height'] + 2 * sb_config['margin']
-        self.set_size_request(sb_config['button_width'], min_height)
+        # Nur die Mindestbreite setzen, nicht die Höhe
+        self.set_size_request(sb_config['button_width'], -1)
     
     def _setup_ui(self):
-        """Erstellt die Benutzeroberfläche"""
-        self.box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.add(self.box)
-        self.button_box = self.box
-        sb_config = self.config['soundbutton']
-        self.button_box.set_spacing(sb_config['spacing'])
-        self.button_box.set_margin_start(sb_config['margin'])
-        self.button_box.set_margin_end(sb_config['margin'])
-        self.button_box.set_margin_top(sb_config['margin'])
-        self.button_box.set_margin_bottom(sb_config['margin'])
+        """Erstellt die Benutzeroberfläche mithilfe einer FlowBox für automatische Umbrechung"""
+        self.flowbox = Gtk.FlowBox()
+        self.flowbox.set_valign(Gtk.Align.START)
+        self.flowbox.set_homogeneous(False)
+        # Entferne den Aufruf von set_max_children_per_line(0)
+        self.flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.add(self.flowbox)
         self.add_button = Gtk.Button(label="+")
         self.add_button.connect("clicked", self.add_new_button)
-        self.button_box.pack_end(self.add_button, False, False, 0)
+        self.flowbox.add(self.add_button)
     
     def _connect_signals(self):
         """Verbindet die Signal-Handler"""
@@ -101,17 +98,13 @@ class SoundboardWindow(Gtk.Window):
             self._create_initial_buttons()
     
     def _load_saved_buttons(self, saved_buttons):
-        """Lädt die gespeicherten Buttons"""
-        sb_config = self.config['soundbutton']
+        """Lädt die gespeicherten Buttons in die FlowBox"""
         for saved_button in saved_buttons:
             position = saved_button['position']
-            # Vorher: position * (button_config['width'] + button_config['volume_height'] + button_config['spacing'])
-            # Jetzt: Verwendung von button_width und spacing
-            offset_x = position * (sb_config['button_width'] + sb_config['spacing'])
-            button = SoundButton(position=position, offset_x=offset_x, offset_y=0, 
+            button = SoundButton(position=position, offset_x=0, offset_y=0, 
                                config=self.config, on_delete=self.delete_button)
+            self.flowbox.add(button)
             self.buttons.append(button)
-            self.button_box.pack_start(button, False, False, 0)
     
     def _create_initial_buttons(self):
         """Erstellt die initialen Buttons"""
@@ -128,47 +121,48 @@ class SoundboardWindow(Gtk.Window):
             return self.DEFAULT_CONFIG.copy()
     
     def update_button_positions(self):
-        """Aktualisiert die Positionen aller Buttons"""
-        sb_config = self.config['soundbutton']
-        for i, button in enumerate(self.buttons):
-            offset_x = i * (sb_config['button_width'] + sb_config['spacing'])
-            button.set_offset(offset_x, 0)
-        if self.add_button:
-            next_offset_x = len(self.buttons) * (sb_config['button_width'] + sb_config['spacing'])
-            self.button_box.reorder_child(self.add_button, len(self.buttons))
-            self.add_button.set_size_request(sb_config['button_width'], sb_config['button_height'])
-            self.add_button.set_margin_start(next_offset_x)
-        self.update_scrolled_window_size()
-    
-    def update_scrolled_window_size(self):
-        """Aktualisiert die Größe des ScrolledWindow"""
-        # Diese Methode wird nicht mehr benötigt, da kein ScrolledWindow verwendet wird
+        # Diese Methode wird nicht mehr benötigt, da Gtk.FlowBox die Anordnung automatisch übernimmt.
         pass
     
     def add_new_button(self, widget):
-        """Fügt einen neuen SoundButton hinzu"""
+        """Fügt einen neuen SoundButton hinzu und fügt ihn der FlowBox hinzu"""
         position = len(self.buttons)
-        sb_config = self.config['soundbutton']
-        offset_x = position * (sb_config['button_width'] + sb_config['spacing'])
-        button = SoundButton(position=position, offset_x=offset_x, offset_y=0, config=self.config, on_delete=self.delete_button)
+        button = SoundButton(position=position, offset_x=0, offset_y=0, config=self.config, on_delete=self.delete_button)
         self.buttons.append(button)
-        self.button_box.pack_start(button, False, False, 0)
+        self.flowbox.add(button)
         print(f"Neuer SoundButton hinzugefügt. Position: {position + 1}, Gesamtanzahl: {len(self.buttons)}")
-        self.update_button_positions()
     
     def delete_button(self, button):
         """Löscht einen Button und aktualisiert die Positionen"""
         print(f"Lösche Button {button.position + 1}")
         
-        # Button aus der Liste und GUI entfernen
-        self.buttons.remove(button)
-        self.button_box.remove(button)
+        # Zuerst das Entfernen aus der internen Liste
+        if button in self.buttons:
+            self.buttons.remove(button)
         
-        # Positionen der verbleibenden Buttons aktualisieren
+        # Stoppe alle laufenden Sounds des Buttons
+        if hasattr(button, 'stop_sound'):
+            button.stop_sound()
+        
+        # Aktualisiere die Positionen der verbleibenden Buttons
         for i, b in enumerate(self.buttons):
             b.position = i
             b.button_config['position'] = i
-        self.update_button_positions()
+        
+        # Dann das Widget aus der FlowBox entfernen, wenn es noch einen Parent hat
+        if button.get_parent() is not None:
+            parent = button.get_parent()
+            if isinstance(parent, Gtk.FlowBoxChild):
+                self.flowbox.remove(parent)
+            else:
+                self.flowbox.remove(button)
+        
+        # Stelle sicher, dass das Widget zerstört wird
+        button.destroy()
+
+    def _delete_button_idle(self, button):
+        # Diese Methode wird nicht mehr benötigt, da wir die Löschung direkt durchführen
+        pass
     
     def save_all_configs(self):
         """Speichert die Konfigurationen aller Buttons und die Fenstergröße"""
@@ -199,9 +193,11 @@ class SoundboardWindow(Gtk.Window):
     
     def on_window_configure(self, widget, event):
         """Reagiert auf Fenstergrößenänderungen"""
-        sb_config = self.config['soundbutton']
-        min_height = sb_config['button_height'] + 2 * sb_config['margin']  # Nur die Höhe der Buttons und Ränder
-        self.set_size_request(-1, min_height)
+        # Entferne die feste Mindesthöhe, damit sich das Fenster dynamisch anpasst.
+        # sb_config = self.config['soundbutton']
+        # min_height = sb_config['button_height'] + 2 * sb_config['margin']
+        # self.set_size_request(-1, min_height)
+        return False  # Weitergabe des Events
     
     def on_key_press(self, widget, event):
         """Handler für Tastatureingaben"""

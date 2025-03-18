@@ -1,14 +1,14 @@
 {
     "window": {
-        "width": 701,
-        "height": 224,
+        "width": 759,
+        "height": 445,
         "title": "Soundboard"
     },
     "soundbutton": {
         "button_width": 100,
         "button_height": 75,
         "volume_height": 100,
-        "volume_width": 15,
+        "volume_width": 5,
         "margin": 5,
         "spacing": 5,
         "initial_count": 3,
@@ -36,14 +36,14 @@
     "buttons": [
         {
             "position": 0,
-            "volume": 71,
+            "volume": 63,
             "text": "Knarren",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png"
         },
         {
             "position": 1,
-            "volume": 85,
+            "volume": 48,
             "text": "Schritte",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Schritte im Schnee.ogg",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png"
@@ -57,11 +57,6 @@
         },
         {
             "position": 3,
-            "volume": 50,
-            "text": "Button 4"
-        },
-        {
-            "position": 4,
             "volume": 50,
             "text": "Button 5"
         }
