@@ -9,43 +9,18 @@ import os
 from settings_dialog import SettingsDialog
 
 class SoundButton(Gtk.Box):
-    # Konstanten für die Konfiguration
-    DEFAULT_CONFIG = {
-        'soundbutton': {
-            'button_width': 300,
-            'button_height': 150,
-            'volume_height': 30,
-            'volume_width': 200,
-            'margin': 10,
-            'spacing': 5,
-            'volume_min': 0,
-            'volume_max': 100,
-            'volume_default': 50,
-            'radius': 15,
-            'delete_button_size': 30,
-            'text_size': 20,
-            'background_color': '#CCCCCC',
-            'delete_button_color': '#CC3333',
-            'text_color': '#000000',
-            'text_x': 17,
-            'text_y': 20,
-            'control_buttons': {
-                'size': 30,
-                'spacing': 5,
-                'background_color': '#CCCCCC',
-                'border_color': '#000000',
-                'symbol_color': '#000000',
-                'border_width': 2
-            }
-        }
-    }
-    
     def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None, is_add_button=False):
+        if config is None:
+            raise ValueError("Keine Konfiguration übergeben. SoundButton benötigt eine gültige Konfiguration.")
+        
+        if 'soundbutton' not in config:
+            raise ValueError("Ungültige Konfiguration: 'soundbutton' Sektion fehlt")
+            
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
         self.position = position
         self.offset_x = offset_x
         self.offset_y = offset_y
-        self.config = config or self.load_config()
+        self.config = config
         self.on_delete = on_delete
         self.is_add_button = is_add_button
         
@@ -154,13 +129,8 @@ class SoundButton(Gtk.Box):
         return [r, g, b]
     
     def load_config(self):
-        """Lädt die Konfigurationsdatei"""
-        try:
-            with open('config.json', 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            print("Warnung: config.json nicht gefunden, verwende Standardwerte")
-            return self.DEFAULT_CONFIG.copy()
+        """Diese Methode wird nicht mehr benötigt, da die Konfiguration über den Konstruktor kommt"""
+        raise NotImplementedError("Die Konfiguration muss über den Konstruktor übergeben werden")
     
     def set_offset(self, offset_x, offset_y):
         """Setzt den Offset des Buttons"""
@@ -372,7 +342,7 @@ class SoundButton(Gtk.Box):
         """Spielt den Sound ab"""
         if 'audio_file' in self.button_config and self.button_config['audio_file']:
             try:
-                if self.sound and self.is_playing:
+                if self.sound and self.is_playing:  # Korrigiere && zu and
                     self.stop_sound()
                 
                 self.sound = pygame.mixer.Sound(self.button_config['audio_file'])

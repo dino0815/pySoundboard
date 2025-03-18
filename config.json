@@ -1,17 +1,17 @@
 {
     "window": {
-        "width": 720,
-        "height": 214,
+        "width": 425,
+        "height": 196,
         "title": "Soundboard"
     },
     "soundbutton": {
         "button_width": 100,
         "button_height": 75,
         "volume_height": 100,
-        "volume_width": 5,
-        "margin": 5,
+        "volume_width": 15,
+        "margin": 10,
         "spacing": 5,
-        "initial_count": 3,
+        "initial_count": 0,
         "radius": 15,
         "delete_button_size": 20,
         "text_size": 13,
@@ -20,65 +20,28 @@
         "text_color": "#000000",
         "text_x": 17,
         "text_y": 20,
+        "volume_min": 0,
+        "volume_max": 100,
+        "volume_default": 50,
         "control_buttons": {
             "size": 25,
             "spacing": 5,
-            "y_offset": 110,
             "background_color": "#FFFFFF",
             "border_color": "#000000",
             "symbol_color": "#000000",
             "border_width": 1
-        },
-        "volume_default": 50,
-        "volume_min": 0,
-        "volume_max": 100
+        }
     },
     "buttons": [
         {
             "position": 0,
-            "volume": 63,
-            "text": "Knarren",
-            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
-            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png"
+            "volume": 50,
+            "text": "Button 1"
         },
         {
             "position": 1,
-            "volume": 48,
-            "text": "Schritte",
-            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Schritte im Schnee.ogg",
-            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png"
-        },
-        {
-            "position": 2,
-            "volume": 22,
-            "text": "Glocken",
-            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Glocken/Bells.mp3",
-            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png"
-        },
-        {
-            "position": 3,
             "volume": 50,
-            "text": "Button 14"
-        },
-        {
-            "position": 4,
-            "volume": 50,
-            "text": "Button 14"
-        },
-        {
-            "position": 5,
-            "volume": 50,
-            "text": "Button 14"
-        },
-        {
-            "position": 6,
-            "volume": 50,
-            "text": "Button 14"
-        },
-        {
-            "position": 7,
-            "volume": 50,
-            "text": "Button 8"
+            "text": "Button 2"
         }
     ]
 }

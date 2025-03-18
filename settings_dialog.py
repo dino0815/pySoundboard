@@ -6,6 +6,9 @@ import pygame  # Hinzufügen von pygame für die Audio-Wiedergabe
 
 class SettingsDialog:
     def __init__(self, parent_window, button_config, position):
+        if not button_config:
+            raise ValueError("Keine Button-Konfiguration übergeben")
+            
         self.button_config = button_config
         self.position = position
         self.parent_window = parent_window
