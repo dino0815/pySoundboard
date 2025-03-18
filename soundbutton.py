@@ -471,3 +471,66 @@ class SoundButton(Gtk.Box):
         if self.sound:
             self.sound.set_volume(value / 100.0)
         print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt")
+
+class AddButton(SoundButton):
+    def __init__(self, on_click, config=None):
+        # Rufe den Parent-Konstruktor mit Position -1 auf (spezielle Position für Add-Button)
+        super().__init__(position=-1, offset_x=0, offset_y=0, config=config, on_delete=None)
+        self.on_click = on_click
+        self.parent_ref = None  # Speichere die Referenz zum Parent
+    
+    def _setup_ui(self):
+        """Überschreibe das UI-Setup für einen simpleren Button"""
+        sb_config = self.config['soundbutton']
+        
+        # Container für den Button
+        self.button_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.button_container.set_size_request(sb_config['button_width'], sb_config['button_height'])
+        
+        # Nur die DrawingArea für den Button
+        self._create_drawing_area(sb_config)
+        
+        # Widget zum Button-Container hinzufügen
+        self.button_container.pack_start(self.drawing_area, True, True, 0)
+        
+        # Widget zum Hauptcontainer hinzufügen
+        self.set_hexpand(True)
+        self.set_vexpand(False)
+        self.pack_start(self.button_container, True, True, 0)
+    
+    def on_draw(self, widget, cr):
+        """Zeichnet einen einfachen Button mit Plus-Symbol"""
+        sb_config = self.config['soundbutton']
+        
+        # Hintergrund
+        bg_color = self.hex_to_rgb(sb_config['background_color'])
+        cr.set_source_rgb(*bg_color)
+        self.rounded_rectangle(cr, 0, 0, sb_config['button_width'], sb_config['button_height'], sb_config['radius'])
+        cr.fill()
+        
+        # Plus-Symbol
+        cr.set_source_rgb(0, 0, 0)  # Schwarze Farbe für das Symbol
+        cr.set_line_width(3)
+        
+        # Berechne die Größe und Position des Plus-Symbols
+        size = min(sb_config['button_width'], sb_config['button_height']) * 0.4
+        center_x = sb_config['button_width'] / 2
+        center_y = sb_config['button_height'] / 2
+        
+        # Zeichne horizontale Linie
+        cr.move_to(center_x - size/2, center_y)
+        cr.line_to(center_x + size/2, center_y)
+        
+        # Zeichne vertikale Linie
+        cr.move_to(center_x, center_y - size/2)
+        cr.line_to(center_x, center_y + size/2)
+        
+        cr.stroke()
+        return False
+    
+    def on_button_press(self, widget, event):
+        """Reagiert nur auf Klicks mit dem Handler"""
+        if event.button == 1 and self.on_click:  # Nur bei linkem Mausklick
+            self.parent_ref = self.get_parent()  # Speichere die aktuelle Parent-Referenz
+            self.on_click(self)  # Übergebe self als Widget-Parameter
+        return True
