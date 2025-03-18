@@ -78,18 +78,28 @@ class SoundboardWindow(Gtk.Window):
         
         # Haupt-Box für vertikales Layout
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        main_box.set_vexpand(True)  # Vertikal expandieren erlauben
+        main_box.set_vexpand(True)
         scrolled.add(main_box)
         
         # FlowBox konfigurieren
         self.flowbox = Gtk.FlowBox()
         self.flowbox.set_valign(Gtk.Align.START)
-        self.flowbox.set_halign(Gtk.Align.FILL)  # Horizontale Füllung
-        self.flowbox.set_hexpand(True)  # Horizontale Expansion
-        self.flowbox.set_homogeneous(True)  # Gleiche Größe für alle Kinder
+        self.flowbox.set_halign(Gtk.Align.START)  # Linksbündige Ausrichtung
+        self.flowbox.set_hexpand(True)
+        self.flowbox.set_homogeneous(True)
         self.flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.flowbox.set_min_children_per_line(1)  # Mindestens 1 Kind pro Zeile
-        self.flowbox.set_max_children_per_line(20)  # Maximale Anzahl pro Zeile
+        self.flowbox.set_min_children_per_line(1)
+        self.flowbox.set_max_children_per_line(20)
+        # Feste Abstände zwischen den Buttons
+        sb_config = self.config['soundbutton']
+        self.flowbox.set_row_spacing(sb_config['spacing'])
+        self.flowbox.set_column_spacing(sb_config['spacing'])
+        # Rahmen für äußere Abstände
+        self.flowbox.set_margin_start(sb_config['margin'])
+        self.flowbox.set_margin_end(sb_config['margin'])
+        self.flowbox.set_margin_top(sb_config['margin'])
+        self.flowbox.set_margin_bottom(sb_config['margin'])
+        
         main_box.pack_start(self.flowbox, True, True, 0)
         
         # Add-Button

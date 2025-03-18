@@ -1,7 +1,7 @@
 {
     "window": {
-        "width": 485,
-        "height": 222,
+        "width": 695,
+        "height": 334,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -57,6 +57,56 @@
         },
         {
             "position": 3,
+            "volume": 50,
+            "text": "Button 14"
+        },
+        {
+            "position": 4,
+            "volume": 50,
+            "text": "Button 5"
+        },
+        {
+            "position": 5,
+            "volume": 50,
+            "text": "Button 6"
+        },
+        {
+            "position": 6,
+            "volume": 50,
+            "text": "Button 7"
+        },
+        {
+            "position": 7,
+            "volume": 50,
+            "text": "Button 8"
+        },
+        {
+            "position": 8,
+            "volume": 50,
+            "text": "Button 9"
+        },
+        {
+            "position": 9,
+            "volume": 50,
+            "text": "Button 10"
+        },
+        {
+            "position": 10,
+            "volume": 50,
+            "text": "Button 11"
+        },
+        {
+            "position": 11,
+            "volume": 50,
+            "text": "Button 12"
+        },
+        {
+            "position": 12,
+            "volume": 50,
+            "text": "Button 13"
+        },
+        {
+            "position": 13,
             "volume": 50,
             "text": "Button 14"
         }
