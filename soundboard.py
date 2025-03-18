@@ -3,7 +3,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import json
-from soundbutton import SoundButton, AddButton
+from soundbutton import SoundButton
 import pygame
 
 class SoundboardWindow(Gtk.Window):
@@ -90,6 +90,7 @@ class SoundboardWindow(Gtk.Window):
         self.flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
         self.flowbox.set_min_children_per_line(1)
         self.flowbox.set_max_children_per_line(20)
+        
         # Feste Abstände zwischen den Buttons
         sb_config = self.config['soundbutton']
         self.flowbox.set_row_spacing(sb_config['spacing'])
@@ -102,8 +103,26 @@ class SoundboardWindow(Gtk.Window):
         
         main_box.pack_start(self.flowbox, True, True, 0)
         
-        # Add-Button wird später in _load_buttons hinzugefügt
+        # Add-Button wird erst später in _load_buttons hinzugefügt
         self.add_button = None
+    
+    def _sort_buttons(self, child1, child2):
+        """Sortiert die Buttons, AddButton kommt immer ans Ende"""
+        widget1 = child1.get_child()
+        widget2 = child2.get_child()
+        
+        # Spezielle Position für Add-Button (is_add_button)
+        pos1 = -1 if hasattr(widget1, 'is_add_button') and widget1.is_add_button else (widget1.position if hasattr(widget1, 'position') else 0)
+        pos2 = -1 if hasattr(widget2, 'is_add_button') and widget2.is_add_button else (widget2.position if hasattr(widget2, 'position') else 0)
+        
+        # Add-Button (-1) soll immer nach allen anderen kommen
+        if pos1 == -1:
+            return 1
+        if pos2 == -1:
+            return -1
+            
+        # Normale Buttons nach Position sortieren
+        return pos1 - pos2
 
     def _connect_signals(self):
         """Verbindet die Signal-Handler"""
@@ -114,27 +133,35 @@ class SoundboardWindow(Gtk.Window):
     
     def _load_buttons(self):
         """Lädt die gespeicherten Buttons oder erstellt neue"""
-        # Erstelle zuerst den Add-Button
-        self.add_button = AddButton(self.add_new_button, config=self.config)
-        
         saved_buttons = self.config.get('buttons', [])
+        
+        # Lade zuerst alle normalen Buttons
         if saved_buttons:
             self._load_saved_buttons(saved_buttons)
         else:
             self._create_initial_buttons()
         
-        # Add-Button am Ende hinzufügen
+        # Erstelle und füge den Add-Button am Ende hinzu
+        self.add_button = SoundButton(position=len(self.buttons), config=self.config, is_add_button=True)
+        self.add_button.set_add_click_handler(self.add_new_button)
         self.flowbox.add(self.add_button)
         self.flowbox.show_all()
     
     def _load_saved_buttons(self, saved_buttons):
         """Lädt die gespeicherten Buttons in die FlowBox"""
-        for saved_button in saved_buttons:
+        # Sortiere die gespeicherten Buttons nach Position
+        sorted_buttons = sorted(saved_buttons, key=lambda x: x['position'])
+        
+        for saved_button in sorted_buttons:
             position = saved_button['position']
             button = SoundButton(position=position, offset_x=0, offset_y=0, 
                                config=self.config, on_delete=self.delete_button)
             self.flowbox.add(button)
             self.buttons.append(button)
+            button.show_all()
+        
+        # Invalidiere die Sortierung nach dem Laden aller Buttons
+        self.flowbox.invalidate_sort()
     
     def _create_initial_buttons(self):
         """Erstellt die initialen Buttons"""
@@ -155,44 +182,31 @@ class SoundboardWindow(Gtk.Window):
         pass
     
     def add_new_button(self, widget):
-        """Fügt einen neuen SoundButton hinzu und fügt ihn der FlowBox hinzu"""
-        # Erstelle den neuen Button
+        """Verwandelt den Add-Button in einen normalen Button und fügt einen neuen Add-Button hinzu"""
+        # Erstelle einen neuen normalen Button an der Position des Add-Buttons
         position = len(self.buttons)
-        button = SoundButton(position=position, offset_x=0, offset_y=0, config=self.config, on_delete=self.delete_button)
-        self.buttons.append(button)
+        new_button = SoundButton(position=position, offset_x=0, offset_y=0, 
+                               config=self.config, on_delete=self.delete_button)
+        self.buttons.append(new_button)
         
-        # Entferne alle Kinder aus der FlowBox und speichere sie temporär
-        children_widgets = []
-        for child in self.flowbox.get_children():
-            widget = child.get_child()  # Hole das eigentliche Widget aus dem FlowBoxChild
-            if widget:
-                # Entferne die Referenz vom Parent
-                child.remove(widget)
-                if widget != self.add_button:  # Speichere nur die normalen Buttons
-                    children_widgets.append(widget)
-            self.flowbox.remove(child)
-        
-        # Füge alle normalen Buttons wieder hinzu
-        for btn in children_widgets:
-            btn.show_all()
-            self.flowbox.add(btn)
+        # Füge den neuen Button anstelle des Add-Buttons ein
+        if widget and widget.get_parent():
+            parent = widget.get_parent()
+            parent.remove(widget)
+            self.flowbox.remove(parent)
         
         # Füge den neuen Button hinzu
-        button.show_all()
-        self.flowbox.add(button)
+        self.flowbox.add(new_button)
         
-        # Füge den Add-Button am Ende hinzu
-        if self.add_button:
-            self.add_button.show_all()
-            self.flowbox.add(self.add_button)
+        # Erstelle einen neuen Add-Button
+        self.add_button = SoundButton(position=position + 1, config=self.config, is_add_button=True)
+        self.add_button.set_add_click_handler(self.add_new_button)
+        self.flowbox.add(self.add_button)
         
-        # Zeige die FlowBox und alle ihre Kinder
+        # Zeige alle Widgets
         self.flowbox.show_all()
         
         print(f"Neuer SoundButton hinzugefügt. Position: {position + 1}, Gesamtanzahl: {len(self.buttons)}")
-        
-        # Stelle sicher, dass das Layout aktualisiert wird
-        self.flowbox.queue_resize()
     
     def delete_button(self, button):
         """Löscht einen Button und aktualisiert die Positionen"""
@@ -211,35 +225,19 @@ class SoundboardWindow(Gtk.Window):
             b.position = i
             b.button_config['position'] = i
         
-        # Entferne alle Kinder aus der FlowBox und speichere sie temporär
-        children_widgets = []
-        for child in self.flowbox.get_children():
-            widget = child.get_child()  # Hole das eigentliche Widget aus dem FlowBoxChild
-            if widget and widget != button:  # Ignoriere den zu löschenden Button
-                # Entferne die Referenz vom Parent
-                child.remove(widget)
-                if widget != self.add_button:  # Speichere nur die normalen Buttons
-                    children_widgets.append(widget)
-            self.flowbox.remove(child)
+        # Entferne den Button aus der FlowBox
+        if button.get_parent():
+            self.flowbox.remove(button.get_parent())
         
-        # Füge alle normalen Buttons wieder hinzu
-        for btn in children_widgets:
-            btn.show_all()
-            self.flowbox.add(btn)
-        
-        # Füge den Add-Button am Ende hinzu
+        # Aktualisiere die Position des Add-Buttons
         if self.add_button:
-            self.add_button.show_all()
-            self.flowbox.add(self.add_button)
+            self.add_button.position = len(self.buttons)
         
         # Stelle sicher, dass das Widget zerstört wird
         button.destroy()
         
-        # Zeige die FlowBox und alle ihre Kinder
+        # Zeige alle Widgets
         self.flowbox.show_all()
-        
-        # Stelle sicher, dass das Layout aktualisiert wird
-        self.flowbox.queue_resize()
 
     def _delete_button_idle(self, button):
         # Diese Methode wird nicht mehr benötigt, da wir die Löschung direkt durchführen

@@ -40,13 +40,14 @@ class SoundButton(Gtk.Box):
         }
     }
     
-    def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None):
+    def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None, is_add_button=False):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
         self.position = position
         self.offset_x = offset_x
         self.offset_y = offset_y
         self.config = config or self.load_config()
         self.on_delete = on_delete
+        self.is_add_button = is_add_button
         
         # Sound-Status
         self.sound = None
@@ -59,9 +60,9 @@ class SoundButton(Gtk.Box):
         # UI erstellen
         self._setup_ui()
         
-        # Debug-Ausgabe
-        print(f"SoundButton {self.position + 1} erstellt - Position: x={self.offset_x}, y={self.offset_y}")
-        print(f"SoundButton {self.position + 1} - Offset: x={self.offset_x}, y={self.offset_y}")
+        if not is_add_button:
+            print(f"SoundButton {self.position + 1} erstellt - Position: x={self.offset_x}, y={self.offset_y}")
+            print(f"SoundButton {self.position + 1} - Offset: x={self.offset_x}, y={self.offset_y}")
         
         # Widgets anzeigen
         self.show_all()
@@ -77,16 +78,17 @@ class SoundButton(Gtk.Box):
         # DrawingArea für den Button
         self._create_drawing_area(sb_config)
         
-        # Lautstärkeregler
-        self._create_volume_slider(sb_config)
-        
         # Widgets zum Button-Container hinzufügen
         self.button_container.pack_start(self.drawing_area, True, True, 0)
-        self.button_container.pack_start(self.volume_container, False, False, 0)
         
-        # Widgets zum Hauptcontainer hinzufügen
-        self.set_hexpand(True)  # Erlaubt horizontale Expansion
-        self.set_vexpand(False) # Verhindert vertikale Expansion
+        if not self.is_add_button:
+            # Lautstärkeregler nur für normale Buttons
+            self._create_volume_slider(sb_config)
+            self.button_container.pack_start(self.volume_container, False, False, 0)
+        
+        # Widget zum Hauptcontainer hinzufügen
+        self.set_hexpand(True)
+        self.set_vexpand(False)
         self.pack_start(self.button_container, True, True, 0)
     
     def _create_drawing_area(self, sb_config):
@@ -227,7 +229,7 @@ class SoundButton(Gtk.Box):
     
     def on_draw(self, widget, cr):
         """Zeichnet den Button"""
-        sb_config = self.config['soundbutton']  # ehemals [button]
+        sb_config = self.config['soundbutton']
         
         # Hintergrund
         bg_color = self.hex_to_rgb(sb_config['background_color'])
@@ -235,18 +237,33 @@ class SoundButton(Gtk.Box):
         self.rounded_rectangle(cr, 0, 0, sb_config['button_width'], sb_config['button_height'], sb_config['radius'])
         cr.fill()
         
-        # Bild zeichnen, falls vorhanden
-        if 'image_file' in self.button_config and self.button_config['image_file']:
-            self._draw_image(cr, {'button_width': sb_config['button_width'], 'button_height': sb_config['button_height']})
-        
-        # Lösch-Button
-        self._draw_delete_button(cr, sb_config)
-        
-        # Text
-        self._draw_text(cr, sb_config)
-        
-        # Steuerungsbuttons
-        self._draw_control_buttons(cr, sb_config)
+        if self.is_add_button:
+            # Plus-Symbol für Add-Button
+            cr.set_source_rgb(0, 0, 0)  # Schwarze Farbe für das Symbol
+            cr.set_line_width(3)
+            
+            # Berechne die Größe und Position des Plus-Symbols
+            size = min(sb_config['button_width'], sb_config['button_height']) * 0.4
+            center_x = sb_config['button_width'] / 2
+            center_y = sb_config['button_height'] / 2
+            
+            # Zeichne horizontale Linie
+            cr.move_to(center_x - size/2, center_y)
+            cr.line_to(center_x + size/2, center_y)
+            
+            # Zeichne vertikale Linie
+            cr.move_to(center_x, center_y - size/2)
+            cr.line_to(center_x, center_y + size/2)
+            
+            cr.stroke()
+        else:
+            # Normaler Button mit allen Details
+            if 'image_file' in self.button_config and self.button_config['image_file']:
+                self._draw_image(cr, {'button_width': sb_config['button_width'], 'button_height': sb_config['button_height']})
+            
+            self._draw_delete_button(cr, sb_config)
+            self._draw_text(cr, sb_config)
+            self._draw_control_buttons(cr, sb_config)
         
         return False
     
@@ -396,24 +413,29 @@ class SoundButton(Gtk.Box):
     
     def on_button_press(self, widget, event):
         """Handler für Mausklicks"""
-        sb_config = self.config['soundbutton']
-        
-        # Lösch-Button
-        if self._is_delete_button_clicked(event, sb_config):
-            if self.on_delete:
-                self.on_delete(self)
+        if self.is_add_button and event.button == 1:  # Linksklick auf Add-Button
+            if hasattr(self, 'on_add_click'):
+                self.on_add_click(self)
             return True
+            
+        if not self.is_add_button:
+            # Normale Button-Funktionalität
+            sb_config = self.config['soundbutton']
+            
+            if self._is_delete_button_clicked(event, sb_config):
+                if self.on_delete:
+                    self.on_delete(self)
+                return True
+            
+            if self._is_control_button_clicked(event, sb_config):
+                return True
+            
+            if event.button == 3:
+                self.show_text_dialog()
+                return True
+            
+            print(f"Außerhalb aller Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
         
-        # Control-Buttons
-        if self._is_control_button_clicked(event, sb_config):
-            return True
-        
-        # Rechtsklick
-        if event.button == 3:
-            self.show_text_dialog()
-            return True
-        
-        print(f"Außerhalb aller Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
         return True
     
     def _is_delete_button_clicked(self, event, sb_config):
@@ -471,66 +493,7 @@ class SoundButton(Gtk.Box):
         if self.sound:
             self.sound.set_volume(value / 100.0)
         print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt")
-
-class AddButton(SoundButton):
-    def __init__(self, on_click, config=None):
-        # Rufe den Parent-Konstruktor mit Position -1 auf (spezielle Position für Add-Button)
-        super().__init__(position=-1, offset_x=0, offset_y=0, config=config, on_delete=None)
-        self.on_click = on_click
-        self.parent_ref = None  # Speichere die Referenz zum Parent
     
-    def _setup_ui(self):
-        """Überschreibe das UI-Setup für einen simpleren Button"""
-        sb_config = self.config['soundbutton']
-        
-        # Container für den Button
-        self.button_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.button_container.set_size_request(sb_config['button_width'], sb_config['button_height'])
-        
-        # Nur die DrawingArea für den Button
-        self._create_drawing_area(sb_config)
-        
-        # Widget zum Button-Container hinzufügen
-        self.button_container.pack_start(self.drawing_area, True, True, 0)
-        
-        # Widget zum Hauptcontainer hinzufügen
-        self.set_hexpand(True)
-        self.set_vexpand(False)
-        self.pack_start(self.button_container, True, True, 0)
-    
-    def on_draw(self, widget, cr):
-        """Zeichnet einen einfachen Button mit Plus-Symbol"""
-        sb_config = self.config['soundbutton']
-        
-        # Hintergrund
-        bg_color = self.hex_to_rgb(sb_config['background_color'])
-        cr.set_source_rgb(*bg_color)
-        self.rounded_rectangle(cr, 0, 0, sb_config['button_width'], sb_config['button_height'], sb_config['radius'])
-        cr.fill()
-        
-        # Plus-Symbol
-        cr.set_source_rgb(0, 0, 0)  # Schwarze Farbe für das Symbol
-        cr.set_line_width(3)
-        
-        # Berechne die Größe und Position des Plus-Symbols
-        size = min(sb_config['button_width'], sb_config['button_height']) * 0.4
-        center_x = sb_config['button_width'] / 2
-        center_y = sb_config['button_height'] / 2
-        
-        # Zeichne horizontale Linie
-        cr.move_to(center_x - size/2, center_y)
-        cr.line_to(center_x + size/2, center_y)
-        
-        # Zeichne vertikale Linie
-        cr.move_to(center_x, center_y - size/2)
-        cr.line_to(center_x, center_y + size/2)
-        
-        cr.stroke()
-        return False
-    
-    def on_button_press(self, widget, event):
-        """Reagiert nur auf Klicks mit dem Handler"""
-        if event.button == 1 and self.on_click:  # Nur bei linkem Mausklick
-            self.parent_ref = self.get_parent()  # Speichere die aktuelle Parent-Referenz
-            self.on_click(self)  # Übergebe self als Widget-Parameter
-        return True
+    def set_add_click_handler(self, handler):
+        """Setzt den Handler für Klicks auf den Add-Button"""
+        self.on_add_click = handler
