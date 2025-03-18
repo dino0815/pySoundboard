@@ -12,14 +12,15 @@ class SoundButton(Gtk.Box):
     # Konstanten für die Konfiguration
     DEFAULT_CONFIG = {
         'soundbutton': {
-            'width': 300,
-            'height': 150,
+            'button_width': 300,
+            'button_height': 150,
             'volume_height': 30,
             'volume_width': 200,
             'margin': 10,
-            'spacing': 5
-        },
-        'button': {
+            'spacing': 5,
+            'volume_min': 0,
+            'volume_max': 100,
+            'volume_default': 50,
             'radius': 15,
             'delete_button_size': 30,
             'text_size': 20,
@@ -27,12 +28,15 @@ class SoundButton(Gtk.Box):
             'delete_button_color': '#CC3333',
             'text_color': '#000000',
             'text_x': 17,
-            'text_y': 20
-        },
-        'volume': {
-            'min': 0,
-            'max': 100,
-            'default': 50
+            'text_y': 20,
+            'control_buttons': {
+                'size': 30,
+                'spacing': 5,
+                'background_color': '#CCCCCC',
+                'border_color': '#000000',
+                'symbol_color': '#000000',
+                'border_width': 2
+            }
         }
     }
     
@@ -64,19 +68,19 @@ class SoundButton(Gtk.Box):
     
     def _setup_ui(self):
         """Erstellt die Benutzeroberfläche"""
-        button_config = self.config['soundbutton']
+        sb_config = self.config['soundbutton']
         
         # Container für Button und Regler
         self.button_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.button_container.set_size_request(button_config['width'], button_config['height'])
+        self.button_container.set_size_request(sb_config['button_width'], sb_config['button_height'])
         self.button_container.set_vexpand(False)
         self.button_container.set_hexpand(False)
         
         # DrawingArea für den Button
-        self._create_drawing_area(button_config)
+        self._create_drawing_area(sb_config)
         
         # Lautstärkeregler
-        self._create_volume_slider(button_config)
+        self._create_volume_slider(sb_config)
         
         # Widgets zum Button-Container hinzufügen
         self.button_container.pack_start(self.drawing_area, False, False, 0)
@@ -85,10 +89,10 @@ class SoundButton(Gtk.Box):
         # Widgets zum Hauptcontainer hinzufügen
         self.pack_start(self.button_container, False, False, 0)
     
-    def _create_drawing_area(self, button_config):
+    def _create_drawing_area(self, sb_config):
         """Erstellt die DrawingArea für den Button"""
         self.drawing_area = Gtk.DrawingArea()
-        self.drawing_area.set_size_request(button_config['width'], button_config['height'])
+        self.drawing_area.set_size_request(sb_config['button_width'], sb_config['button_height'])
         self.drawing_area.set_vexpand(False)
         self.drawing_area.set_hexpand(False)
         
@@ -97,17 +101,17 @@ class SoundButton(Gtk.Box):
         self.drawing_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.drawing_area.connect("button-press-event", self.on_button_press)
     
-    def _create_volume_slider(self, button_config):
+    def _create_volume_slider(self, sb_config):
         """Erstellt den Lautstärkeregler"""
         self.volume_slider = Gtk.Scale(orientation=Gtk.Orientation.VERTICAL)
-        volume_config = self.config['volume']
-        self.volume_slider.set_range(volume_config['min'], volume_config['max'])
-        self.volume_slider.set_value(int(self.button_config['volume']))
+        # Verwende nun volume_min und volume_max
+        self.volume_slider.set_range(sb_config['volume_min'], sb_config['volume_max'])
+        self.volume_slider.set_value(int(self.get_button_config().get('volume', sb_config['volume_default'])))
         self.volume_slider.set_draw_value(True)  # Zeige den Wert an
         self.volume_slider.set_digits(0)  # Keine Dezimalstellen
         self.volume_slider.set_vexpand(False)
         self.volume_slider.set_hexpand(False)
-        self.volume_slider.set_size_request(button_config['volume_width'], button_config['height'])
+        self.volume_slider.set_size_request(sb_config['volume_width'], sb_config['button_height'])
         self.volume_slider.set_inverted(True)
         self.volume_slider.connect("value-changed", self.on_volume_changed)
         
@@ -115,15 +119,16 @@ class SoundButton(Gtk.Box):
         self.volume_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.volume_container.set_vexpand(False)
         self.volume_container.set_hexpand(False)
-        self.volume_container.set_size_request(button_config['volume_width'], button_config['height'])
+        self.volume_container.set_size_request(sb_config['volume_width'], sb_config['button_height'])
         self.volume_container.pack_start(self.volume_slider, False, False, 0)
     
     def get_button_config(self):
         """Lädt die Button-spezifische Konfiguration"""
+        sb_config = self.config['soundbutton']
         if self.position >= len(self.config.get('buttons', [])):
             return {
                 'position': self.position,
-                'volume': self.config['volume']['default'],
+                'volume': sb_config['volume_default'],
                 'text': f"Button {self.position + 1}"
             }
         
@@ -134,7 +139,7 @@ class SoundButton(Gtk.Box):
         
         return {
             'position': self.position,
-            'volume': self.config['volume']['default'],
+            'volume': sb_config['volume_default'],
             'text': f"Button {self.position + 1}"
         }
     
@@ -222,27 +227,26 @@ class SoundButton(Gtk.Box):
     
     def on_draw(self, widget, cr):
         """Zeichnet den Button"""
-        button_config = self.config['button']
-        button_size = self.config['soundbutton']
+        sb_config = self.config['soundbutton']  # ehemals [button]
         
         # Hintergrund
-        bg_color = self.hex_to_rgb(button_config['background_color'])
+        bg_color = self.hex_to_rgb(sb_config['background_color'])
         cr.set_source_rgb(*bg_color)
-        self.rounded_rectangle(cr, 0, 0, button_size['width'], button_size['height'], button_config['radius'])
+        self.rounded_rectangle(cr, 0, 0, sb_config['button_width'], sb_config['button_height'], sb_config['radius'])
         cr.fill()
         
         # Bild zeichnen, falls vorhanden
         if 'image_file' in self.button_config and self.button_config['image_file']:
-            self._draw_image(cr, button_size)
+            self._draw_image(cr, {'button_width': sb_config['button_width'], 'button_height': sb_config['button_height']})
         
         # Lösch-Button
-        self._draw_delete_button(cr, button_config, button_size)
+        self._draw_delete_button(cr, sb_config)
         
         # Text
-        self._draw_text(cr, button_config)
+        self._draw_text(cr, sb_config)
         
         # Steuerungsbuttons
-        self._draw_control_buttons(cr, button_config, button_size)
+        self._draw_control_buttons(cr, sb_config)
         
         return False
     
@@ -255,12 +259,12 @@ class SoundButton(Gtk.Box):
             # Bild skalieren und zentrieren
             image_width = image.get_width()
             image_height = image.get_height()
-            scale_x = button_size['width'] / image_width
-            scale_y = button_size['height'] / image_height
+            scale_x = button_size['button_width'] / image_width
+            scale_y = button_size['button_height'] / image_height
             scale = min(scale_x, scale_y) * 0.8
             
-            x = (button_size['width'] - image_width * scale) / 2
-            y = (button_size['height'] - image_height * scale) / 2
+            x = (button_size['button_width'] - image_width * scale) / 2
+            y = (button_size['button_height'] - image_height * scale) / 2
             
             cr.translate(x, y)
             cr.scale(scale, scale)
@@ -270,13 +274,13 @@ class SoundButton(Gtk.Box):
         except Exception as e:
             print(f"Fehler beim Laden des Bildes: {e}")
     
-    def _draw_delete_button(self, cr, button_config, button_size):
+    def _draw_delete_button(self, cr, sb_config):
         """Zeichnet den Lösch-Button"""
-        delete_size = button_config['delete_button_size']
-        delete_x = button_size['width'] - delete_size - 10
+        delete_size = sb_config['delete_button_size']
+        delete_x = sb_config['button_width'] - delete_size - 10
         delete_y = 10
         
-        control_config = button_config['control_buttons']
+        control_config = sb_config['control_buttons']
         self.draw_control_button(
             cr,
             delete_x,
@@ -289,24 +293,24 @@ class SoundButton(Gtk.Box):
             "delete"
         )
     
-    def _draw_text(self, cr, button_config):
+    def _draw_text(self, cr, sb_config):
         """Zeichnet den Button-Text"""
-        text_color = self.hex_to_rgb(button_config['text_color'])
+        text_color = self.hex_to_rgb(sb_config['text_color'])
         cr.set_source_rgb(*text_color)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-        cr.set_font_size(button_config['text_size'])
-        cr.move_to(button_config['text_x'], button_config['text_y'])
+        cr.set_font_size(sb_config['text_size'])
+        cr.move_to(sb_config['text_x'], sb_config['text_y'])
         cr.show_text(self.button_config['text'])
     
-    def _draw_control_buttons(self, cr, button_config, button_size):
+    def _draw_control_buttons(self, cr, sb_config):
         """Zeichnet die Steuerungsbuttons"""
-        control_config = button_config['control_buttons']
+        control_config = sb_config['control_buttons']
         control_size = control_config['size']
         spacing = control_config['spacing']
         
-        y_offset = button_size['height'] - control_size - spacing
+        y_offset = sb_config['button_height'] - control_size - spacing
         total_control_width = 3 * control_size + 2 * spacing
-        start_x = (button_size['width'] - total_control_width) / 2
+        start_x = (sb_config['button_width'] - total_control_width) / 2
         
         # Play-Button
         self.draw_control_button(
@@ -392,17 +396,16 @@ class SoundButton(Gtk.Box):
     
     def on_button_press(self, widget, event):
         """Handler für Mausklicks"""
-        button_config = self.config['button']
-        button_size = self.config['soundbutton']
+        sb_config = self.config['soundbutton']
         
         # Lösch-Button
-        if self._is_delete_button_clicked(event, button_config, button_size):
+        if self._is_delete_button_clicked(event, sb_config):
             if self.on_delete:
                 self.on_delete(self)
             return True
         
         # Control-Buttons
-        if self._is_control_button_clicked(event, button_config, button_size):
+        if self._is_control_button_clicked(event, sb_config):
             return True
         
         # Rechtsklick
@@ -413,10 +416,10 @@ class SoundButton(Gtk.Box):
         print(f"Außerhalb aller Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
         return True
     
-    def _is_delete_button_clicked(self, event, button_config, button_size):
+    def _is_delete_button_clicked(self, event, sb_config):
         """Prüft, ob der Lösch-Button geklickt wurde"""
-        delete_size = button_config['delete_button_size']
-        delete_x = button_size['width'] - delete_size - 10
+        delete_size = sb_config['delete_button_size']
+        delete_x = sb_config['button_width'] - delete_size - 10
         delete_y = 10
         
         if (delete_x <= event.x <= delete_x + delete_size and 
@@ -425,15 +428,15 @@ class SoundButton(Gtk.Box):
             return True
         return False
     
-    def _is_control_button_clicked(self, event, button_config, button_size):
+    def _is_control_button_clicked(self, event, sb_config):
         """Prüft, ob ein Control-Button geklickt wurde"""
-        control_config = button_config['control_buttons']
+        control_config = sb_config['control_buttons']
         control_size = control_config['size']
         spacing = control_config['spacing']
         
-        y_offset = button_size['height'] - control_size - spacing
+        y_offset = sb_config['button_height'] - control_size - spacing
         total_control_width = 3 * control_size + 2 * spacing
-        start_x = (button_size['width'] - total_control_width) / 2
+        start_x = (sb_config['button_width'] - total_control_width) / 2
         
         if y_offset <= event.y <= y_offset + control_size:
             # Play-Button

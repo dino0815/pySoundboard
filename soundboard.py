@@ -66,31 +66,24 @@ class SoundboardWindow(Gtk.Window):
         pygame.mixer.init()
         window_config = self.config['window']
         self.set_default_size(window_config['width'], window_config['height'])
-        
-        # Minimale Fenstergröße setzen
-        button_config = self.config['soundbutton']
-        min_height = button_config['height'] + 2 * button_config['margin']  # Nur die Höhe der Buttons und Ränder
-        self.set_size_request(button_config['width'], min_height)
+        sb_config = self.config['soundbutton']
+        min_height = sb_config['button_height'] + 2 * sb_config['margin']
+        self.set_size_request(sb_config['button_width'], min_height)
     
     def _setup_ui(self):
         """Erstellt die Benutzeroberfläche"""
-        # Hauptcontainer
-        self.box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)  # Ändere die Orientierung auf HORIZONTAL
+        self.box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.add(self.box)
-        
-        # Container für die Buttons
-        self.button_box = self.box  # Direkt die äußere Box verwenden
-        button_config = self.config['soundbutton']
-        self.button_box.set_spacing(button_config['spacing'])
-        self.button_box.set_margin_start(button_config['margin'])
-        self.button_box.set_margin_end(button_config['margin'])
-        self.button_box.set_margin_top(button_config['margin'])
-        self.button_box.set_margin_bottom(button_config['margin'])
-        
-        # Add-Button erstellen
+        self.button_box = self.box
+        sb_config = self.config['soundbutton']
+        self.button_box.set_spacing(sb_config['spacing'])
+        self.button_box.set_margin_start(sb_config['margin'])
+        self.button_box.set_margin_end(sb_config['margin'])
+        self.button_box.set_margin_top(sb_config['margin'])
+        self.button_box.set_margin_bottom(sb_config['margin'])
         self.add_button = Gtk.Button(label="+")
         self.add_button.connect("clicked", self.add_new_button)
-        self.button_box.pack_end(self.add_button, False, False, 0)  # Änderung von pack_start zu pack_end
+        self.button_box.pack_end(self.add_button, False, False, 0)
     
     def _connect_signals(self):
         """Verbindet die Signal-Handler"""
@@ -109,10 +102,12 @@ class SoundboardWindow(Gtk.Window):
     
     def _load_saved_buttons(self, saved_buttons):
         """Lädt die gespeicherten Buttons"""
-        button_config = self.config['soundbutton']
+        sb_config = self.config['soundbutton']
         for saved_button in saved_buttons:
             position = saved_button['position']
-            offset_x = position * (button_config['width'] + button_config['volume_height'] + button_config['spacing'])
+            # Vorher: position * (button_config['width'] + button_config['volume_height'] + button_config['spacing'])
+            # Jetzt: Verwendung von button_width und spacing
+            offset_x = position * (sb_config['button_width'] + sb_config['spacing'])
             button = SoundButton(position=position, offset_x=offset_x, offset_y=0, 
                                config=self.config, on_delete=self.delete_button)
             self.buttons.append(button)
@@ -134,17 +129,15 @@ class SoundboardWindow(Gtk.Window):
     
     def update_button_positions(self):
         """Aktualisiert die Positionen aller Buttons"""
-        button_config = self.config['soundbutton']
+        sb_config = self.config['soundbutton']
         for i, button in enumerate(self.buttons):
-            offset_x = i * (button_config['width'] + button_config['spacing'])
+            offset_x = i * (sb_config['button_width'] + sb_config['spacing'])
             button.set_offset(offset_x, 0)
-        
-        # Position des Add-Buttons aktualisieren
-        if self.add_button:  # Überprüfen, ob der Add-Button existiert
-            next_offset_x = len(self.buttons) * (button_config['width'] + button_config['spacing'])
-            self.button_box.reorder_child(self.add_button, len(self.buttons))  # Add-Button ans Ende verschieben
-            self.add_button.set_size_request(button_config['width'], button_config['height'])
-            self.add_button.set_margin_start(next_offset_x)  # Abstand basierend auf der Anzahl der Buttons
+        if self.add_button:
+            next_offset_x = len(self.buttons) * (sb_config['button_width'] + sb_config['spacing'])
+            self.button_box.reorder_child(self.add_button, len(self.buttons))
+            self.add_button.set_size_request(sb_config['button_width'], sb_config['button_height'])
+            self.add_button.set_margin_start(next_offset_x)
         self.update_scrolled_window_size()
     
     def update_scrolled_window_size(self):
@@ -155,14 +148,11 @@ class SoundboardWindow(Gtk.Window):
     def add_new_button(self, widget):
         """Fügt einen neuen SoundButton hinzu"""
         position = len(self.buttons)
-        button_config = self.config['soundbutton']
-        offset_x = position * (button_config['width'] + button_config['spacing'])
-        
-        button = SoundButton(position=position, offset_x=offset_x, offset_y=0, 
-                           config=self.config, on_delete=self.delete_button)
+        sb_config = self.config['soundbutton']
+        offset_x = position * (sb_config['button_width'] + sb_config['spacing'])
+        button = SoundButton(position=position, offset_x=offset_x, offset_y=0, config=self.config, on_delete=self.delete_button)
         self.buttons.append(button)
         self.button_box.pack_start(button, False, False, 0)
-        
         print(f"Neuer SoundButton hinzugefügt. Position: {position + 1}, Gesamtanzahl: {len(self.buttons)}")
         self.update_button_positions()
     
@@ -209,8 +199,8 @@ class SoundboardWindow(Gtk.Window):
     
     def on_window_configure(self, widget, event):
         """Reagiert auf Fenstergrößenänderungen"""
-        button_config = self.config['soundbutton']
-        min_height = button_config['height'] + 2 * button_config['margin']  # Nur die Höhe der Buttons und Ränder
+        sb_config = self.config['soundbutton']
+        min_height = sb_config['button_height'] + 2 * sb_config['margin']  # Nur die Höhe der Buttons und Ränder
         self.set_size_request(-1, min_height)
     
     def on_key_press(self, widget, event):

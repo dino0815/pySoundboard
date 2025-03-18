@@ -1,19 +1,17 @@
 {
     "window": {
-        "width": 443,
-        "height": 85,
+        "width": 701,
+        "height": 224,
         "title": "Soundboard"
     },
     "soundbutton": {
-        "width": 100,
-        "height": 75,
+        "button_width": 100,
+        "button_height": 75,
         "volume_height": 100,
         "volume_width": 15,
         "margin": 5,
         "spacing": 5,
-        "initial_count": 3
-    },
-    "button": {
+        "initial_count": 3,
         "radius": 15,
         "delete_button_size": 20,
         "text_size": 13,
@@ -30,12 +28,10 @@
             "border_color": "#000000",
             "symbol_color": "#000000",
             "border_width": 1
-        }
-    },
-    "volume": {
-        "min": 0,
-        "max": 100,
-        "default": 50
+        },
+        "volume_default": 50,
+        "volume_min": 0,
+        "volume_max": 100
     },
     "buttons": [
         {
@@ -47,17 +43,27 @@
         },
         {
             "position": 1,
-            "volume": 48,
+            "volume": 85,
             "text": "Schritte",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Schritte im Schnee.ogg",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png"
         },
         {
             "position": 2,
-            "volume": 83,
+            "volume": 22,
             "text": "Glocken",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Glocken/Bells.mp3",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png"
+        },
+        {
+            "position": 3,
+            "volume": 50,
+            "text": "Button 4"
+        },
+        {
+            "position": 4,
+            "volume": 50,
+            "text": "Button 5"
         }
     ]
 }
