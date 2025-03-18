@@ -66,18 +66,33 @@ class SoundboardWindow(Gtk.Window):
         pygame.mixer.init()
         window_config = self.config['window']
         self.set_default_size(window_config['width'], window_config['height'])
-        sb_config = self.config['soundbutton']
-        # Nur die Mindestbreite setzen, nicht die Höhe
-        self.set_size_request(sb_config['button_width'], -1)
+        # Keine Mindestgröße setzen
+        self.set_size_request(-1, -1)
     
     def _setup_ui(self):
         """Erstellt die Benutzeroberfläche mithilfe einer FlowBox für automatische Umbrechung"""
+        # Scrolled Window für vertikales Scrollen
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.add(scrolled)
+        
+        # Haupt-Box für vertikales Layout
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        main_box.set_vexpand(True)  # Vertikal expandieren erlauben
+        scrolled.add(main_box)
+        
+        # FlowBox konfigurieren
         self.flowbox = Gtk.FlowBox()
         self.flowbox.set_valign(Gtk.Align.START)
-        self.flowbox.set_homogeneous(False)
-        # Entferne den Aufruf von set_max_children_per_line(0)
+        self.flowbox.set_halign(Gtk.Align.FILL)  # Horizontale Füllung
+        self.flowbox.set_hexpand(True)  # Horizontale Expansion
+        self.flowbox.set_homogeneous(True)  # Gleiche Größe für alle Kinder
         self.flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.add(self.flowbox)
+        self.flowbox.set_min_children_per_line(1)  # Mindestens 1 Kind pro Zeile
+        self.flowbox.set_max_children_per_line(20)  # Maximale Anzahl pro Zeile
+        main_box.pack_start(self.flowbox, True, True, 0)
+        
+        # Add-Button
         self.add_button = Gtk.Button(label="+")
         self.add_button.connect("clicked", self.add_new_button)
         self.flowbox.add(self.add_button)
@@ -193,11 +208,8 @@ class SoundboardWindow(Gtk.Window):
     
     def on_window_configure(self, widget, event):
         """Reagiert auf Fenstergrößenänderungen"""
-        # Entferne die feste Mindesthöhe, damit sich das Fenster dynamisch anpasst.
-        # sb_config = self.config['soundbutton']
-        # min_height = sb_config['button_height'] + 2 * sb_config['margin']
-        # self.set_size_request(-1, min_height)
-        return False  # Weitergabe des Events
+        # Lasse das Fenster sich natürlich an den Inhalt anpassen
+        return False
     
     def on_key_press(self, widget, event):
         """Handler für Tastatureingaben"""

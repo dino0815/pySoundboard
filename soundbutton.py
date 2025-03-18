@@ -73,8 +73,6 @@ class SoundButton(Gtk.Box):
         # Container für Button und Regler
         self.button_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.button_container.set_size_request(sb_config['button_width'], sb_config['button_height'])
-        self.button_container.set_vexpand(False)
-        self.button_container.set_hexpand(False)
         
         # DrawingArea für den Button
         self._create_drawing_area(sb_config)
@@ -83,11 +81,13 @@ class SoundButton(Gtk.Box):
         self._create_volume_slider(sb_config)
         
         # Widgets zum Button-Container hinzufügen
-        self.button_container.pack_start(self.drawing_area, False, False, 0)
+        self.button_container.pack_start(self.drawing_area, True, True, 0)
         self.button_container.pack_start(self.volume_container, False, False, 0)
         
         # Widgets zum Hauptcontainer hinzufügen
-        self.pack_start(self.button_container, False, False, 0)
+        self.set_hexpand(True)  # Erlaubt horizontale Expansion
+        self.set_vexpand(False) # Verhindert vertikale Expansion
+        self.pack_start(self.button_container, True, True, 0)
     
     def _create_drawing_area(self, sb_config):
         """Erstellt die DrawingArea für den Button"""

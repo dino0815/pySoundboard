@@ -1,7 +1,7 @@
 {
     "window": {
-        "width": 759,
-        "height": 445,
+        "width": 485,
+        "height": 222,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -58,7 +58,7 @@
         {
             "position": 3,
             "volume": 50,
-            "text": "Button 5"
+            "text": "Button 14"
         }
     ]
 }
