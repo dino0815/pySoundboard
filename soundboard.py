@@ -51,12 +51,26 @@ class SoundboardWindow(Gtk.Window):
         self._setup_ui()
         self._load_buttons()
         self._connect_signals()
+        
         self.show_all()
         self.add_button = None  # Referenz für den Add-Button
     
     def _setup_window(self):
         """Initialisiert die Fenster-Eigenschaften"""
-        pygame.mixer.init()
+        # Initialisiere pygame.mixer mit Fehlerbehandlung
+        try:
+            if not pygame.mixer.get_init():
+                print("Initialisiere pygame.mixer in SoundboardWindow")
+                pygame.mixer.init()
+        except Exception as e:
+            print(f"Fehler bei der Initialisierung von pygame.mixer: {e}")
+            # Versuche es mit einigen Standardparametern erneut
+            try:
+                pygame.mixer.init(44100, -16, 2, 2048)
+                print("pygame.mixer mit Standardparametern initialisiert")
+            except Exception as e:
+                print(f"Kritischer Fehler: Konnte pygame.mixer nicht initialisieren: {e}")
+        
         window_config = self.config['window']
         self.set_default_size(window_config['width'], window_config['height'])
         # Keine Mindestgröße setzen
@@ -100,28 +114,10 @@ class SoundboardWindow(Gtk.Window):
         # Add-Button wird erst später in _load_buttons hinzugefügt
         self.add_button = None
     
-    def _sort_buttons(self, child1, child2):
-        """Sortiert die Buttons, AddButton kommt immer ans Ende"""
-        widget1 = child1.get_child()
-        widget2 = child2.get_child()
-        
-        # Spezielle Position für Add-Button (is_add_button)
-        pos1 = -1 if hasattr(widget1, 'is_add_button') and widget1.is_add_button else (widget1.position if hasattr(widget1, 'position') else 0)
-        pos2 = -1 if hasattr(widget2, 'is_add_button') and widget2.is_add_button else (widget2.position if hasattr(widget2, 'position') else 0)
-        
-        # Add-Button (-1) soll immer nach allen anderen kommen
-        if pos1 == -1:
-            return 1
-        if pos2 == -1:
-            return -1
-            
-        # Normale Buttons nach Position sortieren
-        return pos1 - pos2
-
     def _connect_signals(self):
         """Verbindet die Signal-Handler"""
         self.connect("destroy", self.on_destroy)
-        self.connect("configure-event", self.on_window_configure)
+        #self.connect("configure-event", self.on_window_configure)
         self.connect("key-press-event", self.on_key_press)
         self.connect("delete-event", self.on_window_delete)
     
@@ -155,10 +151,6 @@ class SoundboardWindow(Gtk.Window):
         # Invalidiere die Sortierung nach dem Laden aller Buttons
         self.flowbox.invalidate_sort()
     
-    def _create_initial_buttons(self):
-        """Diese Methode wird nicht mehr benötigt, da wir immer mit 0 Buttons starten"""
-        pass
-    
     def load_config(self):
         """Lädt die Konfigurationsdatei"""
         try:
@@ -167,10 +159,6 @@ class SoundboardWindow(Gtk.Window):
         except FileNotFoundError:
             print("Warnung: config.json nicht gefunden, verwende Standardwerte")
             return self.DEFAULT_CONFIG.copy()
-    
-    def update_button_positions(self):
-        # Diese Methode wird nicht mehr benötigt, da Gtk.FlowBox die Anordnung automatisch übernimmt.
-        pass
     
     def add_new_button(self, widget):
         """Verwandelt den Add-Button in einen normalen Button und fügt einen neuen Add-Button hinzu"""
@@ -230,10 +218,6 @@ class SoundboardWindow(Gtk.Window):
         # Zeige alle Widgets
         self.flowbox.show_all()
 
-    def _delete_button_idle(self, button):
-        # Diese Methode wird nicht mehr benötigt, da wir die Löschung direkt durchführen
-        pass
-    
     def save_all_configs(self):
         """Speichert die Konfigurationen aller Buttons und die Fenstergröße"""
         try:
@@ -261,10 +245,10 @@ class SoundboardWindow(Gtk.Window):
         Gtk.main_quit()
         return True
     
-    def on_window_configure(self, widget, event):
-        """Reagiert auf Fenstergrößenänderungen"""
-        # Lasse das Fenster sich natürlich an den Inhalt anpassen
-        return False
+    #def on_window_configure(self, widget, event):
+    #    """Reagiert auf Fenstergrößenänderungen"""
+    #    # Lasse das Fenster sich natürlich an den Inhalt anpassen
+    #    return False
     
     def on_key_press(self, widget, event):
         """Handler für Tastatureingaben"""

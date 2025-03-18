@@ -1,7 +1,7 @@
 {
     "window": {
-        "width": 422,
-        "height": 176,
+        "width": 526,
+        "height": 313,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -33,23 +33,40 @@
     "buttons": [
         {
             "position": 0,
-            "volume": 50,
-            "text": "Button 1"
+            "volume": 83,
+            "text": "Drei",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3"
         },
         {
             "position": 1,
-            "volume": 50,
-            "text": "Button 2"
+            "volume": 22,
+            "text": "Eins",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Glocken/Bells.mp3"
         },
         {
             "position": 2,
-            "volume": 50,
-            "text": "Button 3"
+            "volume": 25,
+            "text": "Zwei",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Hintergrund 1 - 18.01.15 17.35.mp3"
         },
         {
             "position": 3,
+            "volume": 28,
+            "text": "Button 7"
+        },
+        {
+            "position": 4,
+            "volume": 28,
+            "text": "Button 7"
+        },
+        {
+            "position": 5,
             "volume": 50,
-            "text": "Button 4"
+            "text": "Button 6",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Hintergrund 1 - 18.01.15 17.35.mp3"
         }
     ]
 }

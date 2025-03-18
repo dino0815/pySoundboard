@@ -8,6 +8,9 @@ import pygame
 import os
 from settings_dialog import SettingsDialog
 
+# Diese globale Variable wird nicht mehr benötigt, bleibt aber zunächst als Kommentar erhalten
+# DRAGGING_BUTTON = None  # Speichert den aktuell gezogenen Button
+
 class SoundButton(Gtk.Box):
     def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None, is_add_button=False):
         if config is None:
@@ -35,9 +38,13 @@ class SoundButton(Gtk.Box):
         # UI erstellen
         self._setup_ui()
         
+        # Styling aktivieren (für normale Buttons)
         if not is_add_button:
-            print(f"SoundButton {self.position + 1} erstellt - Position: x={self.offset_x}, y={self.offset_y}")
-            print(f"SoundButton {self.position + 1} - Offset: x={self.offset_x}, y={self.offset_y}")
+            self._apply_style()
+        
+        if not is_add_button:
+            print(f"SoundButton '{self.button_config['text']}' erstellt - Position: x={self.offset_x}, y={self.offset_y}")
+            print(f"SoundButton '{self.button_config['text']}' - Offset: x={self.offset_x}, y={self.offset_y}")
         
         # Widgets anzeigen
         self.show_all()
@@ -75,8 +82,18 @@ class SoundButton(Gtk.Box):
         
         # Event-Handler
         self.drawing_area.connect("draw", self.on_draw)
-        self.drawing_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        
+        # Maus-Events aktivieren
+        self.drawing_area.add_events(
+            Gdk.EventMask.BUTTON_PRESS_MASK |
+            Gdk.EventMask.BUTTON_RELEASE_MASK |
+            Gdk.EventMask.POINTER_MOTION_MASK
+        )
+        
+        # Event-Handler für Maus-Events
         self.drawing_area.connect("button-press-event", self.on_button_press)
+        self.drawing_area.connect("button-release-event", self.on_button_release)
+        self.drawing_area.connect("motion-notify-event", self.on_motion_notify)
     
     def _create_volume_slider(self, sb_config):
         """Erstellt den Lautstärkeregler"""
@@ -128,15 +145,12 @@ class SoundButton(Gtk.Box):
         b = int(hex_color[4:6], 16) / 255.0
         return [r, g, b]
     
-    def load_config(self):
-        """Diese Methode wird nicht mehr benötigt, da die Konfiguration über den Konstruktor kommt"""
-        raise NotImplementedError("Die Konfiguration muss über den Konstruktor übergeben werden")
     
     def set_offset(self, offset_x, offset_y):
         """Setzt den Offset des Buttons"""
         self.offset_x = offset_x
         self.offset_y = offset_y
-        print(f"SoundButton {self.position + 1} - Offset aktualisiert: x={self.offset_x}, y={self.offset_y}")
+        print(f"SoundButton '{self.button_config['text']}' - Offset aktualisiert: x={self.offset_x}, y={self.offset_y}")
         self.drawing_area.queue_draw()
     
     def rounded_rectangle(self, cr, x, y, width, height, radius):
@@ -342,6 +356,11 @@ class SoundButton(Gtk.Box):
         """Spielt den Sound ab"""
         if 'audio_file' in self.button_config and self.button_config['audio_file']:
             try:
+                # Stelle sicher, dass pygame.mixer initialisiert ist
+                if not pygame.mixer.get_init():
+                    print("Initialisiere pygame.mixer in SoundButton")
+                    pygame.mixer.init()
+                    
                 if self.sound and self.is_playing:  # Korrigiere && zu and
                     self.stop_sound()
                 
@@ -351,7 +370,7 @@ class SoundButton(Gtk.Box):
                 self.sound.play()
                 self.is_playing = True
                 
-                print(f"Button {self.position + 1} - Sound wird abgespielt")
+                print(f"SoundButton '{self.button_config['text']}' - Sound wird abgespielt")
             except Exception as e:
                 print(f"Fehler beim Abspielen des Sounds: {e}")
                 self.stop_sound()
@@ -360,9 +379,14 @@ class SoundButton(Gtk.Box):
         """Stoppt den Sound"""
         if self.sound and self.is_playing:
             try:
+                # Stelle sicher, dass pygame.mixer initialisiert ist
+                if not pygame.mixer.get_init():
+                    print("Initialisiere pygame.mixer in SoundButton (stop_sound)")
+                    pygame.mixer.init()
+                    
                 self.sound.stop()
                 self.is_playing = False
-                print(f"Button {self.position + 1} - Sound gestoppt")
+                print(f"SoundButton '{self.button_config['text']}' - Sound gestoppt")
             except Exception as e:
                 print(f"Fehler beim Stoppen des Sounds: {e}")
     
@@ -370,13 +394,18 @@ class SoundButton(Gtk.Box):
         """Schaltet die Schleifenwiedergabe ein/aus"""
         if self.sound:
             try:
+                # Stelle sicher, dass pygame.mixer initialisiert ist
+                if not pygame.mixer.get_init():
+                    print("Initialisiere pygame.mixer in SoundButton (toggle_loop)")
+                    pygame.mixer.init()
+                    
                 self.is_looping = not self.is_looping
                 if self.is_looping:
                     self.sound.play(-1)
-                    print(f"Button {self.position + 1} - Schleifenwiedergabe aktiviert")
+                    print(f"SoundButton '{self.button_config['text']}' - Schleifenwiedergabe aktiviert")
                 else:
                     self.stop_sound()
-                    print(f"Button {self.position + 1} - Schleifenwiedergabe deaktiviert")
+                    print(f"SoundButton '{self.button_config['text']}' - Schleifenwiedergabe deaktiviert")
             except Exception as e:
                 print(f"Fehler beim Umschalten der Schleifenwiedergabe: {e}")
                 self.stop_sound()
@@ -400,13 +429,19 @@ class SoundButton(Gtk.Box):
             if self._is_control_button_clicked(event, sb_config):
                 return True
             
-            if event.button == 3:
+            if event.button == 3:  # Rechtsklick
                 self.show_text_dialog()
                 return True
-            
-            print(f"Außerhalb aller Buttons von Button {self.position + 1} geklickt: x={event.x}, y={event.y}")
         
-        return True
+        return False
+    
+    def on_motion_notify(self, widget, event):
+        """Handler für Mausbewegung"""
+        return False
+    
+    def on_button_release(self, widget, event):
+        """Handler für Maus-Loslassen"""
+        return False
     
     def _is_delete_button_clicked(self, event, sb_config):
         """Prüft, ob der Lösch-Button geklickt wurde"""
@@ -416,7 +451,7 @@ class SoundButton(Gtk.Box):
         
         if (delete_x <= event.x <= delete_x + delete_size and 
             delete_y <= event.y <= delete_y + delete_size):
-            print(f"Lösch-Button von Button {self.position + 1} wurde geklickt!")
+            print(f"Lösch-Button von '{self.button_config['text']}' wurde geklickt!")
             return True
         return False
     
@@ -433,19 +468,19 @@ class SoundButton(Gtk.Box):
         if y_offset <= event.y <= y_offset + control_size:
             # Play-Button
             if start_x <= event.x <= start_x + control_size:
-                print(f"Play-Button von Button {self.position + 1} wurde geklickt!")
+                print(f"Play-Button von '{self.button_config['text']}' wurde geklickt!")
                 self.play_sound()
                 return True
             
             # Stop-Button
             if start_x + control_size + spacing <= event.x <= start_x + 2 * control_size + spacing:
-                print(f"Stop-Button von Button {self.position + 1} wurde geklickt!")
+                print(f"Stop-Button von '{self.button_config['text']}' wurde geklickt!")
                 self.stop_sound()
                 return True
             
             # Loop-Button
             if start_x + 2 * (control_size + spacing) <= event.x <= start_x + 3 * control_size + 2 * spacing:
-                print(f"Loop-Button von Button {self.position + 1} wurde geklickt!")
+                print(f"Loop-Button von '{self.button_config['text']}' wurde geklickt!")
                 self.toggle_loop()
                 return True
         return False
@@ -462,8 +497,33 @@ class SoundButton(Gtk.Box):
         self.button_config['volume'] = value
         if self.sound:
             self.sound.set_volume(value / 100.0)
-        print(f"Button {self.position + 1} - Lautstärke auf {value} gesetzt")
+        print(f"'{self.button_config['text']}' - Lautstärke auf {value} gesetzt")
     
     def set_add_click_handler(self, handler):
         """Setzt den Handler für Klicks auf den Add-Button"""
         self.on_add_click = handler
+    
+    def _apply_style(self):
+        """Wendet das Styling auf den Button an"""
+        style_context = self.get_style_context()
+        style_context.add_class("sound-button")
+        
+        css = """
+        .sound-button {
+            background-color: #CCCCCC;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        .sound-button.dragging {
+            background-color: rgba(100, 100, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        """
+        
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css.encode())
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
