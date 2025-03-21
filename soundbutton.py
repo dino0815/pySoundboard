@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk, GLib, Pango
 import cairo
 import json
 import pygame
@@ -81,7 +81,52 @@ class SoundButton(Gtk.Box):
         if self.is_add_button:
             self.button.set_label("+")
         else:
-            self.button.set_label(self.button_config['text'])
+            # Anstatt direkt das Label zu setzen, erstellen wir ein Label-Widget,
+            # das Zeilenumbrüche unterstützt
+            button_text = self.button_config['text']
+            
+            # Wir erstellen ein Label-Widget
+            self.label = Gtk.Label()
+            
+            # Einfache Ersetzung von \n für bessere Zeilenumbrüche
+            if '\\n' in button_text:
+                button_text = button_text.replace('\\n', '\n')
+            
+            self.label.set_text(button_text)
+            self.label.set_use_markup(True)  # Ermöglicht Markup (z.B. <b>, <i>, etc.)
+            
+            # Aktiviere Zeilenumbrüche im Label
+            line_breaks = self.button_config.get('line_breaks', True)
+            self.label.set_line_wrap(line_breaks)
+            self.label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            
+            # Textausrichtung gemäß Konfiguration
+            text_align = self.button_config.get('text_align', 'center')
+            if text_align == 'left':
+                self.label.set_justify(Gtk.Justification.LEFT)
+                self.label.set_halign(Gtk.Align.START)
+            elif text_align == 'right':
+                self.label.set_justify(Gtk.Justification.RIGHT)
+                self.label.set_halign(Gtk.Align.END)
+            else:  # center (default)
+                self.label.set_justify(Gtk.Justification.CENTER)
+                self.label.set_halign(Gtk.Align.CENTER)
+                
+            # Zusätzliche Anpassungen für die Textposition im Button
+            margin_top = self.button_config.get('text_margin_top', 0)
+            margin_bottom = self.button_config.get('text_margin_bottom', 0)
+            margin_left = self.button_config.get('text_margin_left', 0)
+            margin_right = self.button_config.get('text_margin_right', 0)
+            
+            self.label.set_margin_top(margin_top)
+            self.label.set_margin_bottom(margin_bottom)
+            self.label.set_margin_start(margin_left)
+            self.label.set_margin_end(margin_right)
+            
+            # Wichtig: Label muss sichtbar sein
+            self.label.show()
+            # Füge das Label zum Button hinzu
+            self.button.add(self.label)
         
         # Event-Handler für Button
         self.button.connect("button-press-event", self.on_button_press)
@@ -612,6 +657,47 @@ class SoundButton(Gtk.Box):
         """Zeigt den Einstellungsdialog"""
         dialog = SettingsDialog(self.get_toplevel(), self.button_config, self.position, self.on_delete)
         dialog.show()
+        
+        # Aktualisiere den Buttontext, wenn er sich geändert hat
+        if not self.is_add_button and hasattr(self, 'label'):
+            button_text = self.button_config['text']
+            
+            # Einfache Ersetzung von \n für bessere Zeilenumbrüche
+            if '\\n' in button_text:
+                button_text = button_text.replace('\\n', '\n')
+                
+            self.label.set_text(button_text)
+            
+            # Aktualisiere die Zeilenumbruch-Einstellung
+            line_breaks = self.button_config.get('line_breaks', True)
+            self.label.set_line_wrap(line_breaks)
+            self.label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            
+            # Aktualisiere die Textausrichtung
+            text_align = self.button_config.get('text_align', 'center')
+            if text_align == 'left':
+                self.label.set_justify(Gtk.Justification.LEFT)
+                self.label.set_halign(Gtk.Align.START)
+            elif text_align == 'right':
+                self.label.set_justify(Gtk.Justification.RIGHT)
+                self.label.set_halign(Gtk.Align.END)
+            else:  # center (default)
+                self.label.set_justify(Gtk.Justification.CENTER)
+                self.label.set_halign(Gtk.Align.CENTER)
+                
+            # Aktualisiere Text-Margins
+            margin_top = self.button_config.get('text_margin_top', 0)
+            margin_bottom = self.button_config.get('text_margin_bottom', 0)
+            margin_left = self.button_config.get('text_margin_left', 0)
+            margin_right = self.button_config.get('text_margin_right', 0)
+            
+            self.label.set_margin_top(margin_top)
+            self.label.set_margin_bottom(margin_bottom)
+            self.label.set_margin_start(margin_left)
+            self.label.set_margin_end(margin_right)
+            
+            # CSS-Stil aktualisieren
+            self._apply_css_style()
     
     def on_volume_changed(self, volume_slider):
         """Handler für Änderungen am Lautstärkeregler"""
