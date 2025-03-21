@@ -1,7 +1,7 @@
 {
     "window": {
-        "width": 526,
-        "height": 313,
+        "width": 455,
+        "height": 388,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -33,14 +33,15 @@
     "buttons": [
         {
             "position": 0,
-            "volume": 83,
+            "volume": 100,
             "text": "Drei",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png",
-            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3"
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
+            "loop": false
         },
         {
             "position": 1,
-            "volume": 22,
+            "volume": 61,
             "text": "Eins",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Glocken/Bells.mp3"
@@ -54,19 +55,52 @@
         },
         {
             "position": 3,
-            "volume": 28,
-            "text": "Button 7"
+            "volume": 50,
+            "text": "Button 6",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Hintergrund 1 - 18.01.15 17.35.mp3",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png",
+            "loop": false
         },
         {
             "position": 4,
-            "volume": 28,
-            "text": "Button 7"
+            "volume": 50,
+            "text": "Button 7",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "loop": false
         },
         {
             "position": 5,
             "volume": 50,
-            "text": "Button 6",
-            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Hintergrund 1 - 18.01.15 17.35.mp3"
+            "text": "Button 7"
+        },
+        {
+            "position": 6,
+            "volume": 50,
+            "text": "Button 8",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png",
+            "loop": false
+        },
+        {
+            "position": 7,
+            "volume": 50,
+            "text": "Button 9"
+        },
+        {
+            "position": 8,
+            "volume": 50,
+            "text": "Wilder \\n Button",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "loop": false
+        },
+        {
+            "position": 9,
+            "volume": 50,
+            "text": "Button 10"
+        },
+        {
+            "position": 10,
+            "volume": 50,
+            "text": "Button 11"
         }
     ]
 }

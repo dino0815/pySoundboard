@@ -5,6 +5,7 @@ from gi.repository import Gtk, Gdk
 import json
 from soundbutton import SoundButton
 import pygame
+import os
 
 class SoundboardWindow(Gtk.Window):
     # Konstanten für die Konfiguration
@@ -24,7 +25,6 @@ class SoundboardWindow(Gtk.Window):
             "delete_button_size": 20,
             "text_size": 13,
             "background_color": "#CCCCCC",
-            "delete_button_color": "#CC3333",
             "text_color": "#000000",
             "text_x": 17,
             "text_y": 20,
@@ -151,118 +151,134 @@ class SoundboardWindow(Gtk.Window):
         # Invalidiere die Sortierung nach dem Laden aller Buttons
         self.flowbox.invalidate_sort()
     
+    def save_config(self):
+        """Speichert die Konfiguration in eine Datei"""
+        # Aktualisiere die Button-Konfigurationen im Config-Dictionary
+        saved_buttons = []
+        
+        for button in self.buttons:
+            if not button.is_add_button:
+                saved_buttons.append(button.button_config)
+        
+        self.config['buttons'] = saved_buttons
+        
+        # Speichern
+        with open('config.json', 'w') as config_file:
+            json.dump(self.config, config_file, indent=4)
+        
+        print("Konfiguration gespeichert!")
+    
     def load_config(self):
-        """Lädt die Konfigurationsdatei"""
+        """Lädt die Konfiguration aus einer Datei oder verwendet die Standard-Konfiguration"""
         try:
-            with open('config.json', 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            print("Warnung: config.json nicht gefunden, verwende Standardwerte")
+            with open('config.json', 'r') as config_file:
+                config = json.load(config_file)
+                print("Konfiguration geladen!")
+                
+                # Überprüfe, ob alle erforderlichen Schlüssel vorhanden sind
+                self.validate_config(config)
+                
+                return config
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("Keine gültige Konfigurationsdatei gefunden, verwende Standardkonfiguration!")
             return self.DEFAULT_CONFIG.copy()
     
-    def add_new_button(self, widget):
-        """Verwandelt den Add-Button in einen normalen Button und fügt einen neuen Add-Button hinzu"""
-        # Erstelle einen neuen normalen Button an der Position des Add-Buttons
-        position = len(self.buttons)
-        new_button = SoundButton(position=position, offset_x=0, offset_y=0, 
-                               config=self.config, on_delete=self.delete_button)
+    def validate_config(self, config):
+        """Überprüft, ob alle erforderlichen Schlüssel vorhanden sind, und fügt fehlende hinzu"""
+        for section, settings in self.DEFAULT_CONFIG.items():
+            if section not in config:
+                config[section] = settings
+            elif isinstance(settings, dict):
+                for key, value in settings.items():
+                    if key not in config[section]:
+                        config[section][key] = value
+    
+    def add_new_button(self, add_button):
+        """Fügt einen neuen Button hinzu"""
+        # Position des neuen Buttons bestimmen
+        new_position = len(self.buttons)
+        
+        # Neuen Button erstellen
+        new_button = SoundButton(position=new_position, offset_x=0, offset_y=0, 
+                              config=self.config, on_delete=self.delete_button)
+        
+        # Button zur Flowbox und zur Button-Liste hinzufügen
+        self.flowbox.add(new_button)
         self.buttons.append(new_button)
         
-        # Füge den neuen Button anstelle des Add-Buttons ein
-        if widget and widget.get_parent():
-            parent = widget.get_parent()
-            parent.remove(widget)
-            self.flowbox.remove(parent)
-        
-        # Füge den neuen Button hinzu
-        self.flowbox.add(new_button)
-        
-        # Erstelle einen neuen Add-Button
-        self.add_button = SoundButton(position=position + 1, config=self.config, is_add_button=True)
-        self.add_button.set_add_click_handler(self.add_new_button)
-        self.flowbox.add(self.add_button)
-        
-        # Zeige alle Widgets
+        # Sortierung aktualisieren
+        self.flowbox.invalidate_sort()
         self.flowbox.show_all()
         
-        print(f"Neuer SoundButton hinzugefügt. Position: {position + 1}, Gesamtanzahl: {len(self.buttons)}")
+        # Config speichern
+        self.save_config()
     
-    def delete_button(self, button):
-        """Löscht einen Button und aktualisiert die Positionen"""
-        print(f"Lösche Button {button.position + 1}")
+    def delete_button(self, position):
+        """Löscht einen Button"""
+        # Finde den Button anhand der Position
+        button_to_remove = None
+        for button in self.buttons:
+            if button.position == position:
+                button_to_remove = button
+                break
         
-        # Zuerst das Entfernen aus der internen Liste
-        if button in self.buttons:
-            self.buttons.remove(button)
-        
-        # Stoppe alle laufenden Sounds des Buttons
-        if hasattr(button, 'stop_sound'):
-            button.stop_sound()
-        
-        # Aktualisiere die Positionen der verbleibenden Buttons
-        for i, b in enumerate(self.buttons):
-            b.position = i
-            b.button_config['position'] = i
-        
-        # Entferne den Button aus der FlowBox
-        if button.get_parent():
-            self.flowbox.remove(button.get_parent())
-        
-        # Aktualisiere die Position des Add-Buttons
-        if self.add_button:
-            self.add_button.position = len(self.buttons)
-        
-        # Stelle sicher, dass das Widget zerstört wird
-        button.destroy()
-        
-        # Zeige alle Widgets
-        self.flowbox.show_all()
-
-    def save_all_configs(self):
-        """Speichert die Konfigurationen aller Buttons und die Fenstergröße"""
-        try:
-            with open('config.json', 'r') as f:
-                config = json.load(f)
-        except FileNotFoundError:
-            config = self.config
-
-        # Fenstergröße aktualisieren
-        width, height = self.get_size()
-        config['window']['width'] = width
-        config['window']['height'] = height
-
-        # Buttons-Konfiguration speichern
-        buttons = [button.button_config for button in self.buttons]
-        config['buttons'] = buttons
-
-        # Konfiguration in die Datei schreiben
-        with open('config.json', 'w') as f:
-            json.dump(config, f, indent=4)
+        if button_to_remove:
+            # Aus der FlowBox entfernen
+            flowbox_child = button_to_remove.get_parent()
+            self.flowbox.remove(flowbox_child)
+            
+            # Aus der Button-Liste entfernen
+            self.buttons.remove(button_to_remove)
+            
+            # Positionen aktualisieren
+            self._update_button_positions()
+            
+            # FlowBox aktualisieren
+            self.flowbox.invalidate_sort()
+            self.flowbox.show_all()
+            
+            # Config speichern
+            self.save_config()
+            
+            print(f"Button an Position {position} gelöscht")
     
-    def on_destroy(self, *args):
-        """Wird aufgerufen, wenn das Fenster geschlossen wird"""
-        pygame.mixer.quit()
+    def _update_button_positions(self):
+        """Aktualisiert die Positionsangaben aller Buttons"""
+        for i, button in enumerate(self.buttons):
+            button.position = i
+            button.button_config['position'] = i
+    
+    def on_destroy(self, widget):
+        """Handler für das Schließen des Fensters"""
+        self.save_config()
         Gtk.main_quit()
-        return True
-    
-    #def on_window_configure(self, widget, event):
-    #    """Reagiert auf Fenstergrößenänderungen"""
-    #    # Lasse das Fenster sich natürlich an den Inhalt anpassen
-    #    return False
     
     def on_key_press(self, widget, event):
         """Handler für Tastatureingaben"""
-        if event.state & Gdk.ModifierType.CONTROL_MASK and event.keyval == Gdk.KEY_s:
-            self.save_all_configs()
+        keyval = event.keyval
+        keyname = Gdk.keyval_name(keyval)
+        
+        # Escape-Taste: Fenster schließen
+        if keyname == 'Escape':
+            self.save_config()
+            self.destroy()
             return True
+        
         return False
     
     def on_window_delete(self, widget, event):
-        """Handler für das Schließen des Fensters"""
-        self.save_all_configs()
-        return False
+        """Handler für das Schließen des Fensters per Kreuz"""
+        self.save_config()
+        return False  # False, damit das Fenster zerstört wird
+    
+    def on_window_configure(self, widget, event):
+        """Handler für Größenänderungen des Fensters"""
+        self.config['window']['width'] = event.width
+        self.config['window']['height'] = event.height
+        return False  # Weitergabe an andere Handler
 
 def main():
+    """Main-Funktion"""
     win = SoundboardWindow()
     Gtk.main()
 

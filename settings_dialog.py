@@ -5,13 +5,14 @@ from gi.repository import Gtk
 import pygame  # Hinzufügen von pygame für die Audio-Wiedergabe
 
 class SettingsDialog:
-    def __init__(self, parent_window, button_config, position):
+    def __init__(self, parent_window, button_config, position, on_delete=None):
         if not button_config:
             raise ValueError("Keine Button-Konfiguration übergeben")
             
         self.button_config = button_config
         self.position = position
         self.parent_window = parent_window
+        self.on_delete = on_delete  # Callback-Funktion für das Löschen
         pygame.mixer.init()  # Initialisiere pygame.mixer für die Audio-Wiedergabe
         self.is_playing = False  # Zustand für die Wiedergabe
     
@@ -52,6 +53,11 @@ class SettingsDialog:
         
         content_area.pack_start(file_box, True, True, 0)
         
+        # Checkbox für Endlosschleife (Loop-Funktion)
+        loop_check = Gtk.CheckButton(label="In Endlosschleife abspielen")
+        loop_check.set_active(self.button_config.get('loop', False))
+        content_area.pack_start(loop_check, True, True, 5)
+        
         # Label und Container für das Bild
         image_label = Gtk.Label(label="Button-Bild:")
         content_area.pack_start(image_label, True, True, 0)
@@ -68,6 +74,31 @@ class SettingsDialog:
         
         content_area.pack_start(image_box, True, True, 0)
         
+        # Trennlinie hinzufügen
+        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        separator.set_margin_top(15)
+        separator.set_margin_bottom(15)
+        content_area.pack_start(separator, True, True, 0)
+        
+        # Button zum Löschen des Buttons
+        delete_button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        delete_button_box.set_halign(Gtk.Align.CENTER)
+        
+        delete_button = Gtk.Button(label="Diesen Button löschen")
+        delete_button.set_margin_top(5)
+        delete_button.set_margin_bottom(10)
+        delete_button.connect("clicked", self.on_delete_button_clicked, dialog)
+        
+        # Roten Hintergrund für den Löschen-Button
+        delete_button_style = delete_button.get_style_context()
+        provider = Gtk.CssProvider()
+        provider.load_from_data(b".delete-button { background-color: #CC0000; color: white; }")
+        delete_button_style.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        delete_button_style.add_class("delete-button")
+        
+        delete_button_box.pack_start(delete_button, False, False, 0)
+        content_area.pack_start(delete_button_box, True, True, 0)
+        
         # Dialog anzeigen
         dialog.show_all()
         
@@ -78,6 +109,7 @@ class SettingsDialog:
             new_text = text_entry.get_text()
             new_file = file_entry.get_text()
             new_image = image_entry.get_text()
+            loop_enabled = loop_check.get_active()
             
             if new_text.strip():  # Nur wenn der Text nicht leer ist
                 self.button_config['text'] = new_text
@@ -90,9 +122,43 @@ class SettingsDialog:
             if new_image.strip():  # Nur wenn ein Bild ausgewählt wurde
                 self.button_config['image_file'] = new_image
                 print(f"Button {self.position + 1} - Bild auf '{new_image}' gesetzt")
+            
+            # Speichere den Loop-Status
+            self.button_config['loop'] = loop_enabled
+            print(f"Button {self.position + 1} - Endlosschleife ist {'aktiviert' if loop_enabled else 'deaktiviert'}")
+        
+        # Falls Musik noch läuft, stoppe sie
+        if self.is_playing:
+            pygame.mixer.music.stop()
+            self.is_playing = False
         
         dialog.destroy()
-        pygame.mixer.quit()  # Beende pygame.mixer nach dem Schließen des Dialogs
+    
+    def on_delete_button_clicked(self, button, parent_dialog):
+        """Zeigt einen Bestätigungsdialog zum Löschen des Buttons an"""
+        # Bestätigungsdialog erstellen
+        confirm_dialog = Gtk.MessageDialog(
+            transient_for=parent_dialog,
+            modal=True,
+            message_type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.YES_NO,
+            text="Button wirklich löschen?"
+        )
+        confirm_dialog.format_secondary_text(
+            f"Der Button '{self.button_config.get('text', '')}' wird unwiederbringlich gelöscht. Fortfahren?"
+        )
+        
+        response = confirm_dialog.run()
+        confirm_dialog.destroy()
+        
+        if response == Gtk.ResponseType.YES:
+            print(f"Button {self.position + 1} - Löschen bestätigt")
+            # Dialog schließen und den Lösch-Callback aufrufen
+            parent_dialog.response(Gtk.ResponseType.CANCEL)  # Dialog beenden
+            
+            # Callback aufrufen, wenn vorhanden
+            if self.on_delete:
+                self.on_delete(self.position)
     
     def on_browse_clicked(self, button, entry, file_type):
         """Öffnet einen Dateiauswahl-Dialog"""
@@ -152,11 +218,22 @@ class SettingsDialog:
                 except pygame.error as e:
                     print(f"Fehler beim Abspielen der Datei: {e}")
                     button.set_active(False)  # Setze den Button zurück
+                except Exception as e:
+                    print(f"Unerwarteter Fehler beim Abspielen: {e}")
+                    button.set_active(False)  # Setze den Button zurück
             else:
                 print("Keine Datei ausgewählt.")
                 button.set_active(False)  # Setze den Button zurück
         else:  # Wenn der Button losgelassen wird
             if self.is_playing:
-                pygame.mixer.music.stop()
-                self.is_playing = False
-                button.set_label("Abspielen")  # Ändere die Beschriftung zurück
+                try:
+                    # Prüfe, ob Mixer noch initialisiert ist
+                    if pygame.mixer.get_init():
+                        pygame.mixer.music.stop()
+                    self.is_playing = False
+                    button.set_label("Abspielen")  # Ändere die Beschriftung zurück
+                except pygame.error as e:
+                    print(f"Fehler beim Stoppen der Audiowiedergabe: {e}")
+                except Exception as e:
+                    print(f"Unerwarteter Fehler beim Stoppen: {e}")
+                    self.is_playing = False
