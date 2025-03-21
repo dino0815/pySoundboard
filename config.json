@@ -41,7 +41,7 @@
         },
         {
             "position": 1,
-            "volume": 61,
+            "volume": 11,
             "text": "Eins",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Glocken/Bells.mp3"
@@ -83,24 +83,19 @@
         {
             "position": 7,
             "volume": 50,
-            "text": "Button 9"
-        },
-        {
-            "position": 8,
-            "volume": 50,
             "text": "Wilder \\n Button",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
             "loop": false
         },
         {
-            "position": 9,
-            "volume": 50,
-            "text": "Button 10"
-        },
-        {
-            "position": 10,
+            "position": 8,
             "volume": 50,
             "text": "Button 11"
+        },
+        {
+            "position": 9,
+            "volume": 50,
+            "text": "Button 17"
         }
     ]
 }

@@ -194,17 +194,33 @@ class SoundboardWindow(Gtk.Window):
                         config[section][key] = value
     
     def add_new_button(self, add_button):
-        """Fügt einen neuen Button hinzu"""
+        """Fügt einen neuen Button hinzu, indem der Add-Button in einen regulären Button umgewandelt wird"""
         # Position des neuen Buttons bestimmen
         new_position = len(self.buttons)
         
-        # Neuen Button erstellen
+        # Stelle sicher, dass es sich um einen Add-Button handelt
+        if not add_button.is_add_button:
+            print("Warnung: Der geklickte Button ist kein Add-Button")
+            return
+        
+        # Konvertiere den Add-Button in einen regulären Button
+        # Entferne ihn aus der FlowBox, damit wir ihn ändern können
+        add_button_parent = add_button.get_parent()
+        if add_button_parent:
+            self.flowbox.remove(add_button_parent)
+        
+        # Erstelle einen neuen regulären Button an der gleichen Position
         new_button = SoundButton(position=new_position, offset_x=0, offset_y=0, 
                               config=self.config, on_delete=self.delete_button)
         
-        # Button zur Flowbox und zur Button-Liste hinzufügen
+        # Füge den neuen Button zur FlowBox und zur Button-Liste hinzu
         self.flowbox.add(new_button)
         self.buttons.append(new_button)
+        
+        # Erstelle einen neuen Add-Button
+        self.add_button = SoundButton(position=len(self.buttons), config=self.config, is_add_button=True)
+        self.add_button.set_add_click_handler(self.add_new_button)
+        self.flowbox.add(self.add_button)
         
         # Sortierung aktualisieren
         self.flowbox.invalidate_sort()

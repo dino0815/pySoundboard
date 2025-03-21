@@ -113,6 +113,12 @@ class SettingsDialog:
             
             if new_text.strip():  # Nur wenn der Text nicht leer ist
                 self.button_config['text'] = new_text
+                # Button-Text aktualisieren
+                if hasattr(self.parent_window, 'buttons'):
+                    for button in self.parent_window.buttons:
+                        if button.position == self.position:
+                            button.button.set_label(new_text)
+                            break
                 print(f"Button {self.position + 1} - Text auf '{new_text}' geändert")
             
             if new_file.strip():  # Nur wenn eine Datei ausgewählt wurde
@@ -121,6 +127,13 @@ class SettingsDialog:
             
             if new_image.strip():  # Nur wenn ein Bild ausgewählt wurde
                 self.button_config['image_file'] = new_image
+                # Bild sofort aktualisieren
+                if hasattr(self.parent_window, 'buttons'):
+                    for button in self.parent_window.buttons:
+                        if button.position == self.position:
+                            if hasattr(button, 'update_image') and callable(button.update_image):
+                                button.update_image(new_image)
+                            break
                 print(f"Button {self.position + 1} - Bild auf '{new_image}' gesetzt")
             
             # Speichere den Loop-Status
