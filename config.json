@@ -1,7 +1,7 @@
 {
     "window": {
-        "width": 163,
-        "height": 95,
+        "width": 467,
+        "height": 198,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -32,31 +32,64 @@
     "buttons": [
         {
             "position": 0,
-            "volume": 97,
+            "volume": 77,
             "text": "Button 1",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
-            "loop": false
+            "loop": false,
+            "use_custom_bg_color": false,
+            "background_color": "#cccccc",
+            "use_custom_text_color": true,
+            "text_color": "#ffffff"
         },
         {
             "position": 1,
             "volume": 50,
-            "text": "Button 2"
+            "text": "Button 2",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Schritte im Schnee.mp3",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "loop": false
         },
         {
             "position": 2,
             "volume": 50,
-            "text": "Button 3"
+            "text": "Button 3",
+            "use_custom_bg_color": true,
+            "background_color": "#204a87",
+            "use_custom_text_color": true,
+            "text_color": "#eeeeec",
+            "loop": false,
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3"
         },
         {
             "position": 3,
             "volume": 50,
-            "text": "Button 4"
+            "text": "Button 4",
+            "use_custom_bg_color": false,
+            "background_color": "#cccccc",
+            "use_custom_text_color": true,
+            "text_color": "#c17d11",
+            "loop": false
         },
         {
             "position": 4,
             "volume": 50,
-            "text": "Button 5"
+            "text": "Button 5",
+            "use_custom_bg_color": true,
+            "background_color": "#4e9a06",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "loop": false
+        },
+        {
+            "position": 5,
+            "volume": 50,
+            "text": "Button 6",
+            "use_custom_bg_color": true,
+            "background_color": "#a40000",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "loop": false
         }
     ]
 }

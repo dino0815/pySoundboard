@@ -265,64 +265,109 @@ class SoundButton(Gtk.Box):
         # Theme-Farben extrahieren
         theme_colors = self.get_theme_colors()
         
-        # Hintergrundfarbe aus Konfiguration oder Theme holen
-        bg_color = sb_config.get('background_color', self._rgba_to_hex(theme_colors['normal_bg']))
-        pressed_bg_hex = self._rgba_to_hex(theme_colors['pressed_bg'])
-        text_color = sb_config.get('text_color', self._rgba_to_hex(theme_colors['text']))
-        highlight_hex = self._rgba_to_hex(theme_colors['highlight'])
-        shadow_hex = self._rgba_to_hex(theme_colors['shadow'])
+        # Prüfe, ob benutzerdefinierte Farben verwendet werden sollen
+        use_custom_bg = self.button_config.get('use_custom_bg_color', False)
+        use_custom_text = self.button_config.get('use_custom_text_color', False)
         
-        # Basis-CSS für alle Buttons mit verbessertem 3D-Effekt
+        # Hintergrundfarbe aus Konfiguration oder Theme holen
+        if use_custom_bg and 'background_color' in self.button_config:
+            bg_color = self.button_config['background_color']
+            
+            # Erzeugt RGBA-Objekt für benutzerdefinierte Farbe, um daraus die Effektfarben abzuleiten
+            bg_rgba = self._hex_to_rgba(bg_color)
+            
+            # Gedrückte Farbe als dunklere Version der benutzerdefinierten Farbe
+            pressed_bg = Gdk.RGBA(
+                bg_rgba.red * 0.8,
+                bg_rgba.green * 0.8,
+                bg_rgba.blue * 0.8,
+                bg_rgba.alpha
+            )
+            pressed_bg_hex = self._rgba_to_hex(pressed_bg)
+            
+            # Highlight (heller) und Schatten (dunkler) aus der benutzerdefinierten Farbe ableiten
+            light_factor = 1.35
+            dark_factor = 0.65
+            
+            # Highlight-Farbe (heller)
+            highlight = Gdk.RGBA(
+                min(1.0, bg_rgba.red * light_factor),
+                min(1.0, bg_rgba.green * light_factor),
+                min(1.0, bg_rgba.blue * light_factor),
+                bg_rgba.alpha
+            )
+            highlight_hex = self._rgba_to_hex(highlight)
+            
+            # Schatten-Farbe (dunkler)
+            shadow = Gdk.RGBA(
+                bg_rgba.red * dark_factor,
+                bg_rgba.green * dark_factor,
+                bg_rgba.blue * dark_factor,
+                bg_rgba.alpha
+            )
+            shadow_hex = self._rgba_to_hex(shadow)
+        else:
+            bg_color = sb_config.get('background_color', self._rgba_to_hex(theme_colors['normal_bg']))
+            pressed_bg_hex = self._rgba_to_hex(theme_colors['pressed_bg'])
+            highlight_hex = self._rgba_to_hex(theme_colors['highlight'])
+            shadow_hex = self._rgba_to_hex(theme_colors['shadow'])
+        
+        # Textfarbe aus Konfiguration oder Theme holen
+        if use_custom_text and 'text_color' in self.button_config:
+            text_color = self.button_config['text_color']
+        else:
+            text_color = sb_config.get('text_color', self._rgba_to_hex(theme_colors['text']))
+        
+        # Einzigartige Klasse für diesen Button
+        unique_class = f"button-{self.position}"
+        
+        # Basis-CSS neu erstellen mit verbessertem 3D-Effekt ohne 1px-Rahmen
         css = f"""
-        .sound-button {{
+        .{unique_class}.sound-button {{
             background-color: {bg_color};
             color: {text_color};
             border-radius: 10px;
             padding: 10px;
             font-weight: bold;
-            border-style: solid;
-            border-width: 2px;
-            border-color: {highlight_hex} {shadow_hex} {shadow_hex} {highlight_hex}; /* oben rechts unten links */
+            border-style: none;
+            box-shadow: 2px 0px 0px {highlight_hex} inset, 
+                       0px 2px 0px {highlight_hex} inset,
+                       -2px 0px 0px {shadow_hex} inset,
+                       0px -2px 0px {shadow_hex} inset;
             transition: all 0.15s ease;
-            box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.3), 
-                        inset -1px -1px 1px rgba(0, 0, 0, 0.2);
         }}
         
-        .sound-button:active {{
+        .{unique_class}.sound-button:active {{
             background-color: {pressed_bg_hex};
             padding: 12px 8px 8px 12px; /* oben rechts unten links - verschoben für Eindruckeffekt */
-            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links - invertiert */
-            box-shadow: inset -1px -1px 1px rgba(255, 255, 255, 0.2), 
-                        inset 1px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: -2px 0px 0px {highlight_hex} inset, 
+                       0px -2px 0px {highlight_hex} inset,
+                       2px 0px 0px {shadow_hex} inset,
+                       0px 2px 0px {shadow_hex} inset;
         }}
         
-        .sound-button-toggled {{
+        .{unique_class}.sound-button-toggled {{
             background-color: {pressed_bg_hex};
             color: {text_color};
             border-radius: 10px;
             padding: 12px 8px 8px 12px; /* oben rechts unten links - verschoben für Eindruckeffekt */
             font-weight: bold;
-            border-style: solid;
-            border-width: 2px;
-            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links - invertiert */
+            border-style: none;
+            box-shadow: -2px 0px 0px {highlight_hex} inset, 
+                       0px -2px 0px {highlight_hex} inset,
+                       2px 0px 0px {shadow_hex} inset,
+                       0px 2px 0px {shadow_hex} inset;
             transition: all 0.15s ease;
-            box-shadow: inset -1px -1px 1px rgba(255, 255, 255, 0.2), 
-                        inset 1px 1px 1px rgba(0, 0, 0, 0.3);
-        }}
-        
-        .add-button {{
-            font-size: 24px;
-            font-weight: bold;
         }}
         """
         
-        # Füge dem Button eine eindeutige CSS-Klasse hinzu
-        unique_class = f"button-{self.position}"
-        button_style.add_class(unique_class)
-        button_style.add_class("sound-button")
-        
         if self.is_add_button:
-            button_style.add_class("add-button")
+            css += f"""
+            .{unique_class}.add-button {{
+                font-size: 24px;
+                font-weight: bold;
+            }}
+            """
         else:
             # Füge CSS für Hintergrundbild hinzu, wenn vorhanden
             if 'image_file' in self.button_config and self.button_config['image_file']:
@@ -330,14 +375,23 @@ class SoundButton(Gtk.Box):
                 if os.path.exists(image_path):
                     css += self._get_image_css(unique_class, image_path)
         
-        # Erstelle und lade CSS-Provider
+        # Füge dem Button die CSS-Klassen hinzu
+        button_style.add_class(unique_class)
+        button_style.add_class("sound-button")
+        
+        if self.is_add_button:
+            button_style.add_class("add-button")
+        
+        # Erstelle und lade CSS-Provider nur für diesen spezifischen Button
         provider = Gtk.CssProvider()
         provider.load_from_data(css.encode())
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(),
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
+        
+        # Entferne den alten Provider, falls vorhanden
+        if hasattr(self, 'css_provider'):
+            button_style.remove_provider(self.css_provider)
+        
+        # Füge den neuen Provider NUR zum Button-Style-Context hinzu, nicht zum Screen
+        button_style.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         
         # Speichere den Provider für spätere Updates
         self.css_provider = provider
@@ -345,7 +399,7 @@ class SoundButton(Gtk.Box):
     def _get_image_css(self, class_name, image_path):
         """Generiert CSS für ein Hintergrundbild"""
         return f"""
-        .{class_name} {{
+        .{class_name}.sound-button {{
             background-image: url('{image_path}');
             background-position: center;
             background-repeat: no-repeat;
@@ -368,85 +422,8 @@ class SoundButton(Gtk.Box):
         # Aktualisiere die Button-Konfiguration
         self.button_config['image_file'] = image_path
         
-        # Aktualisiere das CSS
-        sb_config = self.config['soundbutton']
-        button_style = self.button.get_style_context()
-        
-        # Theme-Farben extrahieren
-        theme_colors = self.get_theme_colors()
-        
-        # Hintergrundfarbe aus Konfiguration oder Theme holen
-        bg_color = sb_config.get('background_color', self._rgba_to_hex(theme_colors['normal_bg']))
-        pressed_bg_hex = self._rgba_to_hex(theme_colors['pressed_bg'])
-        text_color = sb_config.get('text_color', self._rgba_to_hex(theme_colors['text']))
-        highlight_hex = self._rgba_to_hex(theme_colors['highlight'])
-        shadow_hex = self._rgba_to_hex(theme_colors['shadow'])
-        
-        # Einzigartige Klasse für diesen Button
-        unique_class = f"button-{self.position}"
-        
-        # Basis-CSS neu erstellen mit verbessertem 3D-Effekt
-        css = f"""
-        .sound-button {{
-            background-color: {bg_color};
-            color: {text_color};
-            border-radius: 10px;
-            padding: 10px;
-            font-weight: bold;
-            border-style: solid;
-            border-width: 2px;
-            border-color: {highlight_hex} {shadow_hex} {shadow_hex} {highlight_hex}; /* oben rechts unten links */
-            transition: all 0.15s ease;
-            box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.3), 
-                        inset -1px -1px 1px rgba(0, 0, 0, 0.2);
-        }}
-        
-        .sound-button:active {{
-            background-color: {pressed_bg_hex};
-            padding: 12px 8px 8px 12px; /* oben rechts unten links - verschoben für Eindruckeffekt */
-            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links - invertiert */
-            box-shadow: inset -1px -1px 1px rgba(255, 255, 255, 0.2), 
-                        inset 1px 1px 1px rgba(0, 0, 0, 0.3);
-        }}
-        
-        .sound-button-toggled {{
-            background-color: {pressed_bg_hex};
-            color: {text_color};
-            border-radius: 10px;
-            padding: 12px 8px 8px 12px; /* oben rechts unten links - verschoben für Eindruckeffekt */
-            font-weight: bold;
-            border-style: solid;
-            border-width: 2px;
-            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links - invertiert */
-            transition: all 0.15s ease;
-            box-shadow: inset -1px -1px 1px rgba(255, 255, 255, 0.2), 
-                        inset 1px 1px 1px rgba(0, 0, 0, 0.3);
-        }}
-        """
-        
-        # CSS für das Bild hinzufügen
-        css += self._get_image_css(unique_class, image_path)
-        
-        # Lade das aktualisierte CSS
-        provider = Gtk.CssProvider()
-        provider.load_from_data(css.encode())
-        
-        # Entferne den alten Provider, falls vorhanden
-        if hasattr(self, 'css_provider'):
-            Gtk.StyleContext.remove_provider_for_screen(
-                Gdk.Screen.get_default(),
-                self.css_provider
-            )
-        
-        # Füge den neuen Provider hinzu
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(),
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
-        
-        # Speichere den neuen Provider
-        self.css_provider = provider
+        # CSS neu anwenden
+        self._apply_css_style()
         
         return True
     
@@ -455,6 +432,9 @@ class SoundButton(Gtk.Box):
         style_context = self.button.get_style_context()
         
         if not self.is_toggled:
+            # Prüfe, ob eine Sounddatei zugeordnet ist
+            has_audio = 'audio_file' in self.button_config and self.button_config['audio_file'] and os.path.exists(self.button_config['audio_file'])
+            
             # Zum gedrückten Zustand wechseln
             style_context.remove_class("sound-button")
             style_context.add_class("sound-button-toggled")
@@ -462,7 +442,13 @@ class SoundButton(Gtk.Box):
             
             # Sound abspielen, wenn der Button gedrückt wird
             if not self.is_playing and not self.is_add_button:
-                self.play_sound()
+                if has_audio:
+                    self.play_sound()
+                else:
+                    # Keine Sounddatei vorhanden - sofort wieder deaktivieren
+                    print(f"SoundButton '{self.button_config['text']}' - Keine Sounddatei zugeordnet, deaktiviere Button")
+                    # Verzögerte Ausführung, damit der Button-Zustand sichtbar ist
+                    GLib.timeout_add(150, self._reset_button_state)
         else:
             # Zurück zum normalen Zustand
             style_context.remove_class("sound-button-toggled")
@@ -472,6 +458,15 @@ class SoundButton(Gtk.Box):
             # Sound stoppen, wenn der Button losgelassen wird
             if self.is_playing:
                 self.stop_sound()
+    
+    def _reset_button_state(self):
+        """Setzt den Button-Zustand zurück (für Buttons ohne Sounddatei)"""
+        if self.is_toggled:
+            style_context = self.button.get_style_context()
+            style_context.remove_class("sound-button-toggled")
+            style_context.add_class("sound-button")
+            self.is_toggled = False
+        return False  # Einmalige Ausführung
     
     def play_sound(self):
         """Spielt den Sound ab"""
@@ -535,8 +530,7 @@ class SoundButton(Gtk.Box):
             return True
         except pygame.error as e:
             print(f"Fehler bei Soundüberprüfung: {e}")
-            # Bei Fehlern Timer beenden
-            return False
+            return False # Bei Fehlern Timer beenden
         except Exception as e:
             print(f"Unerwarteter Fehler bei Soundüberprüfung: {e}")
             return False
@@ -567,16 +561,23 @@ class SoundButton(Gtk.Box):
     
     def on_button_press(self, widget, event):
         """Handler für Mausklicks"""
-        self.press_start_time = event.time
-        
-        # Timer für Langklick starten
-        self.press_timeout_id = GLib.timeout_add(self.LONG_PRESS_TIME, 
-                                               self.check_long_press)
-        
-        if self.is_add_button and event.button == 1:  # Linksklick auf Add-Button
-            if hasattr(self, 'on_add_click'):
-                self.on_add_click(self)
+        # Rechtsklick auf Button für Einstellungsdialog
+        if event.button == 3 and not self.is_add_button:  # Rechtsklick (3) und kein Add-Button
+            self.show_settings_dialog()
             return True
+        
+        # Langklick-Erkennung nur für Linksklick starten
+        if event.button == 1:  # Linksklick
+            self.press_start_time = event.time
+            
+            # Timer für Langklick starten
+            self.press_timeout_id = GLib.timeout_add(self.LONG_PRESS_TIME, 
+                                                   self.check_long_press)
+            
+            if self.is_add_button:  # Linksklick auf Add-Button
+                if hasattr(self, 'on_add_click'):
+                    self.on_add_click(self)
+                return True
         
         return False
     
@@ -638,3 +639,23 @@ class SoundButton(Gtk.Box):
     def set_add_click_handler(self, handler):
         """Setzt den Handler für Klicks auf den Add-Button"""
         self.on_add_click = handler
+    
+    def _hex_to_rgba(self, hex_color):
+        """Konvertiert einen Hex-Farbcode in ein RGBA-Objekt"""
+        if not hex_color or not hex_color.startswith('#'):
+            hex_color = '#cccccc'  # Standard-Grau als Fallback
+            
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 3:  # Kurze Hex-Notation (#RGB)
+            hex_color = ''.join([c*2 for c in hex_color])
+            
+        r = int(hex_color[0:2], 16) / 255.0
+        g = int(hex_color[2:4], 16) / 255.0
+        b = int(hex_color[4:6], 16) / 255.0
+        
+        rgba = Gdk.RGBA()
+        rgba.red = r
+        rgba.green = g
+        rgba.blue = b
+        rgba.alpha = 1.0
+        return rgba

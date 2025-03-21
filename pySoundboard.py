@@ -117,7 +117,7 @@ class SoundboardWindow(Gtk.Window):
     def _connect_signals(self):
         """Verbindet die Signal-Handler"""
         self.connect("destroy", self.on_destroy)
-        #self.connect("configure-event", self.on_window_configure)
+        self.connect("configure-event", self.on_window_configure)
         self.connect("key-press-event", self.on_key_press)
         self.connect("delete-event", self.on_window_delete)
     
@@ -226,7 +226,8 @@ class SoundboardWindow(Gtk.Window):
         self.flowbox.invalidate_sort()
         self.flowbox.show_all()
         
-        # Config speichern
+        # Config speichern - diese Aktion sollte gespeichert werden, 
+        # da sonst der neue Button beim Neustart verloren geht
         self.save_config()
     
     def delete_button(self, position):
@@ -253,7 +254,8 @@ class SoundboardWindow(Gtk.Window):
             self.flowbox.invalidate_sort()
             self.flowbox.show_all()
             
-            # Config speichern
+            # Config speichern - diese Aktion sollte gespeichert werden,
+            # da sonst der gelöschte Button beim Neustart wieder erscheint
             self.save_config()
             
             print(f"Button an Position {position} gelöscht")
@@ -274,12 +276,21 @@ class SoundboardWindow(Gtk.Window):
         keyval = event.keyval
         keyname = Gdk.keyval_name(keyval)
         
+        # Prüft, ob die Strg-Taste gedrückt ist
+        ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK)
+        
         # Escape-Taste: Fenster schließen
         if keyname == 'Escape':
             self.save_config()
             self.destroy()
             return True
         
+        # Strg+S: Konfiguration speichern
+        if ctrl and keyname == 's':
+            self.save_config()
+            print("Konfiguration manuell gespeichert!")
+            return True
+            
         return False
     
     def on_window_delete(self, widget, event):
@@ -289,8 +300,13 @@ class SoundboardWindow(Gtk.Window):
     
     def on_window_configure(self, widget, event):
         """Handler für Größenänderungen des Fensters"""
-        self.config['window']['width'] = event.width
-        self.config['window']['height'] = event.height
+        # Prüfe, ob sich die Größe tatsächlich geändert hat
+        if (self.config['window']['width'] != event.width or
+            self.config['window']['height'] != event.height):
+            self.config['window']['width'] = event.width
+            self.config['window']['height'] = event.height
+            # Speichere die Konfiguration NICHT mehr bei jeder Größenänderung
+            # self.save_config()
         return False  # Weitergabe an andere Handler
 
 def main():

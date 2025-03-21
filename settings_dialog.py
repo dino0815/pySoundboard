@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 import pygame  # Hinzufügen von pygame für die Audio-Wiedergabe
 
 class SettingsDialog:
@@ -19,7 +19,18 @@ class SettingsDialog:
     def show(self):
         """Zeigt einen Dialog zum Ändern des Button-Texts, der Audiodatei und des Bildes"""
         dialog = Gtk.Dialog(title="Button-Einstellungen", transient_for=self.parent_window, flags=0)
+        
+        # Änderung: Buttons hinzufügen mit Löschen-Button links
+        delete_button = Gtk.Button(label="Diesen Button löschen")
+        dialog.add_action_widget(delete_button, Gtk.ResponseType.REJECT)
         dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        
+        # Roten Hintergrund für den Löschen-Button
+        delete_button_style = delete_button.get_style_context()
+        provider = Gtk.CssProvider()
+        provider.load_from_data(b".delete-button { background-color: #CC0000; color: white; }")
+        delete_button_style.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        delete_button_style.add_class("delete-button")
         
         # Container für den Inhalt
         content_area = dialog.get_content_area()
@@ -31,6 +42,69 @@ class SettingsDialog:
         text_entry = Gtk.Entry()
         text_entry.set_text(self.button_config.get('text', f"Button {self.position + 1}"))
         content_area.pack_start(text_entry, True, True, 0)
+        
+        # Änderung: Label und Container für das Bild VOR Audiodatei
+        image_label = Gtk.Label(label="Button-Bild:")
+        content_area.pack_start(image_label, True, True, 0)
+        
+        image_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        image_entry = Gtk.Entry()
+        image_entry.set_text(self.button_config.get('image_file', ''))
+        image_entry.set_hexpand(True)
+        image_box.pack_start(image_entry, True, True, 0)
+        
+        image_browse_button = Gtk.Button(label="Durchsuchen")
+        image_browse_button.connect("clicked", self.on_browse_clicked, image_entry, "image")
+        image_box.pack_start(image_browse_button, False, False, 5)
+        
+        content_area.pack_start(image_box, True, True, 0)
+        
+        # Neue Farbauswahl-Optionen
+        # Trennlinie für bessere Übersicht
+        separator1 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        separator1.set_margin_top(10)
+        separator1.set_margin_bottom(10)
+        content_area.pack_start(separator1, True, True, 0)
+        
+        # 1. Buttonfarbe
+        color_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        
+        # Checkbox für eigene Buttonfarbe
+        button_color_check = Gtk.CheckButton(label="Eigene Buttonfarbe verwenden")
+        button_color_check.set_active(self.button_config.get('use_custom_bg_color', False))
+        color_box.pack_start(button_color_check, True, True, 0)
+        
+        # Farbauswahl für Buttonfarbe
+        button_color_button = Gtk.ColorButton()
+        bg_color = self.button_config.get('background_color', '#cccccc')
+        rgba = self.hex_to_rgba(bg_color)
+        button_color_button.set_rgba(rgba)
+        color_box.pack_start(button_color_button, False, False, 5)
+        
+        content_area.pack_start(color_box, True, True, 0)
+        
+        # 2. Textfarbe
+        text_color_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        
+        # Checkbox für eigene Textfarbe
+        text_color_check = Gtk.CheckButton(label="Eigene Textfarbe verwenden")
+        text_color_check.set_active(self.button_config.get('use_custom_text_color', False))
+        text_color_box.pack_start(text_color_check, True, True, 0)
+        
+        # Farbauswahl für Textfarbe
+        text_color_button = Gtk.ColorButton()
+        text_color = self.button_config.get('text_color', '#000000')
+        text_rgba = self.hex_to_rgba(text_color)
+        text_color_button.set_rgba(text_rgba)
+        text_color_box.pack_start(text_color_button, False, False, 5)
+        
+        content_area.pack_start(text_color_box, True, True, 0)
+        
+        # Trennlinie für bessere Übersicht
+        separator2 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        separator2.set_margin_top(10)
+        separator2.set_margin_bottom(10)
+        content_area.pack_start(separator2, True, True, 0)
         
         # Label und Container für die Audiodatei
         file_label = Gtk.Label(label="Audiodatei:")
@@ -58,46 +132,9 @@ class SettingsDialog:
         loop_check.set_active(self.button_config.get('loop', False))
         content_area.pack_start(loop_check, True, True, 5)
         
-        # Label und Container für das Bild
-        image_label = Gtk.Label(label="Button-Bild:")
-        content_area.pack_start(image_label, True, True, 0)
-        
-        image_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        image_entry = Gtk.Entry()
-        image_entry.set_text(self.button_config.get('image_file', ''))
-        image_entry.set_hexpand(True)
-        image_box.pack_start(image_entry, True, True, 0)
-        
-        image_browse_button = Gtk.Button(label="Durchsuchen")
-        image_browse_button.connect("clicked", self.on_browse_clicked, image_entry, "image")
-        image_box.pack_start(image_browse_button, False, False, 5)
-        
-        content_area.pack_start(image_box, True, True, 0)
-        
-        # Trennlinie hinzufügen
-        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        separator.set_margin_top(15)
-        separator.set_margin_bottom(15)
-        content_area.pack_start(separator, True, True, 0)
-        
-        # Button zum Löschen des Buttons
-        delete_button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        delete_button_box.set_halign(Gtk.Align.CENTER)
-        
-        delete_button = Gtk.Button(label="Diesen Button löschen")
-        delete_button.set_margin_top(5)
-        delete_button.set_margin_bottom(10)
+        # Änderung: Entferne den separaten Löschen-Button am Ende
+        # Verbinde den Löschen-Button in der Action-Area mit dem Lösch-Handler
         delete_button.connect("clicked", self.on_delete_button_clicked, dialog)
-        
-        # Roten Hintergrund für den Löschen-Button
-        delete_button_style = delete_button.get_style_context()
-        provider = Gtk.CssProvider()
-        provider.load_from_data(b".delete-button { background-color: #CC0000; color: white; }")
-        delete_button_style.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        delete_button_style.add_class("delete-button")
-        
-        delete_button_box.pack_start(delete_button, False, False, 0)
-        content_area.pack_start(delete_button_box, True, True, 0)
         
         # Dialog anzeigen
         dialog.show_all()
@@ -110,6 +147,23 @@ class SettingsDialog:
             new_file = file_entry.get_text()
             new_image = image_entry.get_text()
             loop_enabled = loop_check.get_active()
+            
+            # Farboption-Status speichern
+            use_custom_bg = button_color_check.get_active()
+            use_custom_text = text_color_check.get_active()
+            
+            # Farben aus Farbauswahl in Hex-Format umwandeln
+            bg_rgba = button_color_button.get_rgba()
+            bg_hex = self.rgba_to_hex(bg_rgba)
+            
+            text_rgba = text_color_button.get_rgba()
+            text_hex = self.rgba_to_hex(text_rgba)
+            
+            # Speichere Farbeinstellungen
+            self.button_config['use_custom_bg_color'] = use_custom_bg
+            self.button_config['background_color'] = bg_hex
+            self.button_config['use_custom_text_color'] = use_custom_text
+            self.button_config['text_color'] = text_hex
             
             if new_text.strip():  # Nur wenn der Text nicht leer ist
                 self.button_config['text'] = new_text
@@ -139,6 +193,16 @@ class SettingsDialog:
             # Speichere den Loop-Status
             self.button_config['loop'] = loop_enabled
             print(f"Button {self.position + 1} - Endlosschleife ist {'aktiviert' if loop_enabled else 'deaktiviert'}")
+            
+            # Button aktualisieren, damit die neuen Farben angewendet werden
+            if hasattr(self.parent_window, 'buttons'):
+                for button in self.parent_window.buttons:
+                    if button.position == self.position:
+                        if hasattr(button, '_apply_css_style') and callable(button._apply_css_style):
+                            button._apply_css_style()
+                        break
+            
+            print(f"Button {self.position + 1} - Farbeinstellungen aktualisiert")
         
         # Falls Musik noch läuft, stoppe sie
         if self.is_playing:
@@ -146,6 +210,33 @@ class SettingsDialog:
             self.is_playing = False
         
         dialog.destroy()
+    
+    def hex_to_rgba(self, hex_color):
+        """Konvertiert einen Hex-Farbcode in ein RGBA-Objekt"""
+        if not hex_color or not hex_color.startswith('#'):
+            hex_color = '#cccccc'  # Standard-Grau als Fallback
+            
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 3:  # Kurze Hex-Notation (#RGB)
+            hex_color = ''.join([c*2 for c in hex_color])
+            
+        r = int(hex_color[0:2], 16) / 255.0
+        g = int(hex_color[2:4], 16) / 255.0
+        b = int(hex_color[4:6], 16) / 255.0
+        
+        rgba = Gdk.RGBA()
+        rgba.red = r
+        rgba.green = g
+        rgba.blue = b
+        rgba.alpha = 1.0
+        return rgba
+    
+    def rgba_to_hex(self, rgba):
+        """Konvertiert ein RGBA-Objekt in einen Hex-Farbcode"""
+        r = int(rgba.red * 255)
+        g = int(rgba.green * 255)
+        b = int(rgba.blue * 255)
+        return f"#{r:02x}{g:02x}{b:02x}"
     
     def on_delete_button_clicked(self, button, parent_dialog):
         """Zeigt einen Bestätigungsdialog zum Löschen des Buttons an"""
