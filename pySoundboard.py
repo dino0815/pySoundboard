@@ -58,6 +58,9 @@ class SoundboardWindow(Gtk.Window):
         self.LONG_PRESS_TIME = 500  # 500ms = 0.5 Sekunden
         self.press_start_time = 0
         
+        # Dialog-Status, um mehrfaches Öffnen zu verhindern
+        self.global_settings_dialog_open = False
+        
         self.show_all()
         self.add_button = None  # Referenz für den Add-Button
     
@@ -331,18 +334,20 @@ class SoundboardWindow(Gtk.Window):
         """Handler für Klicks auf den Hintergrund des Fensters"""
         # Für Rechtsklicks sofort reagieren
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
-            # Rechtsklick auf den Hintergrund
-            self.show_global_settings()
+            # Rechtsklick auf den Hintergrund - nur wenn kein Dialog bereits offen ist
+            if not self.global_settings_dialog_open:
+                self.show_global_settings()
             return True
         
         # Für Langklicks mit der linken Maustaste (button 1)
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
             # Speichere Startzeit und starte Timer
-            self.press_start_time = event.time
+            self.press_start_time = event.time  # Verwende die Eventzeit
             
-            # Timer für Langklick starten
-            self.press_timeout_id = GLib.timeout_add(self.LONG_PRESS_TIME, 
-                                                  self.check_long_press)
+            # Timer für Langklick starten, nur wenn kein Dialog bereits offen ist
+            if not self.global_settings_dialog_open and not self.press_timeout_id:
+                self.press_timeout_id = GLib.timeout_add(self.LONG_PRESS_TIME, 
+                                                     self.check_long_press)
             
             # Hier nicht True zurückgeben, damit normale Klicks weiterhin funktionieren
         
@@ -360,12 +365,21 @@ class SoundboardWindow(Gtk.Window):
         # Verwende die aktuelle Zeit aus dem Gtk-System
         current_time = Gtk.get_current_event_time()
         
+        if current_time == 0:  # Kein aktuelles Event verfügbar
+            # Benutze die monotonische Uhr, aber konvertiert zu Millisekunden
+            current_time = GLib.get_monotonic_time() // 1000
+        
         # Berechne die vergangene Zeit in Millisekunden
         elapsed = current_time - self.press_start_time
         
+        print(f"Langklick-Prüfung: {elapsed}ms vergangen (Ziel: {self.LONG_PRESS_TIME}ms)")
+        
         if elapsed >= self.LONG_PRESS_TIME:
             # Langklick erkannt, Einstellungsdialog anzeigen
-            self.show_global_settings()
+            print("Langklick erkannt!")
+            if not self.global_settings_dialog_open:
+                self.show_global_settings()
+            
             self.press_timeout_id = None
             return False  # Timer nicht wiederholen
         
@@ -374,8 +388,18 @@ class SoundboardWindow(Gtk.Window):
     
     def show_global_settings(self):
         """Zeigt den globalen Einstellungs-Dialog an"""
+        if self.global_settings_dialog_open:
+            print("Global-Settings-Dialog ist bereits geöffnet!")
+            return
+            
+        print("Öffne Global-Settings-Dialog...")
+        self.global_settings_dialog_open = True
+        
         dialog = GlobalSettingsDialog(self, self.config)
         response = dialog.show()
+        
+        # Dialog ist jetzt geschlossen
+        self.global_settings_dialog_open = False
         
         if response == Gtk.ResponseType.OK:
             print("Globale Einstellungen wurden geändert - wende Änderungen an...")
