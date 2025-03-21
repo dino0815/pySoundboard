@@ -47,6 +47,9 @@ class SoundButton(Gtk.Box):
         self.LONG_PRESS_TIME = 500  # 500ms = 0.5 Sekunden
         self.press_start_time = 0
         
+        # Dialog-Status, um mehrfaches Öffnen zu verhindern
+        self.settings_dialog_open = False
+        
         # UI erstellen
         self._setup_ui()
         
@@ -680,15 +683,17 @@ class SoundButton(Gtk.Box):
         """Handler für Mausklicks"""
         # Rechtsklick auf Button für Einstellungsdialog
         if event.button == 3 and not self.is_add_button:  # Rechtsklick (3) und kein Add-Button
-            self.show_settings_dialog()
+            if not self.settings_dialog_open:
+                self.show_settings_dialog()
             return True
         
         # Langklick-Erkennung nur für Linksklick starten
         if event.button == 1:  # Linksklick
             self.press_start_time = event.time
             
-            # Timer für Langklick starten
-            self.press_timeout_id = GLib.timeout_add(self.LONG_PRESS_TIME, 
+            # Timer für Langklick starten, nur wenn kein Dialog bereits geöffnet ist
+            if not self.settings_dialog_open and not self.press_timeout_id:
+                self.press_timeout_id = GLib.timeout_add(self.LONG_PRESS_TIME, 
                                                    self.check_long_press)
             
             if self.is_add_button:  # Linksklick auf Add-Button
@@ -713,11 +718,12 @@ class SoundButton(Gtk.Box):
     
     def check_long_press(self):
         """Prüft, ob ein Langklick erkannt wurde"""
+        # Verwende die aktuelle Zeit in Millisekunden
         elapsed = GLib.get_monotonic_time() / 1000 - self.press_start_time
         
         if elapsed >= self.LONG_PRESS_TIME:
             # Langklick erkannt, Einstellungsdialog anzeigen
-            if not self.is_add_button:
+            if not self.is_add_button and not self.settings_dialog_open:
                 self.show_settings_dialog()
             self.press_timeout_id = None
             return False  # Timer nicht wiederholen
@@ -727,8 +733,18 @@ class SoundButton(Gtk.Box):
     
     def show_settings_dialog(self):
         """Zeigt den Einstellungsdialog"""
+        if self.settings_dialog_open:
+            print(f"Button {self.position}: Settings-Dialog ist bereits geöffnet!")
+            return
+            
+        print(f"Button {self.position}: Öffne Settings-Dialog...")
+        self.settings_dialog_open = True
+        
         dialog = SettingsDialog(self.get_toplevel(), self.button_config, self.position, self.on_delete)
         response = dialog.show()
+        
+        # Dialog ist jetzt geschlossen
+        self.settings_dialog_open = False
         
         # Aktualisiere den Button, wenn sich Einstellungen geändert haben
         if response == Gtk.ResponseType.OK:
