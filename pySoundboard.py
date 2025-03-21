@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 import json
 from soundbutton import SoundButton
 import pygame
 import os
+from global_settings_dialog import GlobalSettingsDialog
 
 class SoundboardWindow(Gtk.Window):
     # Konstanten für die Konfiguration
@@ -52,6 +53,11 @@ class SoundboardWindow(Gtk.Window):
         self._load_buttons()
         self._connect_signals()
         
+        # Variablen für die Langklick-Erkennung
+        self.press_timeout_id = None
+        self.LONG_PRESS_TIME = 500  # 500ms = 0.5 Sekunden
+        self.press_start_time = 0
+        
         self.show_all()
         self.add_button = None  # Referenz für den Add-Button
     
@@ -88,7 +94,7 @@ class SoundboardWindow(Gtk.Window):
         main_box.set_vexpand(True)
         scrolled.add(main_box)
         
-        # FlowBox konfigurieren
+        # FlowBox konfigurieren für automatische Anordnung
         self.flowbox = Gtk.FlowBox()
         self.flowbox.set_valign(Gtk.Align.START)
         self.flowbox.set_halign(Gtk.Align.START)
@@ -109,7 +115,12 @@ class SoundboardWindow(Gtk.Window):
         self.flowbox.set_margin_top(sb_config['spacing'])
         self.flowbox.set_margin_bottom(sb_config['spacing'])
         
-        main_box.pack_start(self.flowbox, True, True, 0)
+        # Event für Klicks auf den Hintergrund der FlowBox
+        event_box = Gtk.EventBox()
+        event_box.add(self.flowbox)
+        event_box.connect("button-press-event", self.on_background_click)
+        
+        main_box.pack_start(event_box, True, True, 0)
         
         # Add-Button wird erst später in _load_buttons hinzugefügt
         self.add_button = None
@@ -120,6 +131,7 @@ class SoundboardWindow(Gtk.Window):
         self.connect("configure-event", self.on_window_configure)
         self.connect("key-press-event", self.on_key_press)
         self.connect("delete-event", self.on_window_delete)
+        self.connect("button-press-event", self.on_background_click)  # Für Klicks auf Fensterhintergrund
     
     def _load_buttons(self):
         """Lädt die gespeicherten Buttons oder erstellt neue"""
@@ -142,9 +154,15 @@ class SoundboardWindow(Gtk.Window):
         
         for saved_button in sorted_buttons:
             position = saved_button['position']
-            button = SoundButton(position=position, offset_x=0, offset_y=0, 
-                               config=self.config, on_delete=self.delete_button)
+            button = SoundButton(position=position, 
+                               offset_x=0, 
+                               offset_y=0, 
+                               config=self.config, 
+                               on_delete=self.delete_button)
+            
+            # Füge den Button zur FlowBox hinzu (normale Anordnung)
             self.flowbox.add(button)
+            
             self.buttons.append(button)
             button.show_all()
         
@@ -308,6 +326,140 @@ class SoundboardWindow(Gtk.Window):
             # Speichere die Konfiguration NICHT mehr bei jeder Größenänderung
             # self.save_config()
         return False  # Weitergabe an andere Handler
+    
+    def on_background_click(self, widget, event):
+        """Handler für Klicks auf den Hintergrund des Fensters"""
+        # Für Rechtsklicks sofort reagieren
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
+            # Rechtsklick auf den Hintergrund
+            self.show_global_settings()
+            return True
+        
+        # Für Langklicks mit der linken Maustaste (button 1)
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
+            # Speichere Startzeit und starte Timer
+            self.press_start_time = event.time
+            
+            # Timer für Langklick starten
+            self.press_timeout_id = GLib.timeout_add(self.LONG_PRESS_TIME, 
+                                                  self.check_long_press)
+            
+            # Hier nicht True zurückgeben, damit normale Klicks weiterhin funktionieren
+        
+        # Button-Release-Event abfangen
+        if event.type == Gdk.EventType.BUTTON_RELEASE and event.button == 1:
+            # Timer löschen, wenn Button losgelassen wird bevor Langklick erkannt wurde
+            if self.press_timeout_id:
+                GLib.source_remove(self.press_timeout_id)
+                self.press_timeout_id = None
+        
+        return False  # Event weitergeben
+    
+    def check_long_press(self):
+        """Prüft, ob ein Langklick erkannt wurde"""
+        # Verwende die aktuelle Zeit aus dem Gtk-System
+        current_time = Gtk.get_current_event_time()
+        
+        # Berechne die vergangene Zeit in Millisekunden
+        elapsed = current_time - self.press_start_time
+        
+        if elapsed >= self.LONG_PRESS_TIME:
+            # Langklick erkannt, Einstellungsdialog anzeigen
+            self.show_global_settings()
+            self.press_timeout_id = None
+            return False  # Timer nicht wiederholen
+        
+        # Timer fortsetzen
+        return True
+    
+    def show_global_settings(self):
+        """Zeigt den globalen Einstellungs-Dialog an"""
+        dialog = GlobalSettingsDialog(self, self.config)
+        response = dialog.show()
+        
+        if response == Gtk.ResponseType.OK:
+            print("Globale Einstellungen wurden geändert - wende Änderungen an...")
+            
+            # Speichern Sie die Konfiguration
+            self.save_config()
+            
+            # Stellen Sie sicher, dass die Standardwerte für die Farbeinstellungen vorhanden sind
+            if 'use_global_bg_color' not in self.config['soundbutton']:
+                self.config['soundbutton']['use_global_bg_color'] = True
+            if 'use_global_text_color' not in self.config['soundbutton']:
+                self.config['soundbutton']['use_global_text_color'] = True
+            
+            # Aktualisieren Sie die FlowBox-Abstände
+            sb_config = self.config['soundbutton']
+            self.flowbox.set_row_spacing(sb_config['spacing'])
+            self.flowbox.set_column_spacing(sb_config['spacing'])
+            self.flowbox.set_margin_start(sb_config['spacing'])
+            self.flowbox.set_margin_end(sb_config['spacing'])
+            self.flowbox.set_margin_top(sb_config['spacing'])
+            self.flowbox.set_margin_bottom(sb_config['spacing'])
+            
+            # Aktualisieren Sie alle Buttons, um die neuen globalen Einstellungen anzuwenden
+            self.update_all_buttons()
+            
+            # Aktualisiere die gesamte UI, um sicherzustellen, dass alle Änderungen sichtbar sind
+            self.queue_draw()
+            self.flowbox.queue_draw()
+            
+            print("Globale Einstellungen wurden erfolgreich angewendet!")
+    
+    def update_all_buttons(self):
+        """Aktualisiert alle Buttons mit den globalen Einstellungen durch vollständige Neuinstanziierung"""
+        print("Aktualisiere alle Buttons mit globalen Einstellungen durch vollständige Neuinstanziierung...")
+        
+        # Zuerst die Buttons-Liste speichern und leeren
+        old_buttons = self.buttons.copy()
+        self.buttons = []
+        
+        # Alle bestehenden Buttons aus der FlowBox entfernen
+        for child in list(self.flowbox.get_children()):
+            self.flowbox.remove(child)
+        
+        # Alle Buttons neu erstellen, aber nicht den Add-Button
+        for old_button in old_buttons:
+            # Position und Konfiguration des alten Buttons übernehmen
+            position = old_button.position
+            config = old_button.button_config
+            
+            # Neuen Button mit gleicher Position und Konfiguration erstellen
+            new_button = SoundButton(
+                position=position,
+                offset_x=0,
+                offset_y=0,
+                config=self.config,
+                on_delete=self.delete_button
+            )
+            
+            # Individuelle Konfiguration übernehmen
+            new_button.button_config = config
+            
+            # Zur FlowBox hinzufügen
+            self.flowbox.add(new_button)
+            self.buttons.append(new_button)
+            new_button.show_all()
+            
+            print(f"Button {position} neu erstellt")
+        
+        # Add-Button neu erstellen
+        self.add_button = SoundButton(position=len(self.buttons), config=self.config, is_add_button=True)
+        self.add_button.set_add_click_handler(self.add_new_button)
+        self.flowbox.add(self.add_button)
+        self.add_button.show_all()
+        
+        # Aktualisiere die FlowBox
+        self.flowbox.invalidate_sort()
+        self.flowbox.queue_resize()
+        self.flowbox.queue_draw()
+        self.flowbox.show_all()
+        
+        # Das gesamte Fenster aktualisieren
+        self.queue_draw()
+        
+        print("Button-Neuinstanziierung abgeschlossen")
 
 def main():
     """Main-Funktion"""

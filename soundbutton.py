@@ -95,13 +95,21 @@ class SoundButton(Gtk.Box):
             self.label.set_text(button_text)
             self.label.set_use_markup(True)  # Ermöglicht Markup (z.B. <b>, <i>, etc.)
             
-            # Aktiviere Zeilenumbrüche im Label
-            line_breaks = self.button_config.get('line_breaks', True)
+            # Aktiviere Zeilenumbrüche im Label - verwende individuelle oder globale Einstellung
+            line_breaks = self.button_config.get('line_breaks')
+            if line_breaks is None:  # Wenn nicht gesetzt, verwende globale Einstellung
+                line_breaks = sb_config.get('line_breaks', True)
+                self.button_config['line_breaks'] = line_breaks
+            
             self.label.set_line_wrap(line_breaks)
             self.label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
             
-            # Textausrichtung gemäß Konfiguration
-            text_align = self.button_config.get('text_align', 'center')
+            # Textausrichtung gemäß individueller oder globaler Konfiguration
+            text_align = self.button_config.get('text_align')
+            if text_align is None or text_align == "":  # Wenn nicht gesetzt, verwende globale Einstellung
+                text_align = sb_config.get('text_align', 'center')
+                self.button_config['text_align'] = text_align
+            
             if text_align == 'left':
                 self.label.set_justify(Gtk.Justification.LEFT)
                 self.label.set_halign(Gtk.Align.START)
@@ -114,7 +122,10 @@ class SoundButton(Gtk.Box):
                 
             # Zusätzliche Anpassungen für die Textposition im Button
             # Prüfen, ob individuelle Textposition verwendet werden soll
-            use_custom_position = self.button_config.get('use_custom_text_position', False)
+            use_custom_position = self.button_config.get('use_custom_text_position')
+            if use_custom_position is None:  # Wenn nicht gesetzt, verwende globale Einstellung
+                use_custom_position = sb_config.get('use_custom_text_position', False)
+                self.button_config['use_custom_text_position'] = use_custom_position
             
             # Zurücksetzen aller Margins
             self.label.set_margin_top(0)
@@ -124,9 +135,16 @@ class SoundButton(Gtk.Box):
             
             # Wenn individuelle Positionierung verwendet wird, immer linksbündig und von oben ausgerichtet
             if use_custom_position:
-                # Position von der oberen linken Ecke
-                margin_top = self.button_config.get('text_margin_top', 0)
-                margin_left = self.button_config.get('text_margin_left', 0)
+                # Position von der oberen linken Ecke - verwende individuelle oder globale Werte
+                margin_top = self.button_config.get('text_margin_top')
+                if margin_top is None:
+                    margin_top = sb_config.get('text_margin_top', 0)
+                    self.button_config['text_margin_top'] = margin_top
+                
+                margin_left = self.button_config.get('text_margin_left')
+                if margin_left is None:
+                    margin_left = sb_config.get('text_margin_left', 0)
+                    self.button_config['text_margin_left'] = margin_left
                 
                 # Setze Margins für die Position
                 self.label.set_margin_top(margin_top)
@@ -331,58 +349,77 @@ class SoundButton(Gtk.Box):
         # Theme-Farben extrahieren
         theme_colors = self.get_theme_colors()
         
-        # Prüfe, ob benutzerdefinierte Farben verwendet werden sollen
+        # Einstellungen für Farbe und Bild
+        global_bg_color = sb_config.get('background_color', '#cccccc')
+        global_text_color = sb_config.get('text_color', '#000000')
+        use_global_bg_color = sb_config.get('use_global_bg_color', True)
+        use_global_text_color = sb_config.get('use_global_text_color', True)
+        use_default_image = sb_config.get('use_default_image', False)
+        default_image_file = sb_config.get('default_image_file', "")
+        
+        # Prüfe, ob benutzerdefinierte Farben für diesen Button gesetzt sind
         use_custom_bg = self.button_config.get('use_custom_bg_color', False)
         use_custom_text = self.button_config.get('use_custom_text_color', False)
         
-        # Hintergrundfarbe aus Konfiguration oder Theme holen
+        # Hintergrundfarbe bestimmen:
+        # 1. Individuelle Farbe hat immer Vorrang, wenn gesetzt
+        # 2. Wenn keine individuelle Farbe: globale Farbe oder Theme-Farbe je nach Einstellung
         if use_custom_bg and 'background_color' in self.button_config:
+            # Individuelle Farbe verwenden
             bg_color = self.button_config['background_color']
-            
-            # Erzeugt RGBA-Objekt für benutzerdefinierte Farbe, um daraus die Effektfarben abzuleiten
-            bg_rgba = self._hex_to_rgba(bg_color)
-            
-            # Gedrückte Farbe als dunklere Version der benutzerdefinierten Farbe
-            pressed_bg = Gdk.RGBA(
-                bg_rgba.red * 0.8,
-                bg_rgba.green * 0.8,
-                bg_rgba.blue * 0.8,
-                bg_rgba.alpha
-            )
-            pressed_bg_hex = self._rgba_to_hex(pressed_bg)
-            
-            # Highlight (heller) und Schatten (dunkler) aus der benutzerdefinierten Farbe ableiten
-            light_factor = 1.35
-            dark_factor = 0.65
-            
-            # Highlight-Farbe (heller)
-            highlight = Gdk.RGBA(
-                min(1.0, bg_rgba.red * light_factor),
-                min(1.0, bg_rgba.green * light_factor),
-                min(1.0, bg_rgba.blue * light_factor),
-                bg_rgba.alpha
-            )
-            highlight_hex = self._rgba_to_hex(highlight)
-            
-            # Schatten-Farbe (dunkler)
-            shadow = Gdk.RGBA(
-                bg_rgba.red * dark_factor,
-                bg_rgba.green * dark_factor,
-                bg_rgba.blue * dark_factor,
-                bg_rgba.alpha
-            )
-            shadow_hex = self._rgba_to_hex(shadow)
+        elif use_global_bg_color:
+            # Globale Farbe verwenden
+            bg_color = global_bg_color
         else:
-            bg_color = sb_config.get('background_color', self._rgba_to_hex(theme_colors['normal_bg']))
-            pressed_bg_hex = self._rgba_to_hex(theme_colors['pressed_bg'])
-            highlight_hex = self._rgba_to_hex(theme_colors['highlight'])
-            shadow_hex = self._rgba_to_hex(theme_colors['shadow'])
+            # System-Theme-Farbe verwenden
+            bg_color = self._rgba_to_hex(theme_colors['normal_bg'])
         
-        # Textfarbe aus Konfiguration oder Theme holen
+        # Erzeugt RGBA-Objekt für Farbe, um daraus die Effektfarben abzuleiten
+        bg_rgba = self._hex_to_rgba(bg_color)
+        
+        # Gedrückte Farbe als dunklere Version der Hauptfarbe
+        pressed_bg = Gdk.RGBA(
+            bg_rgba.red * 0.8,
+            bg_rgba.green * 0.8,
+            bg_rgba.blue * 0.8,
+            bg_rgba.alpha
+        )
+        pressed_bg_hex = self._rgba_to_hex(pressed_bg)
+        
+        # Highlight (heller) und Schatten (dunkler) aus der Farbe ableiten
+        light_factor = 1.35
+        dark_factor = 0.65
+        
+        # Highlight-Farbe (heller)
+        highlight = Gdk.RGBA(
+            min(1.0, bg_rgba.red * light_factor),
+            min(1.0, bg_rgba.green * light_factor),
+            min(1.0, bg_rgba.blue * light_factor),
+            bg_rgba.alpha
+        )
+        highlight_hex = self._rgba_to_hex(highlight)
+        
+        # Schatten-Farbe (dunkler)
+        shadow = Gdk.RGBA(
+            bg_rgba.red * dark_factor,
+            bg_rgba.green * dark_factor,
+            bg_rgba.blue * dark_factor,
+            bg_rgba.alpha
+        )
+        shadow_hex = self._rgba_to_hex(shadow)
+        
+        # Textfarbe bestimmen: 
+        # 1. Individuelle Farbe hat immer Vorrang, wenn gesetzt
+        # 2. Wenn keine individuelle Farbe: globale Farbe oder Theme-Farbe je nach Einstellung
         if use_custom_text and 'text_color' in self.button_config:
+            # Individuelle Farbe verwenden
             text_color = self.button_config['text_color']
+        elif use_global_text_color:
+            # Globale Farbe verwenden
+            text_color = global_text_color
         else:
-            text_color = sb_config.get('text_color', self._rgba_to_hex(theme_colors['text']))
+            # System-Theme-Farbe verwenden
+            text_color = self._rgba_to_hex(theme_colors['text'])
         
         # Einzigartige Klasse für diesen Button
         unique_class = f"button-{self.position}"
@@ -435,11 +472,25 @@ class SoundButton(Gtk.Box):
             }}
             """
         else:
-            # Füge CSS für Hintergrundbild hinzu, wenn vorhanden
+            # Hintergrundbild verwenden - priorisiere individuelles Bild, verwende globales als Fallback
+            use_image = False
+            image_path = None
+            
+            # Prüfe auf individuelles Bild
             if 'image_file' in self.button_config and self.button_config['image_file']:
                 image_path = self.button_config['image_file']
                 if os.path.exists(image_path):
-                    css += self._get_image_css(unique_class, image_path)
+                    use_image = True
+            
+            # Wenn kein individuelles Bild oder es existiert nicht und globales Bild ist aktiviert
+            if (not use_image) and use_default_image and default_image_file and os.path.exists(default_image_file):
+                image_path = default_image_file
+                use_image = True
+            
+            # Füge CSS für Hintergrundbild hinzu, wenn vorhanden
+            if use_image and image_path:
+                css += self._get_image_css(unique_class, image_path)
+                print(f"Verwende Bild für Button '{self.button_config.get('text', 'Unbekannt')}': {image_path}")
         
         # Füge dem Button die CSS-Klassen hinzu
         button_style.add_class(unique_class)
@@ -686,34 +737,61 @@ class SoundButton(Gtk.Box):
     def _update_button_after_settings(self):
         """Aktualisiert den Button nach dem Ändern der Einstellungen"""
         # Nur für normale Buttons, nicht für Add-Buttons
-        if not self.is_add_button and hasattr(self, 'label'):
-            print(f"Aktualisiere Button {self.position} nach Einstellungsänderung")
+        if not self.is_add_button:
+            print(f"Aktualisiere Button {self.position} nach Einstellungsänderung (vollständige Neuzeichnung)")
             
-            # Entferne das vorhandene Label vom Button
-            child = self.button.get_child()
-            if child:
-                self.button.remove(child)
+            # Komplette Neuinitialisierung des Buttons
+            sb_config = self.config['soundbutton']
             
-            # Erstelle ein neues Label mit den aktualisierten Einstellungen
+            # 1. Entferne alle Widgets vom Button-Container
+            for child in self.get_children():
+                self.remove(child)
+                
+            # 2. Erstelle den Button komplett neu
+            # Container für Button und Regler
+            self.button_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            self.button_container.set_size_request(sb_config['button_width'], sb_config['button_height'])
+            
+            # Container für den Button
+            self.button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            self.button_box.set_size_request(sb_config['button_width'], sb_config['button_height'])
+            
+            # Erstelle einen normalen Button
+            button_width = sb_config['button_width']
+            self.button = Gtk.Button()
+            self.button.set_size_request(button_width, sb_config['button_height'])
+            
+            # Anstatt direkt das Label zu setzen, erstellen wir ein Label-Widget,
+            # das Zeilenumbrüche unterstützt
             button_text = self.button_config['text']
+            
+            # Wir erstellen ein Label-Widget
+            self.label = Gtk.Label()
             
             # Einfache Ersetzung von \n für bessere Zeilenumbrüche
             if '\\n' in button_text:
                 button_text = button_text.replace('\\n', '\n')
                 print(f"Verarbeite Zeilenumbrüche in Text: '{button_text}'")
-                
-            self.label = Gtk.Label()
-            self.label.set_text(button_text)
-            self.label.set_use_markup(True)  # Ermöglicht Markup
             
-            # Aktualisiere die Zeilenumbruch-Einstellung
-            line_breaks = self.button_config.get('line_breaks', True)
+            self.label.set_text(button_text)
+            self.label.set_use_markup(True)  # Ermöglicht Markup (z.B. <b>, <i>, etc.)
+            
+            # Aktiviere Zeilenumbrüche im Label - verwende individuelle oder globale Einstellung
+            line_breaks = self.button_config.get('line_breaks')
+            if line_breaks is None:  # Wenn nicht gesetzt, verwende globale Einstellung
+                line_breaks = sb_config.get('line_breaks', True)
+                self.button_config['line_breaks'] = line_breaks
+            
             self.label.set_line_wrap(line_breaks)
             self.label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
             print(f"Zeilenumbrüche sind {'aktiviert' if line_breaks else 'deaktiviert'}")
             
-            # Aktualisiere die Textausrichtung
-            text_align = self.button_config.get('text_align', 'center')
+            # Textausrichtung gemäß individueller oder globaler Konfiguration
+            text_align = self.button_config.get('text_align')
+            if text_align is None or text_align == "":  # Wenn nicht gesetzt, verwende globale Einstellung
+                text_align = sb_config.get('text_align', 'center')
+                self.button_config['text_align'] = text_align
+            
             if text_align == 'left':
                 self.label.set_justify(Gtk.Justification.LEFT)
                 self.label.set_halign(Gtk.Align.START)
@@ -724,9 +802,13 @@ class SoundButton(Gtk.Box):
                 self.label.set_justify(Gtk.Justification.CENTER)
                 self.label.set_halign(Gtk.Align.CENTER)
             print(f"Textausrichtung ist '{text_align}'")
-                
-            # Aktualisiere Text-Margins basierend auf individuelle Position
-            use_custom_position = self.button_config.get('use_custom_text_position', False)
+            
+            # Zusätzliche Anpassungen für die Textposition im Button
+            # Prüfen, ob individuelle Textposition verwendet werden soll
+            use_custom_position = self.button_config.get('use_custom_text_position')
+            if use_custom_position is None:  # Wenn nicht gesetzt, verwende globale Einstellung
+                use_custom_position = sb_config.get('use_custom_text_position', False)
+                self.button_config['use_custom_text_position'] = use_custom_position
             
             # Zurücksetzen aller Margins
             self.label.set_margin_top(0)
@@ -736,9 +818,16 @@ class SoundButton(Gtk.Box):
             
             # Wenn individuelle Positionierung verwendet wird, immer linksbündig und von oben ausgerichtet
             if use_custom_position:
-                # Position von der oberen linken Ecke
-                margin_top = self.button_config.get('text_margin_top', 0)
-                margin_left = self.button_config.get('text_margin_left', 0)
+                # Position von der oberen linken Ecke - verwende individuelle oder globale Werte
+                margin_top = self.button_config.get('text_margin_top')
+                if margin_top is None:
+                    margin_top = sb_config.get('text_margin_top', 0)
+                    self.button_config['text_margin_top'] = margin_top
+                
+                margin_left = self.button_config.get('text_margin_left')
+                if margin_left is None:
+                    margin_left = sb_config.get('text_margin_left', 0)
+                    self.button_config['text_margin_left'] = margin_left
                 
                 # Setze Margins für die Position
                 self.label.set_margin_top(margin_top)
@@ -756,16 +845,59 @@ class SoundButton(Gtk.Box):
             else:
                 print("Keine individuelle Textposition verwendet")
             
-            # Label zum Button hinzufügen und anzeigen
+            # Wichtig: Label muss sichtbar sein
             self.label.show()
+            # Füge das Label zum Button hinzu
             self.button.add(self.label)
             
-            # CSS-Stil aktualisieren
+            # Event-Handler für Button
+            self.button.connect("button-press-event", self.on_button_press)
+            self.button.connect("button-release-event", self.on_button_release)
+            
+            # Button zum Container hinzufügen
+            self.button_box.pack_start(self.button, True, True, 0)
+            
+            # Button-Box zum Hauptcontainer hinzufügen
+            self.button_container.pack_start(self.button_box, True, True, 0)
+            
+            # Lautstärkeregler als Overlay erstellen
+            # Overlay, um den Lautstärkeregler über den Button zu legen
+            self.overlay = Gtk.Overlay()
+            self.overlay.add(self.button_container)
+            
+            # Lautstärkeregler erstellen
+            self._create_volume_slider(sb_config)
+            
+            # Lautstärkeregler rechts positionieren
+            self.volume_container.set_halign(Gtk.Align.END)
+            self.volume_container.set_valign(Gtk.Align.FILL)
+            self.volume_container.set_margin_end(5)  # Abstand zum rechten Rand
+            
+            # Lautstärkeregler zum Overlay hinzufügen
+            self.overlay.add_overlay(self.volume_container)
+            
+            # Overlay zum Hauptcontainer hinzufügen
+            self.pack_start(self.overlay, True, True, 0)
+            
+            # 3. Gestalte das neu erstellte Widget mit CSS
             self._apply_css_style()
             
-            # Erzwinge Neuzeichnen des Widgets
+            # 4. Alles anzeigen
+            self.show_all()
+            
+            # 5. Nochmals erzwingen, dass der Button neu gezeichnet wird
             self.button.queue_resize()
             self.button.queue_draw()
+            self.button_container.queue_resize()
+            self.button_container.queue_draw()
+            self.button_box.queue_resize()
+            self.button_box.queue_draw()
+            self.overlay.queue_resize()
+            self.overlay.queue_draw()
+            self.queue_resize()
+            self.queue_draw()
+            
+            print(f"Button {self.position} vollständig neu gezeichnet!")
     
     def on_volume_changed(self, volume_slider):
         """Handler für Änderungen am Lautstärkeregler"""
