@@ -1,0 +1,106 @@
+{
+    "window": {
+        "width": 455,
+        "height": 388,
+        "title": "Soundboard"
+    },
+    "soundbutton": {
+        "button_width": 100,
+        "button_height": 75,
+        "volume_height": 100,
+        "volume_width": 15,
+        "spacing": 5,
+        "radius": 15,
+        "delete_button_size": 20,
+        "text_size": 13,
+        "background_color": "#CCCCCC",
+        "delete_button_color": "#CC3333",
+        "text_color": "#000000",
+        "text_x": 17,
+        "text_y": 20,
+        "volume_min": 0,
+        "volume_max": 100,
+        "volume_default": 50,
+        "control_buttons": {
+            "size": 25,
+            "spacing": 5,
+            "background_color": "#FFFFFF",
+            "border_color": "#000000",
+            "symbol_color": "#000000",
+            "border_width": 1
+        }
+    },
+    "buttons": [
+        {
+            "position": 0,
+            "volume": 100,
+            "text": "Drei",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
+            "loop": false
+        },
+        {
+            "position": 1,
+            "volume": 11,
+            "text": "Eins",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Glocken/Bells.mp3"
+        },
+        {
+            "position": 2,
+            "volume": 25,
+            "text": "Zwei",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Hintergrund 1 - 18.01.15 17.35.mp3"
+        },
+        {
+            "position": 3,
+            "volume": 50,
+            "text": "Button 6",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Hintergrund 1 - 18.01.15 17.35.mp3",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png",
+            "loop": false
+        },
+        {
+            "position": 4,
+            "volume": 50,
+            "text": "Button 7",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "loop": false
+        },
+        {
+            "position": 5,
+            "volume": 50,
+            "text": "Button 7"
+        },
+        {
+            "position": 6,
+            "volume": 50,
+            "text": "Button 8",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png",
+            "loop": false
+        },
+        {
+            "position": 7,
+            "volume": 50,
+            "text": "Wilder \\n Button",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "loop": false
+        },
+        {
+            "position": 8,
+            "volume": 50,
+            "text": "Button 17"
+        },
+        {
+            "position": 9,
+            "volume": 50,
+            "text": "Button 11"
+        },
+        {
+            "position": 10,
+            "volume": 50,
+            "text": "Button 11"
+        }
+    ]
+}

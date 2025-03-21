@@ -212,8 +212,10 @@ class SoundButton(Gtk.Box):
         # Versuchen, die Farbe direkt aus dem Button-Style zu bekommen
         success = False
         try:
+            # Zuerst versuchen, die Theme-Auswahlfarbe zu bekommen (oft bessere Kontraste)
             success, pressed_bg = button_style.lookup_color("theme_selected_bg_color")
             if not success:
+                # Fallback auf spezifischen Button-Aktiv-Hintergrund
                 success, pressed_bg = button_style.lookup_color("theme_button_active_bg")
         except:
             pass
@@ -227,9 +229,9 @@ class SoundButton(Gtk.Box):
                 normal_bg.alpha
             )
         
-        # 3D-Effekt-Farben berechnen
-        light_factor = 1.3
-        dark_factor = 0.7
+        # 3D-Effekt-Farben berechnen mit optimierten Faktoren
+        light_factor = 1.35  # Etwas erhöht für besseren Kontrast
+        dark_factor = 0.65   # Etwas reduziert für dunkleren Schatten
         
         # Highlight-Farbe (heller)
         highlight = Gdk.RGBA(
@@ -270,36 +272,42 @@ class SoundButton(Gtk.Box):
         highlight_hex = self._rgba_to_hex(theme_colors['highlight'])
         shadow_hex = self._rgba_to_hex(theme_colors['shadow'])
         
-        # Basis-CSS für alle Buttons
+        # Basis-CSS für alle Buttons mit verbessertem 3D-Effekt
         css = f"""
         .sound-button {{
+            background-color: {bg_color};
+            color: {text_color};
             border-radius: 10px;
             padding: 10px;
+            font-weight: bold;
             border-style: solid;
             border-width: 2px;
             border-color: {highlight_hex} {shadow_hex} {shadow_hex} {highlight_hex}; /* oben rechts unten links */
-            font-weight: bold;
-            transition: all 0.1s ease;
-            background-color: {bg_color};
-            color: {text_color};
+            transition: all 0.15s ease;
+            box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.3), 
+                        inset -1px -1px 1px rgba(0, 0, 0, 0.2);
         }}
         
         .sound-button:active {{
-            padding: 12px 8px 8px 12px;
-            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links */
             background-color: {pressed_bg_hex};
+            padding: 12px 8px 8px 12px; /* oben rechts unten links - verschoben für Eindruckeffekt */
+            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links - invertiert */
+            box-shadow: inset -1px -1px 1px rgba(255, 255, 255, 0.2), 
+                        inset 1px 1px 1px rgba(0, 0, 0, 0.3);
         }}
         
         .sound-button-toggled {{
             background-color: {pressed_bg_hex};
+            color: {text_color};
             border-radius: 10px;
-            padding: 12px 8px 8px 12px;
+            padding: 12px 8px 8px 12px; /* oben rechts unten links - verschoben für Eindruckeffekt */
+            font-weight: bold;
             border-style: solid;
             border-width: 2px;
-            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links */
-            font-weight: bold;
-            color: {text_color};
-            transition: all 0.1s ease;
+            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links - invertiert */
+            transition: all 0.15s ease;
+            box-shadow: inset -1px -1px 1px rgba(255, 255, 255, 0.2), 
+                        inset 1px 1px 1px rgba(0, 0, 0, 0.3);
         }}
         
         .add-button {{
@@ -377,35 +385,42 @@ class SoundButton(Gtk.Box):
         # Einzigartige Klasse für diesen Button
         unique_class = f"button-{self.position}"
         
-        # Basis-CSS neu erstellen
+        # Basis-CSS neu erstellen mit verbessertem 3D-Effekt
         css = f"""
         .sound-button {{
+            background-color: {bg_color};
+            color: {text_color};
             border-radius: 10px;
             padding: 10px;
+            font-weight: bold;
             border-style: solid;
             border-width: 2px;
             border-color: {highlight_hex} {shadow_hex} {shadow_hex} {highlight_hex}; /* oben rechts unten links */
-            font-weight: bold;
-            transition: all 0.1s ease;
-            background-color: {bg_color};
-            color: {text_color};
+            transition: all 0.15s ease;
+            box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.3), 
+                        inset -1px -1px 1px rgba(0, 0, 0, 0.2);
         }}
         
         .sound-button:active {{
-            padding: 12px 8px 8px 12px;
-            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links */
+            background-color: {pressed_bg_hex};
+            padding: 12px 8px 8px 12px; /* oben rechts unten links - verschoben für Eindruckeffekt */
+            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links - invertiert */
+            box-shadow: inset -1px -1px 1px rgba(255, 255, 255, 0.2), 
+                        inset 1px 1px 1px rgba(0, 0, 0, 0.3);
         }}
         
         .sound-button-toggled {{
             background-color: {pressed_bg_hex};
+            color: {text_color};
             border-radius: 10px;
-            padding: 12px 8px 8px 12px;
+            padding: 12px 8px 8px 12px; /* oben rechts unten links - verschoben für Eindruckeffekt */
+            font-weight: bold;
             border-style: solid;
             border-width: 2px;
-            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links */
-            font-weight: bold;
-            color: {text_color};
-            transition: all 0.1s ease;
+            border-color: {shadow_hex} {highlight_hex} {highlight_hex} {shadow_hex}; /* oben rechts unten links - invertiert */
+            transition: all 0.15s ease;
+            box-shadow: inset -1px -1px 1px rgba(255, 255, 255, 0.2), 
+                        inset 1px 1px 1px rgba(0, 0, 0, 0.3);
         }}
         """
         
