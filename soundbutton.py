@@ -122,7 +122,7 @@ class SoundButton(Gtk.Box):
             self.label.set_margin_start(0)
             self.label.set_margin_end(0)
             
-            # Immer linksbündig ohne Einrückung für die individuelle Positionierung
+            # Wenn individuelle Positionierung verwendet wird, immer linksbündig und von oben ausgerichtet
             if use_custom_position:
                 # Position von der oberen linken Ecke
                 margin_top = self.button_config.get('text_margin_top', 0)
@@ -132,9 +132,17 @@ class SoundButton(Gtk.Box):
                 self.label.set_margin_top(margin_top)
                 self.label.set_margin_start(margin_left)
                 
-                # Linksbündige Ausrichtung erzwingen für individuelle Positionierung
-                self.label.set_justify(Gtk.Justification.LEFT)
-                self.label.set_halign(Gtk.Align.START)
+                # Absolute Positionierung für den Text
+                self.label.set_valign(Gtk.Align.START)  # Immer von oben ausgerichtet
+                self.label.set_halign(Gtk.Align.START)  # Immer von links ausgerichtet
+                
+                # Label sollte den gesamten Button-Bereich nutzen können
+                self.label.set_hexpand(True)
+                self.label.set_vexpand(True)
+                
+                print(f"Individuelle Textposition aktiviert: top={margin_top}, left={margin_left}")
+            else:
+                print("Keine individuelle Textposition verwendet")
             
             # Wichtig: Label muss sichtbar sein
             self.label.show()
@@ -726,7 +734,7 @@ class SoundButton(Gtk.Box):
             self.label.set_margin_start(0)
             self.label.set_margin_end(0)
             
-            # Immer linksbündig ohne Einrückung für die individuelle Positionierung
+            # Wenn individuelle Positionierung verwendet wird, immer linksbündig und von oben ausgerichtet
             if use_custom_position:
                 # Position von der oberen linken Ecke
                 margin_top = self.button_config.get('text_margin_top', 0)
@@ -736,9 +744,14 @@ class SoundButton(Gtk.Box):
                 self.label.set_margin_top(margin_top)
                 self.label.set_margin_start(margin_left)
                 
-                # Linksbündige Ausrichtung erzwingen für individuelle Positionierung
-                self.label.set_justify(Gtk.Justification.LEFT)
-                self.label.set_halign(Gtk.Align.START)
+                # Absolute Positionierung für den Text
+                self.label.set_valign(Gtk.Align.START)  # Immer von oben ausgerichtet
+                self.label.set_halign(Gtk.Align.START)  # Immer von links ausgerichtet
+                
+                # Label sollte den gesamten Button-Bereich nutzen können
+                self.label.set_hexpand(True)
+                self.label.set_vexpand(True)
+                
                 print(f"Individuelle Textposition aktiviert: top={margin_top}, left={margin_left}")
             else:
                 print("Keine individuelle Textposition verwendet")

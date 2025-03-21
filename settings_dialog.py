@@ -43,6 +43,108 @@ class SettingsDialog:
         text_entry.set_text(self.button_config.get('text', f"Button {self.position + 1}"))
         content_area.pack_start(text_entry, True, True, 0)
         
+        # Alle Textbezogenen Einstellungen zusammenfassen
+        # Trennlinie für die Texteinstellungen
+        text_settings_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        text_settings_separator.set_margin_top(5)
+        text_settings_separator.set_margin_bottom(5)
+        content_area.pack_start(text_settings_separator, True, True, 0)
+        
+        # Textausrichtung-Optionen
+        text_align_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        text_align_label = Gtk.Label(label="Textausrichtung:")
+        text_align_box.pack_start(text_align_label, False, False, 0)
+        
+        # Combobox für die Textausrichtung
+        text_align_store = Gtk.ListStore(str, str)
+        text_align_store.append(["center", "Zentriert"])
+        text_align_store.append(["left", "Linksbündig"])
+        text_align_store.append(["right", "Rechtsbündig"])
+        
+        text_align_combo = Gtk.ComboBox.new_with_model(text_align_store)
+        renderer_text = Gtk.CellRendererText()
+        text_align_combo.pack_start(renderer_text, True)
+        text_align_combo.add_attribute(renderer_text, "text", 1)
+        
+        # Aktuelle Ausrichtung auswählen
+        current_align = self.button_config.get('text_align', 'center')
+        active_iter = None
+        for i, row in enumerate(text_align_store):
+            if row[0] == current_align:
+                text_align_combo.set_active(i)
+                break
+        if text_align_combo.get_active() == -1:
+            text_align_combo.set_active(0)  # Fallback auf Zentriert
+        
+        text_align_box.pack_start(text_align_combo, True, True, 5)
+        content_area.pack_start(text_align_box, True, True, 0)
+        
+        # Option für Zeilenumbrüche
+        line_break_check = Gtk.CheckButton(label="Zeilenumbrüche aktivieren")
+        line_break_check.set_active(self.button_config.get('line_breaks', True))
+        content_area.pack_start(line_break_check, True, True, 5)
+        
+        # Textpositionierung - direkt nach der Texteingabe
+        # Checkbox für individuelle Textpositionierung
+        text_pos_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        text_pos_check = Gtk.CheckButton(label="Individuelle Textposition verwenden")
+        text_pos_check.set_active(self.button_config.get('use_custom_text_position', False))
+        text_pos_box.pack_start(text_pos_check, True, True, 0)
+        content_area.pack_start(text_pos_box, True, True, 5)
+        
+        # Container für die Eingabefelder (nur oben und links)
+        margins_grid = Gtk.Grid()
+        margins_grid.set_column_spacing(10)
+        margins_grid.set_row_spacing(5)
+        
+        # Oben
+        top_label = Gtk.Label(label="Abstand oben:")
+        top_label.set_halign(Gtk.Align.START)
+        margins_grid.attach(top_label, 0, 0, 1, 1)
+        
+        top_adjustment = Gtk.Adjustment(
+            value=self.button_config.get('text_margin_top', 0),
+            lower=0,
+            upper=50,
+            step_increment=1,
+            page_increment=5
+        )
+        top_spinbutton = Gtk.SpinButton()
+        top_spinbutton.set_adjustment(top_adjustment)
+        margins_grid.attach(top_spinbutton, 1, 0, 1, 1)
+        
+        # Links
+        left_label = Gtk.Label(label="Abstand links:")
+        left_label.set_halign(Gtk.Align.START)
+        margins_grid.attach(left_label, 0, 1, 1, 1)
+        
+        left_adjustment = Gtk.Adjustment(
+            value=self.button_config.get('text_margin_left', 0),
+            lower=0,
+            upper=50,
+            step_increment=1,
+            page_increment=5
+        )
+        left_spinbutton = Gtk.SpinButton()
+        left_spinbutton.set_adjustment(left_adjustment)
+        margins_grid.attach(left_spinbutton, 1, 1, 1, 1)
+        
+        # Aktiviere/Deaktiviere die Eingabefelder basierend auf dem Status der Checkbox
+        def on_text_pos_check_toggled(widget):
+            margins_grid.set_sensitive(widget.get_active())
+        
+        text_pos_check.connect("toggled", on_text_pos_check_toggled)
+        on_text_pos_check_toggled(text_pos_check)  # Initial-Status setzen
+        
+        # Füge das Grid zum Dialog hinzu
+        content_area.pack_start(margins_grid, True, True, 5)
+        
+        # Trennlinie für die nächste Sektion
+        next_section_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        next_section_separator.set_margin_top(10)
+        next_section_separator.set_margin_bottom(10)
+        content_area.pack_start(next_section_separator, True, True, 0)
+        
         # Änderung: Label und Container für das Bild VOR Audiodatei
         image_label = Gtk.Label(label="Button-Bild:")
         content_area.pack_start(image_label, True, True, 0)
@@ -138,124 +240,6 @@ class SettingsDialog:
         separator3.set_margin_bottom(10)
         content_area.pack_start(separator3, True, True, 0)
         
-        # Textausrichtung-Optionen
-        text_align_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        text_align_label = Gtk.Label(label="Textausrichtung:")
-        text_align_box.pack_start(text_align_label, False, False, 0)
-        
-        # Combobox für die Textausrichtung
-        text_align_store = Gtk.ListStore(str, str)
-        text_align_store.append(["center", "Zentriert"])
-        text_align_store.append(["left", "Linksbündig"])
-        text_align_store.append(["right", "Rechtsbündig"])
-        
-        text_align_combo = Gtk.ComboBox.new_with_model(text_align_store)
-        renderer_text = Gtk.CellRendererText()
-        text_align_combo.pack_start(renderer_text, True)
-        text_align_combo.add_attribute(renderer_text, "text", 1)
-        
-        # Aktuelle Ausrichtung auswählen
-        current_align = self.button_config.get('text_align', 'center')
-        active_iter = None
-        for i, row in enumerate(text_align_store):
-            if row[0] == current_align:
-                text_align_combo.set_active(i)
-                break
-        if text_align_combo.get_active() == -1:
-            text_align_combo.set_active(0)  # Fallback auf Zentriert
-        
-        text_align_box.pack_start(text_align_combo, True, True, 5)
-        content_area.pack_start(text_align_box, True, True, 0)
-        
-        # Option für Zeilenumbrüche
-        line_break_check = Gtk.CheckButton(label="Zeilenumbrüche aktivieren")
-        line_break_check.set_active(self.button_config.get('line_breaks', True))
-        content_area.pack_start(line_break_check, True, True, 5)
-        
-        # Trennlinie für bessere Übersicht - Textpositionierung
-        separator4 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        separator4.set_margin_top(10)
-        separator4.set_margin_bottom(10)
-        content_area.pack_start(separator4, True, True, 0)
-        
-        # Überschrift für Textpositionierung
-        text_pos_label = Gtk.Label(label="Textpositionierung im Button:")
-        text_pos_label.set_halign(Gtk.Align.START)
-        content_area.pack_start(text_pos_label, True, True, 0)
-        
-        # Container für die Eingabefelder
-        margins_grid = Gtk.Grid()
-        margins_grid.set_column_spacing(10)
-        margins_grid.set_row_spacing(5)
-        
-        # Erstelle Labels und Spinbuttons für die Ränder
-        # Oben
-        top_label = Gtk.Label(label="Abstand oben:")
-        top_label.set_halign(Gtk.Align.START)
-        margins_grid.attach(top_label, 0, 0, 1, 1)
-        
-        top_adjustment = Gtk.Adjustment(
-            value=self.button_config.get('text_margin_top', 0),
-            lower=0,
-            upper=50,
-            step_increment=1,
-            page_increment=5
-        )
-        top_spinbutton = Gtk.SpinButton()
-        top_spinbutton.set_adjustment(top_adjustment)
-        margins_grid.attach(top_spinbutton, 1, 0, 1, 1)
-        
-        # Unten
-        bottom_label = Gtk.Label(label="Abstand unten:")
-        bottom_label.set_halign(Gtk.Align.START)
-        margins_grid.attach(bottom_label, 0, 1, 1, 1)
-        
-        bottom_adjustment = Gtk.Adjustment(
-            value=self.button_config.get('text_margin_bottom', 0),
-            lower=0,
-            upper=50,
-            step_increment=1,
-            page_increment=5
-        )
-        bottom_spinbutton = Gtk.SpinButton()
-        bottom_spinbutton.set_adjustment(bottom_adjustment)
-        margins_grid.attach(bottom_spinbutton, 1, 1, 1, 1)
-        
-        # Links
-        left_label = Gtk.Label(label="Abstand links:")
-        left_label.set_halign(Gtk.Align.START)
-        margins_grid.attach(left_label, 2, 0, 1, 1)
-        
-        left_adjustment = Gtk.Adjustment(
-            value=self.button_config.get('text_margin_left', 0),
-            lower=0,
-            upper=50,
-            step_increment=1,
-            page_increment=5
-        )
-        left_spinbutton = Gtk.SpinButton()
-        left_spinbutton.set_adjustment(left_adjustment)
-        margins_grid.attach(left_spinbutton, 3, 0, 1, 1)
-        
-        # Rechts
-        right_label = Gtk.Label(label="Abstand rechts:")
-        right_label.set_halign(Gtk.Align.START)
-        margins_grid.attach(right_label, 2, 1, 1, 1)
-        
-        right_adjustment = Gtk.Adjustment(
-            value=self.button_config.get('text_margin_right', 0),
-            lower=0,
-            upper=50,
-            step_increment=1,
-            page_increment=5
-        )
-        right_spinbutton = Gtk.SpinButton()
-        right_spinbutton.set_adjustment(right_adjustment)
-        margins_grid.attach(right_spinbutton, 3, 1, 1, 1)
-        
-        # Füge das Grid zum Dialog hinzu
-        content_area.pack_start(margins_grid, True, True, 5)
-        
         # Änderung: Entferne den separaten Löschen-Button am Ende
         # Verbinde den Löschen-Button in der Action-Area mit dem Lösch-Handler
         delete_button.connect("clicked", self.on_delete_button_clicked, dialog)
@@ -282,10 +266,20 @@ class SettingsDialog:
             self.button_config['line_breaks'] = line_breaks
             
             # Textpositionierung speichern
+            use_custom_position = text_pos_check.get_active()
+            self.button_config['use_custom_text_position'] = use_custom_position
             self.button_config['text_margin_top'] = int(top_spinbutton.get_value())
-            self.button_config['text_margin_bottom'] = int(bottom_spinbutton.get_value())
             self.button_config['text_margin_left'] = int(left_spinbutton.get_value())
-            self.button_config['text_margin_right'] = int(right_spinbutton.get_value())
+            # Zurücksetzen von unten und rechts, wenn nicht mehr verwendet
+            if not use_custom_position:
+                self.button_config['text_margin_top'] = 0
+                self.button_config['text_margin_left'] = 0
+            
+            # Alte Werte für unten und rechts entfernen, da wir sie nicht mehr verwenden
+            if 'text_margin_bottom' in self.button_config:
+                del self.button_config['text_margin_bottom']
+            if 'text_margin_right' in self.button_config:
+                del self.button_config['text_margin_right']
             
             # Speichere Farbeinstellungen
             use_custom_bg = button_color_check.get_active()
@@ -349,6 +343,9 @@ class SettingsDialog:
             self.is_playing = False
         
         dialog.destroy()
+        
+        # Gib den Response zurück, damit der Aufrufer weiß, ob Änderungen vorgenommen wurden
+        return response
     
     def hex_to_rgba(self, hex_color):
         """Konvertiert einen Hex-Farbcode in ein RGBA-Objekt"""
