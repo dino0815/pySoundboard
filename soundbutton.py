@@ -113,15 +113,28 @@ class SoundButton(Gtk.Box):
                 self.label.set_halign(Gtk.Align.CENTER)
                 
             # Zusätzliche Anpassungen für die Textposition im Button
-            margin_top = self.button_config.get('text_margin_top', 0)
-            margin_bottom = self.button_config.get('text_margin_bottom', 0)
-            margin_left = self.button_config.get('text_margin_left', 0)
-            margin_right = self.button_config.get('text_margin_right', 0)
+            # Prüfen, ob individuelle Textposition verwendet werden soll
+            use_custom_position = self.button_config.get('use_custom_text_position', False)
             
-            self.label.set_margin_top(margin_top)
-            self.label.set_margin_bottom(margin_bottom)
-            self.label.set_margin_start(margin_left)
-            self.label.set_margin_end(margin_right)
+            # Zurücksetzen aller Margins
+            self.label.set_margin_top(0)
+            self.label.set_margin_bottom(0)
+            self.label.set_margin_start(0)
+            self.label.set_margin_end(0)
+            
+            # Immer linksbündig ohne Einrückung für die individuelle Positionierung
+            if use_custom_position:
+                # Position von der oberen linken Ecke
+                margin_top = self.button_config.get('text_margin_top', 0)
+                margin_left = self.button_config.get('text_margin_left', 0)
+                
+                # Setze Margins für die Position
+                self.label.set_margin_top(margin_top)
+                self.label.set_margin_start(margin_left)
+                
+                # Linksbündige Ausrichtung erzwingen für individuelle Positionierung
+                self.label.set_justify(Gtk.Justification.LEFT)
+                self.label.set_halign(Gtk.Align.START)
             
             # Wichtig: Label muss sichtbar sein
             self.label.show()
@@ -656,22 +669,40 @@ class SoundButton(Gtk.Box):
     def show_settings_dialog(self):
         """Zeigt den Einstellungsdialog"""
         dialog = SettingsDialog(self.get_toplevel(), self.button_config, self.position, self.on_delete)
-        dialog.show()
+        response = dialog.show()
         
-        # Aktualisiere den Buttontext, wenn er sich geändert hat
+        # Aktualisiere den Button, wenn sich Einstellungen geändert haben
+        if response == Gtk.ResponseType.OK:
+            self._update_button_after_settings()
+    
+    def _update_button_after_settings(self):
+        """Aktualisiert den Button nach dem Ändern der Einstellungen"""
+        # Nur für normale Buttons, nicht für Add-Buttons
         if not self.is_add_button and hasattr(self, 'label'):
+            print(f"Aktualisiere Button {self.position} nach Einstellungsänderung")
+            
+            # Entferne das vorhandene Label vom Button
+            child = self.button.get_child()
+            if child:
+                self.button.remove(child)
+            
+            # Erstelle ein neues Label mit den aktualisierten Einstellungen
             button_text = self.button_config['text']
             
             # Einfache Ersetzung von \n für bessere Zeilenumbrüche
             if '\\n' in button_text:
                 button_text = button_text.replace('\\n', '\n')
+                print(f"Verarbeite Zeilenumbrüche in Text: '{button_text}'")
                 
+            self.label = Gtk.Label()
             self.label.set_text(button_text)
+            self.label.set_use_markup(True)  # Ermöglicht Markup
             
             # Aktualisiere die Zeilenumbruch-Einstellung
             line_breaks = self.button_config.get('line_breaks', True)
             self.label.set_line_wrap(line_breaks)
             self.label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            print(f"Zeilenumbrüche sind {'aktiviert' if line_breaks else 'deaktiviert'}")
             
             # Aktualisiere die Textausrichtung
             text_align = self.button_config.get('text_align', 'center')
@@ -684,20 +715,44 @@ class SoundButton(Gtk.Box):
             else:  # center (default)
                 self.label.set_justify(Gtk.Justification.CENTER)
                 self.label.set_halign(Gtk.Align.CENTER)
+            print(f"Textausrichtung ist '{text_align}'")
                 
-            # Aktualisiere Text-Margins
-            margin_top = self.button_config.get('text_margin_top', 0)
-            margin_bottom = self.button_config.get('text_margin_bottom', 0)
-            margin_left = self.button_config.get('text_margin_left', 0)
-            margin_right = self.button_config.get('text_margin_right', 0)
+            # Aktualisiere Text-Margins basierend auf individuelle Position
+            use_custom_position = self.button_config.get('use_custom_text_position', False)
             
-            self.label.set_margin_top(margin_top)
-            self.label.set_margin_bottom(margin_bottom)
-            self.label.set_margin_start(margin_left)
-            self.label.set_margin_end(margin_right)
+            # Zurücksetzen aller Margins
+            self.label.set_margin_top(0)
+            self.label.set_margin_bottom(0)
+            self.label.set_margin_start(0)
+            self.label.set_margin_end(0)
+            
+            # Immer linksbündig ohne Einrückung für die individuelle Positionierung
+            if use_custom_position:
+                # Position von der oberen linken Ecke
+                margin_top = self.button_config.get('text_margin_top', 0)
+                margin_left = self.button_config.get('text_margin_left', 0)
+                
+                # Setze Margins für die Position
+                self.label.set_margin_top(margin_top)
+                self.label.set_margin_start(margin_left)
+                
+                # Linksbündige Ausrichtung erzwingen für individuelle Positionierung
+                self.label.set_justify(Gtk.Justification.LEFT)
+                self.label.set_halign(Gtk.Align.START)
+                print(f"Individuelle Textposition aktiviert: top={margin_top}, left={margin_left}")
+            else:
+                print("Keine individuelle Textposition verwendet")
+            
+            # Label zum Button hinzufügen und anzeigen
+            self.label.show()
+            self.button.add(self.label)
             
             # CSS-Stil aktualisieren
             self._apply_css_style()
+            
+            # Erzwinge Neuzeichnen des Widgets
+            self.button.queue_resize()
+            self.button.queue_draw()
     
     def on_volume_changed(self, volume_slider):
         """Handler für Änderungen am Lautstärkeregler"""
