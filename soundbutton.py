@@ -681,27 +681,20 @@ class SoundButton(Gtk.Box):
         self.fade_timer = self.fade_source.get_id()
     
     def _check_sound_finished(self, channel):
-        """Überprüft, ob der Sound fertig abgespielt wurde"""
+        """Überprüft, ob der Sound fertig ist"""
         try:
-            # Prüfen, ob der Mixer noch aktiv ist
-            if not pygame.mixer.get_init():
-                print("Mixer ist nicht mehr initialisiert, versuche Neuinitialisierung...")
-                pygame.mixer.init()
-                # Sound ist vermutlich gestoppt worden, deaktiviere Button
-                self.is_playing = False
-                self.is_looping = False
-                
-                # Button-Status zurücksetzen
-                if self.is_toggled:
-                    style_context = self.button.get_style_context()
-                    style_context.remove_class("sound-button-toggled")
-                    style_context.add_class("sound-button")
-                    self.is_toggled = False
+            if not self.sound or not self.is_playing:
                 return False
                 
             if not channel.get_busy() and self.is_playing and not self.is_looping:
                 # Sound ist fertig, Button deaktivieren
                 self.stop_sound()
+                # Stelle sicher, dass der Button-Zustand korrekt ist
+                if self.is_toggled:
+                    style_context = self.button.get_style_context()
+                    style_context.remove_class("sound-button-toggled")
+                    style_context.add_class("sound-button")
+                    self.is_toggled = False
                 return False  # Timer stoppen
             
             # Sound läuft noch, Timer weiterlaufen lassen
@@ -727,6 +720,13 @@ class SoundButton(Gtk.Box):
                 
                 # Starte Fade-out
                 self._start_fade_out()
+                
+                # Stelle sicher, dass der Button-Zustand korrekt ist
+                if self.is_toggled:
+                    style_context = self.button.get_style_context()
+                    style_context.remove_class("sound-button-toggled")
+                    style_context.add_class("sound-button")
+                    self.is_toggled = False
                 
             except Exception as e:
                 print(f"Fehler beim Stoppen des Sounds: {e}")

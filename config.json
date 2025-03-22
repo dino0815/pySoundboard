@@ -1,7 +1,7 @@
 {
     "window": {
-        "width": 467,
-        "height": 274,
+        "width": 691,
+        "height": 307,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -69,7 +69,11 @@
             "text_align": "center",
             "use_custom_text_position": true,
             "text_margin_top": 0,
-            "text_margin_left": 0
+            "text_margin_left": 0,
+            "use_custom_bg_color": true,
+            "background_color": "#cccccc",
+            "use_custom_text_color": false,
+            "text_color": "#000000"
         },
         {
             "position": 2,
@@ -78,7 +82,7 @@
             "use_custom_bg_color": true,
             "background_color": "#204a87",
             "use_custom_text_color": true,
-            "text_color": "#eeeeec",
+            "text_color": "#888a85",
             "loop": false,
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
             "line_breaks": true,
@@ -181,6 +185,46 @@
             "position": 10,
             "volume": 50,
             "text": "Button 11",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
+        },
+        {
+            "position": 11,
+            "text": "Button 12",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
+        },
+        {
+            "position": 12,
+            "text": "Button 13",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
+        },
+        {
+            "position": 13,
+            "text": "Button 14",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
+        },
+        {
+            "position": 14,
+            "text": "Button 15",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
             "line_breaks": true,
             "text_align": "center",
             "use_custom_text_position": false
