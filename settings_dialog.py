@@ -264,40 +264,90 @@ class SettingsDialog:
                 try:
                     new_pos = int(new_pos_text) - 1  # Konvertiere zu 0-basierter Position
                     if new_pos != self.position:  # Nur wenn sich die Position geändert hat
-                        # Hole alle Button-Konfigurationen, um sie anzupassen
-                        buttons_config = self.parent_window.config['buttons']
-                        
-                        # Verschiebe den Button auf die neue Position
-                        # Zuerst den zu verschiebenden Button aus der Liste entfernen
-                        current_button_config = None
-                        for btn_config in buttons_config:
-                            if btn_config.get('position') == self.position:
-                                current_button_config = btn_config
-                                buttons_config.remove(btn_config)
-                                break
-                        
-                        if current_button_config:
-                            # Anpassung der Positionen aller Buttons, die betroffen sind
-                            if new_pos < self.position:  # Button wird nach vorne verschoben
-                                # Buttons zwischen neuer und alter Position um 1 nach hinten verschieben
-                                for btn_config in buttons_config:
-                                    if btn_config.get('position') >= new_pos and btn_config.get('position') < self.position:
-                                        btn_config['position'] += 1
-                            else:  # Button wird nach hinten verschoben
-                                # Buttons zwischen alter und neuer Position um 1 nach vorne verschieben
-                                for btn_config in buttons_config:
-                                    if btn_config.get('position') > self.position and btn_config.get('position') <= new_pos:
-                                        btn_config['position'] -= 1
+                        try:
+                            # Hole alle Button-Konfigurationen, um sie anzupassen
+                            buttons_config = self.parent_window.config['buttons']
                             
-                            # Neue Position setzen und den Button wieder einfügen
-                            current_button_config['position'] = new_pos
-                            buttons_config.append(current_button_config)
+                            # Sicherstellen, dass die Position im gültigen Bereich liegt
+                            if new_pos < 0:
+                                new_pos = 0
+                                print(f"Korrigiere Position: zu klein -> {new_pos + 1}")
+                            if new_pos >= len(buttons_config):
+                                new_pos = len(buttons_config) - 1
+                                print(f"Korrigiere Position: zu groß -> {new_pos + 1}")
                             
-                            print(f"Button von Position {self.position + 1} auf Position {new_pos + 1} verschoben")
+                            print(f"Debug: Verschiebe Button von Position {self.position + 1} auf Position {new_pos + 1}")
+                            print(f"Debug: Button-Text: '{self.button_config.get('text', 'Unbekannt')}'")
                             
-                            # Buttons neu ordnen
-                            if hasattr(self.parent_window, '_reorder_buttons'):
-                                self.parent_window._reorder_buttons()
+                            # Finde den aktuellen Button anhand seiner Position
+                            button_to_move = None
+                            button_index = -1
+                            
+                            for i, btn_config in enumerate(buttons_config):
+                                print(f"Debug: Prüfe Button {i} mit Position {btn_config.get('position')} und Text {btn_config.get('text', 'Unbekannt')}")
+                                if btn_config.get('position') == self.position:
+                                    button_to_move = btn_config
+                                    button_index = i
+                                    print(f"Debug: Match gefunden für Button {i} mit Position {btn_config.get('position')}")
+                                    break
+                            
+                            # Ist die self.button_config korrekt?
+                            if self.button_config.get('position') != self.position:
+                                print(f"Debug: Button-Konfiguration hat falsche Position: {self.button_config.get('position')} statt {self.position}")
+                                print(f"Debug: Setze Position in der Konfiguration auf {self.position}")
+                                self.button_config['position'] = self.position
+                            
+                            # Finde den Button erneut, wenn er nicht gefunden wurde
+                            if button_to_move is None:
+                                # Versuche den Button anhand seines Textes zu finden
+                                button_text = self.button_config.get('text', '')
+                                print(f"Debug: Versuche Button mit Text '{button_text}' zu finden")
+                                for i, btn_config in enumerate(buttons_config):
+                                    if btn_config.get('text', '') == button_text:
+                                        button_to_move = btn_config
+                                        button_index = i
+                                        print(f"Debug: Button gefunden anhand des Textes an Index {i}")
+                                        # Aktualisiere die Position im lokalen Button-Config
+                                        self.position = btn_config.get('position', self.position)
+                                        break
+                            
+                            if button_to_move and button_index >= 0:
+                                print(f"Debug: Verschiebe Button mit Text '{button_to_move.get('text', 'Unbekannt')}' von Index {button_index} auf neue Position {new_pos}")
+                                
+                                # Temporär den Button aus der Liste entfernen
+                                buttons_config.pop(button_index)
+                                
+                                # Den Button an der neuen Position wieder einfügen
+                                buttons_config.insert(new_pos, button_to_move)
+                                
+                                # Positionen nach Index in der Liste neu zuweisen - WICHTIG!
+                                for i, btn_config in enumerate(buttons_config):
+                                    old_pos = btn_config.get('position', -1)
+                                    if old_pos != i:
+                                        print(f"Debug: Korrigiere Position von Button '{btn_config.get('text', 'Unbekannt')}': {old_pos} -> {i}")
+                                        btn_config['position'] = i
+                                
+                                print(f"Button von Position {self.position + 1} auf Position {new_pos + 1} verschoben")
+                                
+                                # Lokale Button-Config aktualisieren
+                                self.button_config = button_to_move
+                                
+                                # Buttons neu ordnen im Hauptfenster
+                                if hasattr(self.parent_window, '_reorder_buttons'):
+                                    try:
+                                        self.parent_window._reorder_buttons()
+                                    except Exception as e:
+                                        print(f"Fehler beim Neuordnen der Buttons: {e}")
+                                        import traceback
+                                        traceback.print_exc()
+                            else:
+                                print(f"Fehler: Button an Position {self.position} nicht gefunden!")
+                                print(f"Debug: Verfügbare Positionen: {[b.get('position') for b in buttons_config]}")
+                                print(f"Debug: Verfügbare Texte: {[b.get('text', '') for b in buttons_config]}")
+                        except Exception as e:
+                            print(f"Fehler beim Verschieben des Buttons: {e}")
+                            import traceback
+                            traceback.print_exc()
                 except ValueError:
                     print(f"Ungültige Position eingegeben: {new_pos_text}")
             
