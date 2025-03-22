@@ -52,7 +52,99 @@ class GlobalSettingsDialog:
         separator.set_margin_bottom(15)
         content_area.pack_start(separator, False, False, 0)
         
-        # ================ TEXTEINSTELLUNGEN ================
+        # ================ AUDIO- UND BUTTONEINSTELLUNGEN ==============================================
+        button_settings_label = Gtk.Label()
+        button_settings_label.set_markup("<b>Button-Einstellungen</b>")
+        button_settings_label.set_halign(Gtk.Align.START)
+        content_area.pack_start(button_settings_label, False, False, 5)
+        
+        # Standard-Lautstärke
+        volume_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        volume_label = Gtk.Label(label="Standard-Lautstärke:")
+        volume_box.pack_start(volume_label, False, False, 0)
+        
+        volume_adjustment = Gtk.Adjustment(
+            value=self.config['soundbutton'].get('volume_default', 50),
+            lower=0,
+            upper=100,
+            step_increment=1,
+            page_increment=10
+        )
+        volume_scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=volume_adjustment)
+        volume_scale.set_digits(0)
+        volume_scale.set_draw_value(True)
+        volume_scale.set_value_pos(Gtk.PositionType.RIGHT)
+        volume_box.pack_start(volume_scale, True, True, 5)
+        
+        content_area.pack_start(volume_box, True, True, 5)
+        
+        # Knopfgröße
+        size_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        size_label = Gtk.Label(label="Buttongröße:")
+        size_box.pack_start(size_label, False, False, 0)
+        
+        # Horizontale Box für die Spinbuttons
+        size_spinbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        size_spinbox.set_spacing(5)
+        
+        # Breite
+        width_label = Gtk.Label(label="Breite:")
+        size_spinbox.pack_start(width_label, False, False, 0)
+        
+        width_adjustment = Gtk.Adjustment(
+            value=self.config['soundbutton'].get('button_width', 100),
+            lower=50,
+            upper=300,
+            step_increment=5,
+            page_increment=20
+        )
+        width_spinbutton = Gtk.SpinButton()
+        width_spinbutton.set_adjustment(width_adjustment)
+        size_spinbox.pack_start(width_spinbutton, False, False, 5)
+        
+        # Höhe
+        height_label = Gtk.Label(label="Höhe:")
+        size_spinbox.pack_start(height_label, False, False, 0)
+        
+        height_adjustment = Gtk.Adjustment(
+            value=self.config['soundbutton'].get('button_height', 75),
+            lower=50,
+            upper=200,
+            step_increment=5,
+            page_increment=20
+        )
+        height_spinbutton = Gtk.SpinButton()
+        height_spinbutton.set_adjustment(height_adjustment)
+        size_spinbox.pack_start(height_spinbutton, False, False, 0)
+        
+        size_box.pack_start(size_spinbox, True, True, 5)
+        content_area.pack_start(size_box, True, True, 5)
+        
+        # Spacing
+        spacing_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        spacing_label = Gtk.Label(label="Abstand zwischen Buttons:")
+        spacing_box.pack_start(spacing_label, False, False, 0)
+        
+        spacing_adjustment = Gtk.Adjustment(
+            value=self.config['soundbutton'].get('spacing', 5),
+            lower=0,
+            upper=20,
+            step_increment=1,
+            page_increment=5
+        )
+        spacing_spinbutton = Gtk.SpinButton()
+        spacing_spinbutton.set_adjustment(spacing_adjustment)
+        spacing_box.pack_start(spacing_spinbutton, True, True, 5)
+        
+        content_area.pack_start(spacing_box, True, True, 5)
+
+        # Trennlinie für die nächste Sektion
+        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        separator.set_margin_top(15)
+        separator.set_margin_bottom(15)
+        content_area.pack_start(separator, False, False, 0)
+        
+        # ================ TEXTEINSTELLUNGEN ===========================================================
         text_settings_label = Gtk.Label()
         text_settings_label.set_markup("<b>Texteinstellungen</b>")
         text_settings_label.set_halign(Gtk.Align.START)
@@ -140,7 +232,7 @@ class GlobalSettingsDialog:
         # Füge das Grid zum Dialog hinzu
         content_area.pack_start(margins_grid, True, True, 5)
         
-        # ================ FARBEINSTELLUNGEN ================
+        # ================ FARBEINSTELLUNGEN ==========================================================
         # Trennlinie für die nächste Sektion
         separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
         separator.set_margin_top(15)
@@ -188,7 +280,7 @@ class GlobalSettingsDialog:
         use_global_bg_color_check.set_active(self.config['soundbutton'].get('use_global_bg_color', True))
         content_area.pack_start(use_global_bg_color_check, True, True, 5)
         
-        # ================ BUTTON-GRAFIK ================
+        # ================ BUTTON-GRAFIK ===============================================================
         # Trennlinie für die nächste Sektion
         separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
         separator.set_margin_top(15)
@@ -317,104 +409,10 @@ class GlobalSettingsDialog:
         # Checkbox für die Nutzung der globalen Grafik
         use_default_image_check = Gtk.CheckButton(label="Globale Grafik für Buttons ohne eigene Grafik verwenden")
         use_default_image_check.set_active(self.config['soundbutton'].get('use_default_image', False))
-        
-        # Füge die Elemente zum Dialog hinzu
         content_area.pack_start(image_box, True, True, 5)
         content_area.pack_start(use_default_image_check, True, True, 5)
-        
-        # ================ AUDIO- UND BUTTONEINSTELLUNGEN ================
-        # Trennlinie für die nächste Sektion
-        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        separator.set_margin_top(15)
-        separator.set_margin_bottom(15)
-        content_area.pack_start(separator, False, False, 0)
-        
-        button_settings_label = Gtk.Label()
-        button_settings_label.set_markup("<b>Button-Einstellungen</b>")
-        button_settings_label.set_halign(Gtk.Align.START)
-        content_area.pack_start(button_settings_label, False, False, 5)
-        
-        # Standard-Lautstärke
-        volume_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        volume_label = Gtk.Label(label="Standard-Lautstärke:")
-        volume_box.pack_start(volume_label, False, False, 0)
-        
-        volume_adjustment = Gtk.Adjustment(
-            value=self.config['soundbutton'].get('volume_default', 50),
-            lower=0,
-            upper=100,
-            step_increment=1,
-            page_increment=10
-        )
-        volume_scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=volume_adjustment)
-        volume_scale.set_digits(0)
-        volume_scale.set_draw_value(True)
-        volume_scale.set_value_pos(Gtk.PositionType.RIGHT)
-        volume_box.pack_start(volume_scale, True, True, 5)
-        
-        content_area.pack_start(volume_box, True, True, 5)
-        
-        # Knopfgröße
-        size_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        size_label = Gtk.Label(label="Buttongröße:")
-        size_box.pack_start(size_label, False, False, 0)
-        
-        # Horizontale Box für die Spinbuttons
-        size_spinbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        size_spinbox.set_spacing(5)
-        
-        # Breite
-        width_label = Gtk.Label(label="Breite:")
-        size_spinbox.pack_start(width_label, False, False, 0)
-        
-        width_adjustment = Gtk.Adjustment(
-            value=self.config['soundbutton'].get('button_width', 100),
-            lower=50,
-            upper=300,
-            step_increment=5,
-            page_increment=20
-        )
-        width_spinbutton = Gtk.SpinButton()
-        width_spinbutton.set_adjustment(width_adjustment)
-        size_spinbox.pack_start(width_spinbutton, False, False, 5)
-        
-        # Höhe
-        height_label = Gtk.Label(label="Höhe:")
-        size_spinbox.pack_start(height_label, False, False, 0)
-        
-        height_adjustment = Gtk.Adjustment(
-            value=self.config['soundbutton'].get('button_height', 75),
-            lower=50,
-            upper=200,
-            step_increment=5,
-            page_increment=20
-        )
-        height_spinbutton = Gtk.SpinButton()
-        height_spinbutton.set_adjustment(height_adjustment)
-        size_spinbox.pack_start(height_spinbutton, False, False, 0)
-        
-        size_box.pack_start(size_spinbox, True, True, 5)
-        content_area.pack_start(size_box, True, True, 5)
-        
-        # Spacing
-        spacing_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        spacing_label = Gtk.Label(label="Abstand zwischen Buttons:")
-        spacing_box.pack_start(spacing_label, False, False, 0)
-        
-        spacing_adjustment = Gtk.Adjustment(
-            value=self.config['soundbutton'].get('spacing', 5),
-            lower=0,
-            upper=20,
-            step_increment=1,
-            page_increment=5
-        )
-        spacing_spinbutton = Gtk.SpinButton()
-        spacing_spinbutton.set_adjustment(spacing_adjustment)
-        spacing_box.pack_start(spacing_spinbutton, True, True, 5)
-        
-        content_area.pack_start(spacing_box, True, True, 5)
-        
-        # Dialog anzeigen
+                
+        # Dialog anzeigen #############################################################################
         dialog.show_all()
         
         # Dialog ausführen
