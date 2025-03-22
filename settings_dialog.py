@@ -35,6 +35,30 @@ class SettingsDialog:
         # Container für den Inhalt
         content_area = dialog.get_content_area()
         
+        # Neue Zeile für Positionseinstellungen
+        position_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        position_box.set_spacing(10)
+        
+        # Aktuelle Position
+        current_pos_label = Gtk.Label(label=f"Aktuelle Position: {self.position + 1}")
+        position_box.pack_start(current_pos_label, False, False, 0)
+        
+        # Eingabefeld für neue Position
+        new_pos_label = Gtk.Label(label="Verschieben zur Position:")
+        position_box.pack_start(new_pos_label, False, False, 0)
+        
+        new_pos_entry = Gtk.Entry()
+        new_pos_entry.set_width_chars(5)
+        position_box.pack_start(new_pos_entry, False, False, 0)
+        
+        content_area.pack_start(position_box, True, True, 5)
+        
+        # Trennlinie nach den Positionseinstellungen
+        position_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        position_separator.set_margin_top(5)
+        position_separator.set_margin_bottom(5)
+        content_area.pack_start(position_separator, True, True, 0)
+        
         # Label und Textfeld für den Button-Text
         text_label = Gtk.Label(label="Button-Text:")
         content_area.pack_start(text_label, True, True, 0)
@@ -251,6 +275,49 @@ class SettingsDialog:
         response = dialog.run()
         
         if response == Gtk.ResponseType.OK:
+            # Prüfe, ob eine neue Position eingegeben wurde
+            new_pos_text = new_pos_entry.get_text().strip()
+            if new_pos_text:
+                try:
+                    new_pos = int(new_pos_text) - 1  # Konvertiere zu 0-basierter Position
+                    if new_pos != self.position:  # Nur wenn sich die Position geändert hat
+                        # Hole alle Button-Konfigurationen, um sie anzupassen
+                        buttons_config = self.parent_window.config['buttons']
+                        
+                        # Verschiebe den Button auf die neue Position
+                        # Zuerst den zu verschiebenden Button aus der Liste entfernen
+                        current_button_config = None
+                        for btn_config in buttons_config:
+                            if btn_config.get('position') == self.position:
+                                current_button_config = btn_config
+                                buttons_config.remove(btn_config)
+                                break
+                        
+                        if current_button_config:
+                            # Anpassung der Positionen aller Buttons, die betroffen sind
+                            if new_pos < self.position:  # Button wird nach vorne verschoben
+                                # Buttons zwischen neuer und alter Position um 1 nach hinten verschieben
+                                for btn_config in buttons_config:
+                                    if btn_config.get('position') >= new_pos and btn_config.get('position') < self.position:
+                                        btn_config['position'] += 1
+                            else:  # Button wird nach hinten verschoben
+                                # Buttons zwischen alter und neuer Position um 1 nach vorne verschieben
+                                for btn_config in buttons_config:
+                                    if btn_config.get('position') > self.position and btn_config.get('position') <= new_pos:
+                                        btn_config['position'] -= 1
+                            
+                            # Neue Position setzen und den Button wieder einfügen
+                            current_button_config['position'] = new_pos
+                            buttons_config.append(current_button_config)
+                            
+                            print(f"Button von Position {self.position + 1} auf Position {new_pos + 1} verschoben")
+                            
+                            # Buttons neu ordnen
+                            if hasattr(self.parent_window, '_reorder_buttons'):
+                                self.parent_window._reorder_buttons()
+                except ValueError:
+                    print(f"Ungültige Position eingegeben: {new_pos_text}")
+            
             new_text = text_entry.get_text()
             new_file = file_entry.get_text()
             new_image = image_entry.get_text()

@@ -137,40 +137,65 @@ class SoundboardWindow(Gtk.Window):
         self.connect("button-press-event", self.on_background_click)  # Für Klicks auf Fensterhintergrund
     
     def _load_buttons(self):
-        """Lädt die gespeicherten Buttons oder erstellt neue"""
-        saved_buttons = self.config.get('buttons', [])
+        """Lädt die Buttons aus der Konfiguration"""
+        # Sortiere die Button-Konfigurationen nach Position
+        sorted_buttons = sorted(self.config['buttons'], key=lambda x: x.get('position', 0))
         
-        # Lade die gespeicherten Buttons
-        if saved_buttons:
-            self._load_saved_buttons(saved_buttons)
+        # Aktualisiere die existierenden Buttons
+        for i, button_config in enumerate(sorted_buttons):
+            if i < len(self.buttons):
+                # Aktualisiere die Eigenschaften des existierenden Buttons
+                button = self.buttons[i]
+                button.position = button_config['position']
+                button.offset_x = button_config.get('offset_x', 0)
+                button.offset_y = button_config.get('offset_y', 0)
+                button.button_config = button_config
+                button._update_button_after_settings()
+            else:
+                # Erstelle neue Buttons für zusätzliche Konfigurationen
+                button = SoundButton(
+                    position=button_config['position'],
+                    offset_x=button_config.get('offset_x', 0),
+                    offset_y=button_config.get('offset_y', 0),
+                    config=self.config,
+                    on_delete=self.delete_button
+                )
+                self.buttons.append(button)
+                self.flowbox.add(button)
         
-        # Erstelle und füge den Add-Button am Ende hinzu
-        self.add_button = SoundButton(position=len(self.buttons), config=self.config, is_add_button=True)
-        self.add_button.set_add_click_handler(self.add_new_button)
-        self.flowbox.add(self.add_button)
+        # Stelle sicher, dass der Add-Button am Ende ist
+        if not self.add_button:
+            self.add_button = SoundButton(
+                position=len(self.buttons),
+                offset_x=0,
+                offset_y=0,
+                config=self.config,
+                is_add_button=True
+            )
+            self.add_button.button.connect("button-press-event", self.on_add_button_clicked)
+            self.add_button.set_add_click_handler(self.add_new_button)
+            self.buttons.append(self.add_button)
+            self.flowbox.add(self.add_button)
+        
+        # Zeige alle Buttons an
         self.flowbox.show_all()
     
-    def _load_saved_buttons(self, saved_buttons):
-        """Lädt die gespeicherten Buttons in die FlowBox"""
-        # Sortiere die gespeicherten Buttons nach Position
-        sorted_buttons = sorted(saved_buttons, key=lambda x: x['position'])
+    def _reorder_buttons(self):
+        """Ordnet die Buttons neu, indem die Konfiguration umsortiert und die Buttons aktualisiert werden"""
+        # Sortiere die Button-Konfigurationen nach Position
+        self.config['buttons'].sort(key=lambda x: x.get('position', 0))
         
-        for saved_button in sorted_buttons:
-            position = saved_button['position']
-            button = SoundButton(position=position, 
-                               offset_x=0, 
-                               offset_y=0, 
-                               config=self.config, 
-                               on_delete=self.delete_button)
-            
-            # Füge den Button zur FlowBox hinzu (normale Anordnung)
-            self.flowbox.add(button)
-            
-            self.buttons.append(button)
-            button.show_all()
+        # Lade alle Buttons neu, aber NICHT die Positionen neu zuweisen
+        self._load_buttons()
+    
+    def update_all_buttons(self):
+        """Aktualisiert alle Buttons mit den neuen globalen Einstellungen"""
+        for button in self.buttons:
+            if not button.is_add_button:
+                button._update_button_after_settings()
         
-        # Invalidiere die Sortierung nach dem Laden aller Buttons
-        self.flowbox.invalidate_sort()
+        # Ordne die Buttons neu
+        self._reorder_buttons()
     
     def save_config(self):
         """Speichert die Konfiguration in eine Datei"""
@@ -240,7 +265,9 @@ class SoundboardWindow(Gtk.Window):
         
         # Erstelle einen neuen Add-Button
         self.add_button = SoundButton(position=len(self.buttons), config=self.config, is_add_button=True)
+        self.add_button.button.connect("button-press-event", self.on_add_button_clicked)
         self.add_button.set_add_click_handler(self.add_new_button)
+        self.buttons.append(self.add_button)
         self.flowbox.add(self.add_button)
         
         # Sortierung aktualisieren
@@ -375,7 +402,7 @@ class SoundboardWindow(Gtk.Window):
         print(f"Langklick-Prüfung: {elapsed}ms vergangen (Ziel: {self.LONG_PRESS_TIME}ms)")
         
         if elapsed >= self.LONG_PRESS_TIME:
-            # Langklick erkannt, Einstellungsdialog anzeigen
+            # Langklick erkannt, Einstellungsdialog anzeigenhallo, können wir beim abspielen der audiofiles ein kurzes ein- und ausblenden einbauen
             print("Langklick erkannt!")
             if not self.global_settings_dialog_open:
                 self.show_global_settings()
@@ -431,59 +458,10 @@ class SoundboardWindow(Gtk.Window):
             
             print("Globale Einstellungen wurden erfolgreich angewendet!")
     
-    def update_all_buttons(self):
-        """Aktualisiert alle Buttons mit den globalen Einstellungen durch vollständige Neuinstanziierung"""
-        print("Aktualisiere alle Buttons mit globalen Einstellungen durch vollständige Neuinstanziierung...")
-        
-        # Zuerst die Buttons-Liste speichern und leeren
-        old_buttons = self.buttons.copy()
-        self.buttons = []
-        
-        # Alle bestehenden Buttons aus der FlowBox entfernen
-        for child in list(self.flowbox.get_children()):
-            self.flowbox.remove(child)
-        
-        # Alle Buttons neu erstellen, aber nicht den Add-Button
-        for old_button in old_buttons:
-            # Position und Konfiguration des alten Buttons übernehmen
-            position = old_button.position
-            config = old_button.button_config
-            
-            # Neuen Button mit gleicher Position und Konfiguration erstellen
-            new_button = SoundButton(
-                position=position,
-                offset_x=0,
-                offset_y=0,
-                config=self.config,
-                on_delete=self.delete_button
-            )
-            
-            # Individuelle Konfiguration übernehmen
-            new_button.button_config = config
-            
-            # Zur FlowBox hinzufügen
-            self.flowbox.add(new_button)
-            self.buttons.append(new_button)
-            new_button.show_all()
-            
-            print(f"Button {position} neu erstellt")
-        
-        # Add-Button neu erstellen
-        self.add_button = SoundButton(position=len(self.buttons), config=self.config, is_add_button=True)
-        self.add_button.set_add_click_handler(self.add_new_button)
-        self.flowbox.add(self.add_button)
-        self.add_button.show_all()
-        
-        # Aktualisiere die FlowBox
-        self.flowbox.invalidate_sort()
-        self.flowbox.queue_resize()
-        self.flowbox.queue_draw()
-        self.flowbox.show_all()
-        
-        # Das gesamte Fenster aktualisieren
-        self.queue_draw()
-        
-        print("Button-Neuinstanziierung abgeschlossen")
+    def on_add_button_clicked(self, button, event):
+        """Handler für das Klicken des Add-Buttons"""
+        if event.button == 1:  # Nur auf linke Maustaste reagieren
+            self.add_new_button(button.get_parent())
 
 def main():
     """Main-Funktion"""
