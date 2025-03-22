@@ -1,7 +1,7 @@
 {
     "window": {
         "width": 467,
-        "height": 198,
+        "height": 274,
         "title": "Soundboard"
     },
     "soundbutton": {
@@ -13,8 +13,8 @@
         "radius": 15,
         "delete_button_size": 20,
         "text_size": 13,
-        "background_color": "#CCCCCC",
-        "text_color": "#000000",
+        "background_color": "#097479",
+        "text_color": "#ffffff",
         "text_x": 17,
         "text_y": 20,
         "volume_min": 0,
@@ -27,12 +27,23 @@
             "border_color": "#000000",
             "symbol_color": "#000000",
             "border_width": 1
-        }
+        },
+        "text_align": "center",
+        "line_breaks": true,
+        "use_custom_text_position": false,
+        "text_margin_top": 0,
+        "text_margin_left": 0,
+        "prefer_custom_text_color": true,
+        "prefer_custom_bg_color": true,
+        "default_image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png",
+        "use_default_image": false,
+        "use_global_text_color": false,
+        "use_global_bg_color": false
     },
     "buttons": [
         {
             "position": 0,
-            "volume": 77,
+            "volume": 27,
             "text": "Button 1",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
@@ -40,7 +51,12 @@
             "use_custom_bg_color": false,
             "background_color": "#cccccc",
             "use_custom_text_color": true,
-            "text_color": "#ffffff"
+            "text_color": "#ffffff",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
         },
         {
             "position": 1,
@@ -48,7 +64,12 @@
             "text": "Button 2",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Schritte im Schnee.mp3",
             "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
-            "loop": false
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
         },
         {
             "position": 2,
@@ -59,7 +80,12 @@
             "use_custom_text_color": true,
             "text_color": "#eeeeec",
             "loop": false,
-            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3"
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
         },
         {
             "position": 3,
@@ -69,27 +95,95 @@
             "background_color": "#cccccc",
             "use_custom_text_color": true,
             "text_color": "#c17d11",
-            "loop": false
+            "loop": false,
+            "text_align": "center",
+            "line_breaks": true,
+            "use_custom_text_position": true,
+            "text_margin_top": 15,
+            "text_margin_left": 0
         },
         {
             "position": 4,
             "volume": 50,
-            "text": "Button 5",
+            "text": "Button 5 \\n der \\n Beste!",
             "use_custom_bg_color": true,
             "background_color": "#4e9a06",
             "use_custom_text_color": false,
             "text_color": "#000000",
-            "loop": false
+            "loop": false,
+            "text_align": "center",
+            "line_breaks": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_text_position": true
         },
         {
             "position": 5,
             "volume": 50,
-            "text": "Button 6",
+            "text": "Button 6 \\nbla bla",
             "use_custom_bg_color": true,
             "background_color": "#a40000",
             "use_custom_text_color": false,
             "text_color": "#000000",
-            "loop": false
+            "loop": false,
+            "text_align": "left",
+            "line_breaks": true,
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
+        },
+        {
+            "position": 6,
+            "volume": 50,
+            "text": "Button 7 \\n und so",
+            "text_align": "center",
+            "line_breaks": true,
+            "use_custom_bg_color": false,
+            "background_color": "#cccccc",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "loop": false,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_text_position": true
+        },
+        {
+            "position": 7,
+            "volume": 50,
+            "text": "Button 8",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
+        },
+        {
+            "position": 8,
+            "volume": 50,
+            "text": "Button 9",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
+        },
+        {
+            "position": 9,
+            "volume": 50,
+            "text": "Button 10",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
+        },
+        {
+            "position": 10,
+            "volume": 50,
+            "text": "Button 11",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
         }
     ]
 }
