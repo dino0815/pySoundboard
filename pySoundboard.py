@@ -137,22 +137,35 @@ class SoundboardWindow(Gtk.Window):
         self.connect("button-press-event", self.on_background_click)  # Für Klicks auf Fensterhintergrund
     
     def _load_buttons(self):
-        """Lädt die Buttons aus der Konfiguration"""
+        """Lädt die Buttons aus der Konfiguration oder aktualisiert bestehende Buttons"""
         # Sortiere die Button-Konfigurationen nach Position
         sorted_buttons = sorted(self.config['buttons'], key=lambda x: x.get('position', 0))
         
-        # Aktualisiere die existierenden Buttons
-        for i, button_config in enumerate(sorted_buttons):
-            if i < len(self.buttons):
-                # Aktualisiere die Eigenschaften des existierenden Buttons
-                button = self.buttons[i]
+        # Entferne den Add-Button aus der Liste (falls vorhanden)
+        normal_buttons = [b for b in self.buttons if not b.is_add_button]
+        
+        # Prüfe, ob wir Buttons aktualisieren oder neu erstellen müssen
+        if len(normal_buttons) == len(sorted_buttons):
+            # Buttons existieren bereits, aktualisiere nur ihre Eigenschaften
+            for i, button_config in enumerate(sorted_buttons):
+                button = normal_buttons[i]
                 button.position = button_config['position']
                 button.offset_x = button_config.get('offset_x', 0)
                 button.offset_y = button_config.get('offset_y', 0)
                 button.button_config = button_config
                 button._update_button_after_settings()
-            else:
-                # Erstelle neue Buttons für zusätzliche Konfigurationen
+        else:
+            # Anzahl der Buttons hat sich geändert, entferne alle und erstelle sie neu
+            # Entferne alle existierenden Buttons aus der FlowBox
+            for button in self.buttons:
+                if button.get_parent():
+                    self.flowbox.remove(button)
+            
+            # Leere die Button-Liste
+            self.buttons = []
+            
+            # Erstelle die Buttons neu
+            for button_config in sorted_buttons:
                 button = SoundButton(
                     position=button_config['position'],
                     offset_x=button_config.get('offset_x', 0),
@@ -163,19 +176,29 @@ class SoundboardWindow(Gtk.Window):
                 self.buttons.append(button)
                 self.flowbox.add(button)
         
-        # Stelle sicher, dass der Add-Button am Ende ist
-        if not self.add_button:
-            self.add_button = SoundButton(
-                position=len(self.buttons),
-                offset_x=0,
-                offset_y=0,
-                config=self.config,
-                is_add_button=True
-            )
-            self.add_button.button.connect("button-press-event", self.on_add_button_clicked)
-            self.add_button.set_add_click_handler(self.add_new_button)
-            self.buttons.append(self.add_button)
-            self.flowbox.add(self.add_button)
+        # Suche nach existierendem Add-Button in der Liste
+        add_button_exists = False
+        for button in self.buttons[:]:  # Kopie der Liste verwenden, um sicher zu iterieren
+            if button.is_add_button:
+                # Entferne Add-Button aus der Liste und FlowBox
+                if button in self.buttons:
+                    self.buttons.remove(button)
+                if button.get_parent():
+                    self.flowbox.remove(button)
+                add_button_exists = True
+        
+        # Immer einen neuen Add-Button erstellen
+        self.add_button = SoundButton(
+            position=len(self.buttons),
+            offset_x=0,
+            offset_y=0,
+            config=self.config,
+            is_add_button=True
+        )
+        self.add_button.button.connect("button-press-event", self.on_add_button_clicked)
+        self.add_button.set_add_click_handler(self.add_new_button)
+        self.buttons.append(self.add_button)
+        self.flowbox.add(self.add_button)
         
         # Zeige alle Buttons an
         self.flowbox.show_all()
