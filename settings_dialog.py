@@ -35,7 +35,7 @@ class SettingsDialog:
         # Container für den Inhalt
         content_area = dialog.get_content_area()
         
-        # Neue Zeile für Positionseinstellungen
+        # 1. SEKTION: POSITIONIERUNG
         position_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         position_box.set_spacing(10)
         
@@ -59,6 +59,40 @@ class SettingsDialog:
         position_separator.set_margin_bottom(5)
         content_area.pack_start(position_separator, True, True, 0)
         
+        # 2. SEKTION: SOUNDEINSTELLUNGEN
+        # Label und Container für die Audiodatei
+        file_label = Gtk.Label(label="Audiodatei:")
+        content_area.pack_start(file_label, True, True, 0)
+        
+        file_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        file_entry = Gtk.Entry()
+        file_entry.set_text(self.button_config.get('audio_file', ''))
+        file_entry.set_hexpand(True)
+        file_box.pack_start(file_entry, True, True, 0)
+        
+        browse_button = Gtk.Button(label="Durchsuchen")
+        browse_button.connect("clicked", self.on_browse_clicked, file_entry, "audio")
+        file_box.pack_start(browse_button, False, False, 5)
+        
+        # Abspielen-Button für die Audiodatei
+        play_button = Gtk.ToggleButton(label="Abspielen")
+        play_button.connect("toggled", self.on_play_toggled, file_entry)
+        file_box.pack_start(play_button, False, False, 5)
+        
+        content_area.pack_start(file_box, True, True, 0)
+        
+        # Checkbox für Endlosschleife (Loop-Funktion)
+        loop_check = Gtk.CheckButton(label="In Endlosschleife abspielen")
+        loop_check.set_active(self.button_config.get('loop', False))
+        content_area.pack_start(loop_check, True, True, 5)
+        
+        # Trennlinie nach den Soundeinstellungen
+        sound_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        sound_separator.set_margin_top(10)
+        sound_separator.set_margin_bottom(10)
+        content_area.pack_start(sound_separator, True, True, 0)
+        
+        # 3. SEKTION: TEXTEINSTELLUNGEN
         # Label und Textfeld für den Button-Text
         text_label = Gtk.Label(label="Button-Text:")
         content_area.pack_start(text_label, True, True, 0)
@@ -67,12 +101,22 @@ class SettingsDialog:
         text_entry.set_text(self.button_config.get('text', f"Button {self.position + 1}"))
         content_area.pack_start(text_entry, True, True, 0)
         
-        # Alle Textbezogenen Einstellungen zusammenfassen
-        # Trennlinie für die Texteinstellungen
-        text_settings_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        text_settings_separator.set_margin_top(5)
-        text_settings_separator.set_margin_bottom(5)
-        content_area.pack_start(text_settings_separator, True, True, 0)
+        # Textfarbe
+        text_color_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        
+        # Checkbox für eigene Textfarbe
+        text_color_check = Gtk.CheckButton(label="Eigene Textfarbe verwenden")
+        text_color_check.set_active(self.button_config.get('use_custom_text_color', False))
+        text_color_box.pack_start(text_color_check, True, True, 0)
+        
+        # Farbauswahl für Textfarbe
+        text_color_button = Gtk.ColorButton()
+        text_color = self.button_config.get('text_color', '#000000')
+        text_rgba = self.hex_to_rgba(text_color)
+        text_color_button.set_rgba(text_rgba)
+        text_color_box.pack_start(text_color_button, False, False, 5)
+        
+        content_area.pack_start(text_color_box, True, True, 5)
         
         # Textausrichtung-Optionen
         text_align_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -103,12 +147,7 @@ class SettingsDialog:
         text_align_box.pack_start(text_align_combo, True, True, 5)
         content_area.pack_start(text_align_box, True, True, 0)
         
-        # Option für Zeilenumbrüche
-        line_break_check = Gtk.CheckButton(label="Zeilenumbrüche aktivieren")
-        line_break_check.set_active(self.button_config.get('line_breaks', True))
-        content_area.pack_start(line_break_check, True, True, 5)
-        
-        # Textpositionierung - direkt nach der Texteingabe
+        # Textpositionierung
         # Checkbox für individuelle Textpositionierung
         text_pos_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         text_pos_check = Gtk.CheckButton(label="Individuelle Textposition verwenden")
@@ -163,36 +202,14 @@ class SettingsDialog:
         # Füge das Grid zum Dialog hinzu
         content_area.pack_start(margins_grid, True, True, 5)
         
-        # Trennlinie für die nächste Sektion
-        next_section_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        next_section_separator.set_margin_top(10)
-        next_section_separator.set_margin_bottom(10)
-        content_area.pack_start(next_section_separator, True, True, 0)
+        # Trennlinie nach den Texteinstellungen
+        text_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        text_separator.set_margin_top(10)
+        text_separator.set_margin_bottom(10)
+        content_area.pack_start(text_separator, True, True, 0)
         
-        # Änderung: Label und Container für das Bild VOR Audiodatei
-        image_label = Gtk.Label(label="Button-Bild:")
-        content_area.pack_start(image_label, True, True, 0)
-        
-        image_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        image_entry = Gtk.Entry()
-        image_entry.set_text(self.button_config.get('image_file', ''))
-        image_entry.set_hexpand(True)
-        image_box.pack_start(image_entry, True, True, 0)
-        
-        image_browse_button = Gtk.Button(label="Durchsuchen")
-        image_browse_button.connect("clicked", self.on_browse_clicked, image_entry, "image")
-        image_box.pack_start(image_browse_button, False, False, 5)
-        
-        content_area.pack_start(image_box, True, True, 0)
-        
-        # Neue Farbauswahl-Optionen
-        # Trennlinie für bessere Übersicht
-        separator1 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        separator1.set_margin_top(10)
-        separator1.set_margin_bottom(10)
-        content_area.pack_start(separator1, True, True, 0)
-        
-        # 1. Buttonfarbe
+        # 4. SEKTION: BUTTONFARBE UND BILD
+        # Buttonfarbe
         color_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         
         # Checkbox für eigene Buttonfarbe
@@ -209,62 +226,28 @@ class SettingsDialog:
         
         content_area.pack_start(color_box, True, True, 0)
         
-        # 2. Textfarbe
-        text_color_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        # Label und Container für das Bild
+        image_label = Gtk.Label(label="Button-Bild:")
+        content_area.pack_start(image_label, True, True, 5)
         
-        # Checkbox für eigene Textfarbe
-        text_color_check = Gtk.CheckButton(label="Eigene Textfarbe verwenden")
-        text_color_check.set_active(self.button_config.get('use_custom_text_color', False))
-        text_color_box.pack_start(text_color_check, True, True, 0)
+        image_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        image_entry = Gtk.Entry()
+        image_entry.set_text(self.button_config.get('image_file', ''))
+        image_entry.set_hexpand(True)
+        image_box.pack_start(image_entry, True, True, 0)
         
-        # Farbauswahl für Textfarbe
-        text_color_button = Gtk.ColorButton()
-        text_color = self.button_config.get('text_color', '#000000')
-        text_rgba = self.hex_to_rgba(text_color)
-        text_color_button.set_rgba(text_rgba)
-        text_color_box.pack_start(text_color_button, False, False, 5)
+        image_browse_button = Gtk.Button(label="Durchsuchen")
+        image_browse_button.connect("clicked", self.on_browse_clicked, image_entry, "image")
+        image_box.pack_start(image_browse_button, False, False, 5)
         
-        content_area.pack_start(text_color_box, True, True, 0)
+        content_area.pack_start(image_box, True, True, 0)
         
-        # Trennlinie für bessere Übersicht
-        separator2 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        separator2.set_margin_top(10)
-        separator2.set_margin_bottom(10)
-        content_area.pack_start(separator2, True, True, 0)
+        # Trennlinie vor den Buttons
+        final_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        final_separator.set_margin_top(10)
+        final_separator.set_margin_bottom(10)
+        content_area.pack_start(final_separator, True, True, 0)
         
-        # Label und Container für die Audiodatei
-        file_label = Gtk.Label(label="Audiodatei:")
-        content_area.pack_start(file_label, True, True, 0)
-        
-        file_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        file_entry = Gtk.Entry()
-        file_entry.set_text(self.button_config.get('audio_file', ''))
-        file_entry.set_hexpand(True)
-        file_box.pack_start(file_entry, True, True, 0)
-        
-        browse_button = Gtk.Button(label="Durchsuchen")
-        browse_button.connect("clicked", self.on_browse_clicked, file_entry, "audio")
-        file_box.pack_start(browse_button, False, False, 5)
-        
-        # Abspielen-Button für die Audiodatei
-        play_button = Gtk.ToggleButton(label="Abspielen")
-        play_button.connect("toggled", self.on_play_toggled, file_entry)
-        file_box.pack_start(play_button, False, False, 5)
-        
-        content_area.pack_start(file_box, True, True, 0)
-        
-        # Checkbox für Endlosschleife (Loop-Funktion)
-        loop_check = Gtk.CheckButton(label="In Endlosschleife abspielen")
-        loop_check.set_active(self.button_config.get('loop', False))
-        content_area.pack_start(loop_check, True, True, 5)
-        
-        # Trennlinie für bessere Übersicht
-        separator3 = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        separator3.set_margin_top(10)
-        separator3.set_margin_bottom(10)
-        content_area.pack_start(separator3, True, True, 0)
-        
-        # Änderung: Entferne den separaten Löschen-Button am Ende
         # Verbinde den Löschen-Button in der Action-Area mit dem Lösch-Handler
         delete_button.connect("clicked", self.on_delete_button_clicked, dialog)
         
@@ -323,14 +306,14 @@ class SettingsDialog:
             new_image = image_entry.get_text()
             loop_enabled = loop_check.get_active()
             
-            # Textausrichtung und Zeilenumbruch-Optionen speichern
+            # Textausrichtung speichern
             active_iter = text_align_combo.get_active_iter()
             if active_iter:
                 text_align = text_align_store[active_iter][0]
                 self.button_config['text_align'] = text_align
             
-            line_breaks = line_break_check.get_active()
-            self.button_config['line_breaks'] = line_breaks
+            # Zeilenumbrüche sind immer aktiviert
+            self.button_config['line_breaks'] = True
             
             # Textpositionierung speichern
             use_custom_position = text_pos_check.get_active()
