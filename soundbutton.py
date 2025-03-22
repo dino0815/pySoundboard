@@ -38,6 +38,11 @@ class SoundButton(Gtk.Box):
         self.is_playing = False
         self.is_looping = False
         self.is_toggled = False  # Status für Toggle-Funktionalität
+        self.fade_timer = None  # Timer für Fade-Effekte
+        self.fade_duration = 50  # Dauer des Fade-Effekts in Millisekunden
+        self.fade_steps = 10  # Anzahl der Schritte für den Fade-Effekt
+        self.fade_step_func = None  # Speichert die aktuelle Fade-Step-Funktion
+        self.fade_source = None  # Speichert die aktuelle GLib.Source
         
         # Button-spezifische Konfiguration laden
         self.button_config = self.get_button_config()
@@ -588,6 +593,18 @@ class SoundButton(Gtk.Box):
             self.is_toggled = False
         return False  # Einmalige Ausführung
     
+    def _remove_timer(self):
+        """Entfernt einen Timer sicher"""
+        if self.fade_source:
+            try:
+                self.fade_source.destroy()
+            except:
+                pass  # Ignoriere Fehler beim Entfernen des Timers
+            finally:
+                self.fade_source = None
+                self.fade_timer = None
+                self.fade_step_func = None
+    
     def play_sound(self):
         """Spielt den Sound ab"""
         if 'audio_file' in self.button_config and self.button_config['audio_file']:
@@ -600,8 +617,11 @@ class SoundButton(Gtk.Box):
                 if self.sound and self.is_playing:
                     self.stop_sound()
                 
+                # Stelle sicher, dass der alte Timer gestoppt ist
+                self._remove_timer()
+                
                 self.sound = pygame.mixer.Sound(self.button_config['audio_file'])
-                self.sound.set_volume(self.button_config['volume'] / 100.0)
+                self.sound.set_volume(0.0)  # Starte mit 0 Lautstärke
                 
                 # Überprüfe ob Endlosschleife aktiviert ist
                 if self.button_config.get('loop', False):
@@ -617,10 +637,48 @@ class SoundButton(Gtk.Box):
                         GLib.timeout_add(100, self._check_sound_finished, channel)
                 
                 self.is_playing = True
+                
+                # Starte Fade-in
+                self._start_fade_in()
+                
                 print(f"SoundButton '{self.button_config['text']}' - Sound wird abgespielt")
             except Exception as e:
                 print(f"Fehler beim Abspielen des Sounds: {e}")
                 self.stop_sound()
+    
+    def _start_fade_in(self):
+        """Startet den Fade-in Effekt"""
+        if not self.sound or not self.is_playing:
+            return
+            
+        target_volume = self.button_config['volume'] / 100.0
+        step_size = target_volume / self.fade_steps
+        current_step = 0
+        
+        def fade_step(user_data=None):
+            nonlocal current_step
+            if not self.sound or not self.is_playing:
+                return False
+                
+            current_step += 1
+            current_volume = min(step_size * current_step, target_volume)
+            self.sound.set_volume(current_volume)
+            
+            if current_step < self.fade_steps:
+                return True
+            return False
+        
+        # Stelle sicher, dass der alte Timer gestoppt ist
+        self._remove_timer()
+        
+        # Speichere die Fade-Step-Funktion
+        self.fade_step_func = fade_step
+        
+        # Starte den Fade-in Timer
+        self.fade_source = GLib.timeout_source_new(self.fade_duration // self.fade_steps)
+        self.fade_source.set_callback(self.fade_step_func)
+        self.fade_source.attach()
+        self.fade_timer = self.fade_source.get_id()
     
     def _check_sound_finished(self, channel):
         """Überprüft, ob der Sound fertig abgespielt wurde"""
@@ -663,21 +721,63 @@ class SoundButton(Gtk.Box):
                 if not pygame.mixer.get_init():
                     print("Initialisiere pygame.mixer in SoundButton (stop_sound)")
                     pygame.mixer.init()
-                    
-                self.sound.stop()
-                self.is_playing = False
-                self.is_looping = False
                 
-                # Button-Status zurücksetzen, wenn er gedrückt ist
-                if self.is_toggled:
-                    style_context = self.button.get_style_context()
-                    style_context.remove_class("sound-button-toggled")
-                    style_context.add_class("sound-button")
-                    self.is_toggled = False
+                # Stelle sicher, dass der alte Timer gestoppt ist
+                self._remove_timer()
                 
-                print(f"SoundButton '{self.button_config['text']}' - Sound gestoppt")
+                # Starte Fade-out
+                self._start_fade_out()
+                
             except Exception as e:
                 print(f"Fehler beim Stoppen des Sounds: {e}")
+    
+    def _start_fade_out(self):
+        """Startet den Fade-out Effekt"""
+        if not self.sound or not self.is_playing:
+            return
+            
+        start_volume = self.sound.get_volume()
+        step_size = start_volume / self.fade_steps
+        current_step = 0
+        
+        def fade_step(user_data=None):
+            nonlocal current_step, start_volume
+            if not self.sound or not self.is_playing:
+                return False
+                
+            current_step += 1
+            current_volume = max(start_volume - (step_size * current_step), 0.0)
+            self.sound.set_volume(current_volume)
+            
+            if current_step < self.fade_steps:
+                return True
+                
+            # Nach Fade-out den Sound stoppen
+            self.sound.stop()
+            self.is_playing = False
+            self.is_looping = False
+            
+            # Button-Status zurücksetzen, wenn er gedrückt ist
+            if self.is_toggled:
+                style_context = self.button.get_style_context()
+                style_context.remove_class("sound-button-toggled")
+                style_context.add_class("sound-button")
+                self.is_toggled = False
+            
+            print(f"SoundButton '{self.button_config['text']}' - Sound gestoppt")
+            return False
+        
+        # Stelle sicher, dass der alte Timer gestoppt ist
+        self._remove_timer()
+        
+        # Speichere die Fade-Step-Funktion
+        self.fade_step_func = fade_step
+        
+        # Starte den Fade-out Timer
+        self.fade_source = GLib.timeout_source_new(self.fade_duration // self.fade_steps)
+        self.fade_source.set_callback(self.fade_step_func)
+        self.fade_source.attach()
+        self.fade_timer = self.fade_source.get_id()
     
     def on_button_press(self, widget, event):
         """Handler für Mausklicks"""
