@@ -35,7 +35,7 @@
         "text_margin_left": 0,
         "prefer_custom_text_color": true,
         "prefer_custom_bg_color": true,
-        "default_image_file": "images/StevesGalaxy.png",
+        "default_image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png",
         "use_default_image": false,
         "use_global_text_color": false,
         "use_global_bg_color": false
@@ -43,26 +43,10 @@
     "buttons": [
         {
             "position": 0,
-            "volume": 50,
-            "text": "Button 5 \\nder \\nBeste!",
-            "use_custom_bg_color": true,
-            "background_color": "#4e9a06",
-            "use_custom_text_color": false,
-            "text_color": "#000000",
-            "loop": false,
-            "text_align": "left",
-            "line_breaks": true,
-            "text_margin_top": 0,
-            "text_margin_left": 0,
-            "use_custom_text_position": true,
-            "audio_file": "sounds/example.mp3"
-        },
-        {
-            "position": 1,
             "volume": 80,
-            "text": "Button 2",
-            "audio_file": "sounds/Knarren/Knarren 9.wav",
-            "image_file": "images/Gro\u00dferKnochen.png",
+            "text": "knarren",
+            "audio_file": "/home/dino/Projekte/pySoundboard/sounds/Knarren/Knarren 9.wav",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
             "loop": false,
             "line_breaks": true,
             "text_align": "center",
@@ -75,24 +59,23 @@
             "text_color": "#000000"
         },
         {
-            "position": 2,
+            "position": 1,
             "volume": 50,
             "text": "Button 3\\n....",
             "use_custom_bg_color": true,
             "background_color": "#204a87",
             "use_custom_text_color": true,
-            "text_color": "#f8e45c",
+            "text_color": "#e9b96e",
             "loop": false,
-            "audio_file": "sounds/Schritte/Schritte im Schnee.ogg",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
             "line_breaks": true,
             "text_align": "center",
             "use_custom_text_position": true,
             "text_margin_top": 0,
-            "text_margin_left": 0,
-            "image_file": "images/Jonas_Favicon.png"
+            "text_margin_left": 0
         },
         {
-            "position": 3,
+            "position": 2,
             "volume": 50,
             "text": "Button 6 \\nbla bla\\n....",
             "use_custom_bg_color": true,
@@ -104,15 +87,14 @@
             "line_breaks": true,
             "use_custom_text_position": true,
             "text_margin_top": 0,
-            "text_margin_left": 0,
-            "audio_file": "sounds/Glocken/Bells.mp3"
+            "text_margin_left": 0
         },
         {
-            "position": 4,
+            "position": 3,
             "volume": 27,
             "text": "Button 1",
-            "audio_file": "sounds/example.mp3",
-            "image_file": "images/Gro\u00dferKnochen.png",
+            "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
             "loop": false,
             "use_custom_bg_color": false,
             "background_color": "#cccccc",
@@ -123,6 +105,22 @@
             "use_custom_text_position": true,
             "text_margin_top": 0,
             "text_margin_left": 0
+        },
+        {
+            "position": 4,
+            "text": "Button 11",
+            "audio_file": "",
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": false,
+            "background_color": "#cccccc",
+            "use_custom_text_color": false,
+            "text_color": "#000000"
         },
         {
             "position": 5,
@@ -142,6 +140,21 @@
         {
             "position": 6,
             "volume": 50,
+            "text": "Button 5 \\nder \\nBeste!",
+            "use_custom_bg_color": true,
+            "background_color": "#4e9a06",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "loop": false,
+            "text_align": "left",
+            "line_breaks": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_text_position": true
+        },
+        {
+            "position": 7,
+            "volume": 50,
             "text": "Button 7 \\nund so",
             "text_align": "left",
             "line_breaks": true,
@@ -153,6 +166,26 @@
             "text_margin_top": 0,
             "text_margin_left": 0,
             "use_custom_text_position": true
+        },
+        {
+            "position": 8,
+            "text": "Button 9",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
+        },
+        {
+            "position": 9,
+            "text": "Button 10",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
         }
     ]
 }

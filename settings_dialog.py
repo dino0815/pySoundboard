@@ -3,6 +3,8 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import pygame  # Hinzufügen von pygame für die Audio-Wiedergabe
+from pathlib import Path # for handling relative paths
+
 
 class SettingsDialog:
     def __init__(self, parent_window, button_config, position, on_delete=None):
@@ -541,8 +543,10 @@ class SettingsDialog:
         
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
-            entry.set_text(filename)
-        
+            filename_relative = Path(filename)
+            filename_relative = filename_relative.relative_to(Path.cwd())
+            entry.set_text(str(filename_relative))
+
         dialog.destroy()
     
     def on_play_toggled(self, button, file_entry):
