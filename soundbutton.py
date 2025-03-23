@@ -786,7 +786,7 @@ class SoundButton(Gtk.Box):
             if not self.settings_dialog_open:
                 self.show_settings_dialog()
             return True
-        
+            
         # Langklick-Erkennung nur für Linksklick starten
         if event.button == 1:  # Linksklick
             self.press_start_time = event.time
@@ -794,13 +794,13 @@ class SoundButton(Gtk.Box):
             # Timer für Langklick starten, nur wenn kein Dialog bereits geöffnet ist
             if not self.settings_dialog_open and not self.press_timeout_id:
                 self.press_timeout_id = GLib.timeout_add(self.LONG_PRESS_TIME, 
-                                                   self.check_long_press)
+                                                       self.check_long_press)
             
             if self.is_add_button:  # Linksklick auf Add-Button
                 if hasattr(self, 'on_add_click'):
                     self.on_add_click(self)
                 return True
-        
+            
         return False
     
     def on_button_release(self, widget, event):

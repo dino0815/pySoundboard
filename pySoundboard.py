@@ -7,6 +7,7 @@ from soundbutton import SoundButton
 import pygame
 import os
 from global_settings_dialog import GlobalSettingsDialog
+import argparse
 
 class SoundboardWindow(Gtk.Window):
     # Konstanten für die Konfiguration
@@ -44,8 +45,9 @@ class SoundboardWindow(Gtk.Window):
         "buttons": []
     }
     
-    def __init__(self):
+    def __init__(self, config_file='config.json'):
         super().__init__(title="Soundboard")
+        self.config_file = config_file
         self.buttons = []
         self.config = self.load_config()
         self._setup_window()
@@ -84,6 +86,8 @@ class SoundboardWindow(Gtk.Window):
         self.set_default_size(window_config['width'], window_config['height'])
         # Keine Mindestgröße setzen
         self.set_size_request(-1, -1)
+                
+
     
     def _setup_ui(self):
         """Erstellt die Benutzeroberfläche mithilfe einer FlowBox für automatische Umbrechung"""
@@ -254,7 +258,7 @@ class SoundboardWindow(Gtk.Window):
         # Ordne die Buttons neu
         self._reorder_buttons()
     
-    def save_config(self):
+    def save_config(self, config_file):
         """Speichert die Konfiguration in eine Datei"""
         # Aktualisiere die Button-Konfigurationen im Config-Dictionary
         saved_buttons = []
@@ -266,7 +270,7 @@ class SoundboardWindow(Gtk.Window):
         self.config['buttons'] = saved_buttons
         
         # Speichern
-        with open('config.json', 'w') as config_file:
+        with open(config_file, 'w') as config_file:
             json.dump(self.config, config_file, indent=4)
         
         print("Konfiguration gespeichert!")
@@ -274,7 +278,7 @@ class SoundboardWindow(Gtk.Window):
     def load_config(self):
         """Lädt die Konfiguration aus einer Datei oder verwendet die Standard-Konfiguration"""
         try:
-            with open('config.json', 'r') as config_file:
+            with open(self.config_file, 'r') as config_file:
                 config = json.load(config_file)
                 print("Konfiguration geladen!")
                 
@@ -337,7 +341,7 @@ class SoundboardWindow(Gtk.Window):
             
             # Config speichern - diese Aktion sollte gespeichert werden, 
             # da sonst der neue Button beim Neustart verloren geht
-            self.save_config()
+            self.save_config(self.config_file)
             
             # Neu ordnen, um sicherzustellen, dass alles aktualisiert wird
             self._reorder_buttons()
@@ -372,7 +376,7 @@ class SoundboardWindow(Gtk.Window):
             
             # Config speichern - diese Aktion sollte gespeichert werden,
             # da sonst der gelöschte Button beim Neustart wieder erscheint
-            self.save_config()
+            self.save_config(self.config_file)
             
             print(f"Button an Position {position} gelöscht")
     
@@ -384,7 +388,7 @@ class SoundboardWindow(Gtk.Window):
     
     def on_destroy(self, widget):
         """Handler für das Schließen des Fensters"""
-        self.save_config()
+        self.save_config(self.config_file)
         Gtk.main_quit()
     
     def on_key_press(self, widget, event):
@@ -397,13 +401,13 @@ class SoundboardWindow(Gtk.Window):
         
         # Escape-Taste: Fenster schließen
         if keyname == 'Escape':
-            self.save_config()
+            self.save_config(self.config_file)
             self.destroy()
             return True
         
         # Strg+S: Konfiguration speichern
         if ctrl and keyname == 's':
-            self.save_config()
+            self.save_config(self.config_file)
             print("Konfiguration manuell gespeichert!")
             return True
             
@@ -411,7 +415,7 @@ class SoundboardWindow(Gtk.Window):
     
     def on_window_delete(self, widget, event):
         """Handler für das Schließen des Fensters per Kreuz"""
-        self.save_config()
+        self.save_config(self.config_file)
         return False  # False, damit das Fenster zerstört wird
     
     def on_window_configure(self, widget, event):
@@ -500,7 +504,7 @@ class SoundboardWindow(Gtk.Window):
             print("Globale Einstellungen wurden geändert - wende Änderungen an...")
             
             # Speichern Sie die Konfiguration
-            self.save_config()
+            self.save_config(self.config_file)
             
             # Stellen Sie sicher, dass die Standardwerte für die Farbeinstellungen vorhanden sind
             if 'use_global_bg_color' not in self.config['soundbutton']:
@@ -543,7 +547,22 @@ class SoundboardWindow(Gtk.Window):
 
 def main():
     """Main-Funktion"""
-    win = SoundboardWindow()
+    # Argument-Parser erstellen
+    parser = argparse.ArgumentParser(description='pySoundboard - Ein Soundboard mit GTK3')
+    parser.add_argument('--config', '-c', 
+                       help='Pfad zur Konfigurationsdatei (Standard: config.json)',
+                       default='config.json')
+    
+    # Argumente parsen
+    args = parser.parse_args()
+    
+    # Prüfen, ob die Konfigurationsdatei existiert
+    if not os.path.exists(args.config):
+        print(f"Fehler: Konfigurationsdatei '{args.config}' nicht gefunden!")
+        return
+    
+    # Soundboard mit der angegebenen Konfigurationsdatei starten
+    win = SoundboardWindow(config_file=args.config)
     Gtk.main()
 
 if __name__ == "__main__":
