@@ -1,8 +1,10 @@
 {
     "window": {
-        "width": 163,
-        "height": 95,
-        "title": "Soundboardrootpfad: ."
+        "width": 456,
+        "height": 222,
+        "title": "Soundboardrootpfad: .",
+        "soundpfad_prefix": ".",
+        "imagepfad_prefix": "."
     },
     "soundbutton": {
         "button_width": 100,
@@ -13,13 +15,13 @@
         "radius": 15,
         "delete_button_size": 20,
         "text_size": 13,
-        "background_color": "#CCCCCC",
+        "background_color": "#cccccc",
         "text_color": "#000000",
         "text_x": 17,
         "text_y": 20,
         "volume_min": 0,
         "volume_max": 100,
-        "volume_default": 50,
+        "volume_default": 85,
         "control_buttons": {
             "size": 25,
             "spacing": 5,
@@ -27,7 +29,49 @@
             "border_color": "#000000",
             "symbol_color": "#000000",
             "border_width": 1
-        }
+        },
+        "text_align": "center",
+        "line_breaks": true,
+        "use_custom_text_position": false,
+        "text_margin_top": 0,
+        "text_margin_left": 0,
+        "use_global_text_color": true,
+        "use_global_bg_color": true,
+        "default_image_file": "",
+        "use_default_image": false
     },
-    "buttons": []
+    "buttons": [
+        {
+            "position": 0,
+            "text": "Schritte\\nim\\nSchnee",
+            "audio_file": "sounds/Schritte/Schritte im Schnee.mp3",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": true,
+            "background_color": "#e01b24",
+            "use_custom_text_color": false,
+            "text_color": "#000000"
+        },
+        {
+            "position": 1,
+            "text": "Knarren",
+            "audio_file": "sounds/Knarren 6.wav",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "left",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": true,
+            "background_color": "#1c71d8",
+            "use_custom_text_color": false,
+            "text_color": "#000000"
+        }
+    ]
 }

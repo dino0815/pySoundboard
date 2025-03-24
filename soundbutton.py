@@ -9,7 +9,9 @@ import os
 from settings_dialog import SettingsDialog
 
 class SoundButton(Gtk.Box):
-    def __init__(self, position=0, offset_x=0, offset_y=0, config=None, on_delete=None, is_add_button=False):
+    def __init__(self, position=0, config=None, on_delete=None, is_add_button=False):
+        print(f"SoundButton.__init__:position={position}, on_delete={on_delete}, is_add_button={is_add_button}")
+        print(f"config={config}")
         if config is None:
             raise ValueError("Keine Konfiguration übergeben. SoundButton benötigt eine gültige Konfiguration.")
         
@@ -19,8 +21,6 @@ class SoundButton(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
         
         self.position = position
-        self.offset_x = offset_x
-        self.offset_y = offset_y
         self.config = config
         self.on_delete = on_delete
         self.is_add_button = is_add_button
@@ -266,12 +266,6 @@ class SoundButton(Gtk.Box):
         b = int(hex_color[4:6], 16) / 255.0
         return [r, g, b]
     
-    def set_offset(self, offset_x, offset_y):
-        """Setzt den Offset des Buttons"""
-        self.offset_x = offset_x
-        self.offset_y = offset_y
-        print(f"SoundButton '{self.button_config['text']}' - Offset aktualisiert: x={self.offset_x}, y={self.offset_y}")
-    
     def _rgba_to_hex(self, rgba):
         """Konvertiert ein RGBA-Objekt in einen Hex-Farbcode für CSS"""
         r = int(rgba.red * 255)
@@ -353,6 +347,10 @@ class SoundButton(Gtk.Box):
         """Wendet CSS-Styling auf den Button an"""
         sb_config = self.config['soundbutton']
         button_style = self.button.get_style_context()
+        
+        # Entferne alte CSS-Klassen
+        for class_name in button_style.list_classes():
+            button_style.remove_class(class_name.get_name())
         
         # Theme-Farben extrahieren
         theme_colors = self.get_theme_colors()
@@ -520,6 +518,14 @@ class SoundButton(Gtk.Box):
         
         # Speichere den Provider für spätere Updates
         self.css_provider = provider
+        
+        # Erzwinge Neuzeichnen des Buttons
+        self.button.queue_draw()
+        self.button_container.queue_draw()
+        self.button_box.queue_draw()
+        if hasattr(self, 'overlay'):
+            self.overlay.queue_draw()
+        self.queue_draw()
     
     def _get_image_css(self, class_name, image_path):
         """Generiert CSS für ein Hintergrundbild"""
@@ -620,11 +626,22 @@ class SoundButton(Gtk.Box):
                 # Stelle sicher, dass der alte Timer gestoppt ist
                 self._remove_timer()
                 
+                ###################################################################################################################################
+                #    if response == Gtk.ResponseType.OK:
+                #        filename = dialog.get_filename()
+                #        filename_relative = Path(filename)
+                #        filename_relative = filename_relative.relative_to(Path.cwd())
+                #        entry.set_text(str(filename_relative)
+                ###################################################################################################################################
+
                 self.sound = pygame.mixer.Sound(self.button_config['audio_file'])
-                self.sound.set_volume(0.0)  # Starte mit 0 Lautstärke
+                
+                # Hole die aktuelle Lautstärke vom Slider (0-100) und konvertiere zu pygame-Lautstärke (0.0-1.0)
+                volume = self.volume_slider.get_value() / 100.0
+                self.sound.set_volume(volume)
                 
                 # Überprüfe ob Endlosschleife aktiviert ist
-                if self.button_config.get('loop', False):
+                if  self.button_config.get('loop', False):
                     self.sound.play(-1)  # -1 bedeutet Endlosschleife
                     self.is_looping = True
                 else:
@@ -641,7 +658,7 @@ class SoundButton(Gtk.Box):
                 # Starte Fade-in
                 self._start_fade_in()
                 
-                print(f"SoundButton '{self.button_config['text']}' - Sound wird abgespielt")
+                print(f"SoundButton '{self.button_config['text']}' - Sound wird abgespielt (Lautstärke: {volume:.2f})")
             except Exception as e:
                 print(f"Fehler beim Abspielen des Sounds: {e}")
                 self.stop_sound()

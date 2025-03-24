@@ -549,8 +549,16 @@ class SettingsDialog:
 
         dialog.destroy()
     
+    ###################################################################################################################################
+    #    if response == Gtk.ResponseType.OK:
+    #        filename = dialog.get_filename()
+    #        filename_relative = Path(filename)
+    #        filename_relative = filename_relative.relative_to(Path.cwd())
+    #        entry.set_text(str(filename_relative)
+    ###################################################################################################################################
     def on_play_toggled(self, button, file_entry):
         """Startet oder stoppt die Wiedergabe der Audiodatei"""
+
         file_path = file_entry.get_text().strip()
         if button.get_active():  # Wenn der Button gedrückt ist
             if file_path:
@@ -568,7 +576,7 @@ class SettingsDialog:
             else:
                 print("Keine Datei ausgewählt.")
                 button.set_active(False)  # Setze den Button zurück
-        else:  # Wenn der Button losgelassen wird
+        else:  # Wenn der Button deaktiviert wird
             if self.is_playing:
                 try:
                     # Prüfe, ob Mixer noch initialisiert ist

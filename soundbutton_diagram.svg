@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="1400" xmlns="http://www.w3.org/2000/svg">
+    <!-- Hintergrund -->
+    <rect width="100%" height="100%" fill="#f0f0f0"/>
+    
+    <!-- Hauptklasse SoundButton -->
+    <rect x="750" y="50" width="200" height="60" rx="10" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+    <text x="850" y="85" text-anchor="middle" fill="white" font-family="Arial" font-size="16">SoundButton</text>
+    
+    <!-- Initialisierungsfunktionen -->
+    <rect x="750" y="150" width="200" height="40" rx="5" fill="#2196F3" stroke="#1976D2" stroke-width="2"/>
+    <text x="850" y="175" text-anchor="middle" fill="white" font-family="Arial" font-size="14">__init__</text>
+    
+    <!-- UI-Setup Funktionen -->
+    <rect x="400" y="250" width="200" height="40" rx="5" fill="#FF9800" stroke="#F57C00" stroke-width="2"/>
+    <text x="500" y="275" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_setup_ui</text>
+    
+    <rect x="700" y="250" width="200" height="40" rx="5" fill="#FF9800" stroke="#F57C00" stroke-width="2"/>
+    <text x="800" y="275" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_create_volume_slider</text>
+    
+    <!-- Konfigurationsfunktionen -->
+    <rect x="1000" y="250" width="200" height="40" rx="5" fill="#FF9800" stroke="#F57C00" stroke-width="2"/>
+    <text x="1100" y="275" text-anchor="middle" fill="white" font-family="Arial" font-size="14">get_button_config</text>
+    
+    <!-- Farbkonvertierungsfunktionen -->
+    <rect x="400" y="350" width="200" height="40" rx="5" fill="#FF5722" stroke="#E64A19" stroke-width="2"/>
+    <text x="500" y="375" text-anchor="middle" fill="white" font-family="Arial" font-size="14">hex_to_rgb</text>
+    
+    <rect x="700" y="350" width="200" height="40" rx="5" fill="#FF5722" stroke="#E64A19" stroke-width="2"/>
+    <text x="800" y="375" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_rgba_to_hex</text>
+    
+    <rect x="1000" y="350" width="200" height="40" rx="5" fill="#FF5722" stroke="#E64A19" stroke-width="2"/>
+    <text x="1100" y="375" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_hex_to_rgba</text>
+    
+    <!-- Theme und CSS Funktionen -->
+    <rect x="400" y="450" width="200" height="40" rx="5" fill="#FF9800" stroke="#F57C00" stroke-width="2"/>
+    <text x="500" y="475" text-anchor="middle" fill="white" font-family="Arial" font-size="14">get_theme_colors</text>
+    
+    <rect x="700" y="450" width="200" height="40" rx="5" fill="#FF9800" stroke="#F57C00" stroke-width="2"/>
+    <text x="800" y="475" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_get_image_css</text>
+    
+    <rect x="1000" y="450" width="200" height="40" rx="5" fill="#FF9800" stroke="#F57C00" stroke-width="2"/>
+    <text x="1100" y="475" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_apply_css_style</text>
+    
+    <!-- Event-Handler -->
+    <rect x="400" y="550" width="200" height="40" rx="5" fill="#E91E63" stroke="#C2185B" stroke-width="2"/>
+    <text x="500" y="575" text-anchor="middle" fill="white" font-family="Arial" font-size="14">on_button_press</text>
+    
+    <rect x="700" y="550" width="200" height="40" rx="5" fill="#E91E63" stroke="#C2185B" stroke-width="2"/>
+    <text x="800" y="575" text-anchor="middle" fill="white" font-family="Arial" font-size="14">on_button_release</text>
+    
+    <rect x="1000" y="550" width="200" height="40" rx="5" fill="#E91E63" stroke="#C2185B" stroke-width="2"/>
+    <text x="1100" y="575" text-anchor="middle" fill="white" font-family="Arial" font-size="14">on_volume_changed</text>
+    
+    <!-- Button-Status Funktionen -->
+    <rect x="400" y="650" width="200" height="40" rx="5" fill="#9C27B0" stroke="#7B1FA2" stroke-width="2"/>
+    <text x="500" y="675" text-anchor="middle" fill="white" font-family="Arial" font-size="14">toggle_button_state</text>
+    
+    <rect x="700" y="650" width="200" height="40" rx="5" fill="#9C27B0" stroke="#7B1FA2" stroke-width="2"/>
+    <text x="800" y="675" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_reset_button_state</text>
+    
+    <rect x="1000" y="650" width="200" height="40" rx="5" fill="#9C27B0" stroke="#7B1FA2" stroke-width="2"/>
+    <text x="1100" y="675" text-anchor="middle" fill="white" font-family="Arial" font-size="14">check_long_press</text>
+    
+    <!-- Sound-Funktionen -->
+    <rect x="400" y="750" width="200" height="40" rx="5" fill="#9C27B0" stroke="#7B1FA2" stroke-width="2"/>
+    <text x="500" y="775" text-anchor="middle" fill="white" font-family="Arial" font-size="14">play_sound</text>
+    
+    <rect x="700" y="750" width="200" height="40" rx="5" fill="#9C27B0" stroke="#7B1FA2" stroke-width="2"/>
+    <text x="800" y="775" text-anchor="middle" fill="white" font-family="Arial" font-size="14">stop_sound</text>
+    
+    <rect x="1000" y="750" width="200" height="40" rx="5" fill="#9C27B0" stroke="#7B1FA2" stroke-width="2"/>
+    <text x="1100" y="775" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_check_sound_finished</text>
+    
+    <!-- Fade-Funktionen -->
+    <rect x="400" y="850" width="200" height="40" rx="5" fill="#607D8B" stroke="#455A64" stroke-width="2"/>
+    <text x="500" y="875" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_start_fade_in</text>
+    
+    <rect x="700" y="850" width="200" height="40" rx="5" fill="#607D8B" stroke="#455A64" stroke-width="2"/>
+    <text x="800" y="875" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_start_fade_out</text>
+    
+    <rect x="1000" y="850" width="200" height="40" rx="5" fill="#607D8B" stroke="#455A64" stroke-width="2"/>
+    <text x="1100" y="875" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_remove_timer</text>
+    
+    <!-- Settings und Style -->
+    <rect x="400" y="950" width="200" height="40" rx="5" fill="#795548" stroke="#5D4037" stroke-width="2"/>
+    <text x="500" y="975" text-anchor="middle" fill="white" font-family="Arial" font-size="14">show_settings_dialog</text>
+    
+    <rect x="700" y="950" width="200" height="40" rx="5" fill="#795548" stroke="#5D4037" stroke-width="2"/>
+    <text x="800" y="975" text-anchor="middle" fill="white" font-family="Arial" font-size="14">update_image</text>
+    
+    <rect x="1000" y="950" width="200" height="40" rx="5" fill="#795548" stroke="#5D4037" stroke-width="2"/>
+    <text x="1100" y="975" text-anchor="middle" fill="white" font-family="Arial" font-size="14">_update_button_after_settings</text>
+    
+    <!-- Add-Button Handler -->
+    <rect x="700" y="1050" width="200" height="40" rx="5" fill="#795548" stroke="#5D4037" stroke-width="2"/>
+    <text x="800" y="1075" text-anchor="middle" fill="white" font-family="Arial" font-size="14">set_add_click_handler</text>
+    
+    <!-- Pfeilspitze Definition -->
+    <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+        </marker>
+    </defs>
+    
+    <!-- Verbindungslinien mit Pfeilen -->
+    <!-- Von __init__ zu UI-Setup -->
+    <path d="M850,190 L500,250" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M850,190 L800,250" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M850,190 L1100,250" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    
+    <!-- Von UI-Setup zu Event-Handlern -->
+    <path d="M500,290 L500,550" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M700,290 L700,550" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    
+    <!-- Von Farbkonvertierung zu CSS -->
+    <path d="M500,390 L500,450" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M800,390 L800,450" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M1100,390 L1100,450" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    
+    <!-- Von Theme zu CSS -->
+    <path d="M500,490 L800,490" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M800,490 L1100,490" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    
+    <!-- Von Event-Handlern zu Button-Status -->
+    <path d="M500,590 L500,650" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M800,590 L800,650" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M1100,590 L1100,650" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    
+    <!-- Von Button-Status zu Sound-Funktionen -->
+    <path d="M500,690 L500,750" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M800,690 L800,750" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    
+    <!-- Von Sound-Funktionen zu Fade-Funktionen -->
+    <path d="M500,790 L500,850" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M800,790 L800,850" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M1100,790 L1100,850" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    
+    <!-- Von Settings zu Style -->
+    <path d="M500,990 L700,990" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    <path d="M700,990 L1100,990" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+    
+    <!-- Legende -->
+    <rect x="1300" y="50" width="250" height="400" rx="10" fill="white" stroke="#666" stroke-width="2"/>
+    <text x="1425" y="80" text-anchor="middle" fill="#333" font-family="Arial" font-size="16" font-weight="bold">Funktionsgruppen</text>
+    
+    <rect x="1320" y="100" width="20" height="20" rx="5" fill="#4CAF50"/>
+    <text x="1350" y="115" fill="#333" font-family="Arial" font-size="14">Hauptklasse</text>
+    
+    <rect x="1320" y="130" width="20" height="20" rx="5" fill="#2196F3"/>
+    <text x="1350" y="145" fill="#333" font-family="Arial" font-size="14">Initialisierung</text>
+    
+    <rect x="1320" y="160" width="20" height="20" rx="5" fill="#FF9800"/>
+    <text x="1350" y="175" fill="#333" font-family="Arial" font-size="14">UI-Setup</text>
+    
+    <rect x="1320" y="190" width="20" height="20" rx="5" fill="#FF5722"/>
+    <text x="1350" y="205" fill="#333" font-family="Arial" font-size="14">Farbkonvertierung</text>
+    
+    <rect x="1320" y="220" width="20" height="20" rx="5" fill="#E91E63"/>
+    <text x="1350" y="235" fill="#333" font-family="Arial" font-size="14">Event-Handler</text>
+    
+    <rect x="1320" y="250" width="20" height="20" rx="5" fill="#9C27B0"/>
+    <text x="1350" y="265" fill="#333" font-family="Arial" font-size="14">Button-Status</text>
+    
+    <rect x="1320" y="280" width="20" height="20" rx="5" fill="#9C27B0"/>
+    <text x="1350" y="295" fill="#333" font-family="Arial" font-size="14">Sound-Funktionen</text>
+    
+    <rect x="1320" y="310" width="20" height="20" rx="5" fill="#607D8B"/>
+    <text x="1350" y="325" fill="#333" font-family="Arial" font-size="14">Fade-Funktionen</text>
+    
+    <rect x="1320" y="340" width="20" height="20" rx="5" fill="#795548"/>
+    <text x="1350" y="355" fill="#333" font-family="Arial" font-size="14">Settings + Style</text>
+    
+    <rect x="1320" y="370" width="20" height="20" rx="5" fill="#795548"/>
+    <text x="1350" y="385" fill="#333" font-family="Arial" font-size="14">Add-Button Handler</text>
+</svg> 

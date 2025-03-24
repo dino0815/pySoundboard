@@ -10,6 +10,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 
 class SoundboardWindow(Gtk.Window):
+    ###################################################################################################################################
     # Konstanten für die Konfiguration
     DEFAULT_CONFIG = {
         "window": {
@@ -47,8 +48,42 @@ class SoundboardWindow(Gtk.Window):
         "buttons": []
     }
     
+
+    ###################################################################################################################################
+    def _show_config_dialog(self, config_file):
+        """Zeigt einen Dialog an, wenn die Konfigurationsdatei nicht gefunden wurde"""
+        dialog = Gtk.Dialog(
+            title="Konfigurationsdatei nicht gefunden",
+            transient_for=self,
+            flags=Gtk.DialogFlags.MODAL
+        )
+        
+        # Dialog-Inhalt
+        content_area = dialog.get_content_area()
+        message = Gtk.Label( label=f"Die Konfigurationsdatei: {config_file} konnte nicht gefunden werden.\nSoll die Datei erstellt werden?" )
+        message.set_line_wrap(True)
+        message.set_margin_start(20)
+        message.set_margin_end(20)
+        message.set_margin_top(20)
+        message.set_margin_bottom(20)
+        content_area.pack_start(message, True, True, 0)
+        
+        # Buttons
+        dialog.add_buttons(
+            "Programm Beenden", Gtk.ResponseType.CLOSE,
+            "Datei Erstellen", Gtk.ResponseType.ACCEPT
+        )
+
+        # Dialog anzeigen und auf Antwort warten
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()        
+        return response == Gtk.ResponseType.ACCEPT
+        
+    ###################################################################################################################################
     def __init__(self, config_file='config.json'):
         super().__init__(title="Soundboard")       # Titel des Fensters
+
         self.config_file = config_file             # Pfad zur Konfigurationsdatei
         self.buttons = []                          # Liste der SoundButtons
         self.config = self.load_config()           # Konfiguration aus der Datei laden
@@ -67,6 +102,7 @@ class SoundboardWindow(Gtk.Window):
         self.show_all()                            # Zeige alle Widgets an
         self.add_button = None                     # Referenz für den Add-Button
     
+    ###################################################################################################################################
     def _setup_window(self):
         """Initialisiert die Fenster-Eigenschaften"""
         # Initialisiere pygame.mixer mit Fehlerbehandlung
@@ -88,6 +124,7 @@ class SoundboardWindow(Gtk.Window):
         # Keine Mindestgröße setzen
         self.set_size_request(-1, -1)
                     
+    ###################################################################################################################################
     def _setup_ui(self):
         """Erstellt die Benutzeroberfläche mithilfe einer FlowBox für automatische Umbrechung"""
         # Scrolled Window für vertikales Scrollen
@@ -128,6 +165,7 @@ class SoundboardWindow(Gtk.Window):
         # Add-Button wird erst später in _load_buttons hinzugefügt
         self.add_button = None                                  # Referenz für den Add-Button
     
+    ###################################################################################################################################
     def _connect_signals(self):
         """Verbindet die Signal-Handler"""
         self.connect("destroy", self.on_destroy)                     # Signalhandler für das Schließen des Fensters
@@ -136,6 +174,7 @@ class SoundboardWindow(Gtk.Window):
         self.connect("delete-event", self.on_window_delete)          # Signalhandler für das Schließen des Fensters per Kreuz
         self.connect("button-press-event", self.on_background_click) # Für Klicks auf Fensterhintergrund
     
+    ###################################################################################################################################
     def _load_buttons(self):
         """Lädt die Buttons aus der Konfiguration oder aktualisiert bestehende Buttons"""
         try:
@@ -152,8 +191,6 @@ class SoundboardWindow(Gtk.Window):
                     if i < len(normal_buttons):     # Sicherheitscheck
                         button = normal_buttons[i]  # Button aus der Liste nehmen
                         button.position = button_config.get('position', i)    # Position setzen
-                        button.offset_x = button_config.get('offset_x', 0)    # Offset x setzen
-                        button.offset_y = button_config.get('offset_y', 0)    # Offset y setzen
                         button.button_config = button_config                  # Button-Konfiguration setzen
                         if  hasattr(button, '_update_button_after_settings'): # Wenn der Button eine Update-Methode hat, dann aufrufen
                             button._update_button_after_settings() 
@@ -177,8 +214,6 @@ class SoundboardWindow(Gtk.Window):
                     try:
                         button = SoundButton(
                             position=button_config.get('position', 0),  # Position setzen
-                            offset_x=button_config.get('offset_x', 0),  # Offset x setzen
-                            offset_y=button_config.get('offset_y', 0),  # Offset y setzen
                             config=self.config,                         # Konfiguration setzen
                             on_delete=self.delete_button                # Lösch-Handler setzen
                         )
@@ -205,8 +240,6 @@ class SoundboardWindow(Gtk.Window):
             try:
                 self.add_button = SoundButton( 
                     position=len(self.buttons),       # Position setzen
-                    offset_x=0,                       # Offset x setzen
-                    offset_y=0,                       # Offset y setzen
                     config=self.config,               # Konfiguration setzen
                     is_add_button=True                # Add-Button-Status setzen
                 )
@@ -225,6 +258,7 @@ class SoundboardWindow(Gtk.Window):
             import traceback
             traceback.print_exc()                     # Traceback ausgeben
     
+    ###################################################################################################################################
     def _reorder_buttons(self):
         """Ordnet die Buttons neu, indem die Konfiguration umsortiert und die Buttons aktualisiert werden"""
         try:
@@ -245,6 +279,7 @@ class SoundboardWindow(Gtk.Window):
             import traceback
             traceback.print_exc()                     # Traceback ausgeben
     
+    ###################################################################################################################################
     def update_all_buttons(self):
         """Aktualisiert alle Buttons mit den neuen globalen Einstellungen"""
         for button in self.buttons:
@@ -254,6 +289,7 @@ class SoundboardWindow(Gtk.Window):
         # Ordne die Buttons neu
         self._reorder_buttons()
     
+    ###################################################################################################################################
     def save_config(self, config_file):
         """Speichert die Konfiguration in eine Datei"""
         # Aktualisiere die Button-Konfigurationen im Config-Dictionary
@@ -271,6 +307,7 @@ class SoundboardWindow(Gtk.Window):
         
         print("Konfiguration gespeichert!")          # Nachricht ausgeben
     
+    ###################################################################################################################################
     def load_config(self):
         """Lädt die Konfiguration aus einer Datei oder verwendet die Standard-Konfiguration"""
         try:
@@ -286,6 +323,7 @@ class SoundboardWindow(Gtk.Window):
             print("Keine gültige Konfigurationsdatei gefunden, verwende Standardkonfiguration!")  # Nachricht ausgeben
             return self.DEFAULT_CONFIG.copy()        # Standardkonfiguration zurückgeben
     
+    ###################################################################################################################################
     def validate_config(self, config):
         """Überprüft, ob alle erforderlichen Schlüssel vorhanden sind, und fügt fehlende hinzu"""
         for section, settings in self.DEFAULT_CONFIG.items():  # Für jede Sektion in der Standardkonfiguration
@@ -296,6 +334,7 @@ class SoundboardWindow(Gtk.Window):
                     if key not in config[section]:   # Wenn der Schlüssel nicht in der Sektion vorhanden ist
                         config[section][key] = value # Schlüssel und Wert hinzufügen
     
+    ###################################################################################################################################
     def add_new_button(self, add_button):
         """Fügt einen neuen Button hinzu, indem der Add-Button in einen regulären Button umgewandelt wird"""
         try:
@@ -322,8 +361,6 @@ class SoundboardWindow(Gtk.Window):
             # Erstelle einen neuen regulären Button
             new_button = SoundButton(
                 position=new_position,                       # Position setzen
-                offset_x=0,                                  # Offset x setzen
-                offset_y=0,                                  # Offset y setzen
                 config=self.config,                          # Konfiguration setzen
                 on_delete=self.delete_button                 # Lösch-Handler setzen
             )
@@ -344,6 +381,7 @@ class SoundboardWindow(Gtk.Window):
             import traceback
             traceback.print_exc()                            # Traceback ausgeben 
     
+    ###################################################################################################################################
     def delete_button(self, position):
         """Löscht einen Button"""
         # Finde den Button anhand der Position
@@ -370,17 +408,20 @@ class SoundboardWindow(Gtk.Window):
             
             print(f"Button an Position {position} gelöscht") # Nachricht ausgeben
     
+    ###################################################################################################################################
     def _update_button_positions(self):
         """Aktualisiert die Positionsangaben aller Buttons"""
         for i, button in enumerate(self.buttons):
             button.position = i                              # Position setzen
             button.button_config['position'] = i             # Position setzen
     
+    ###################################################################################################################################
     def on_destroy(self, widget):
         """Handler für das Schließen des Fensters"""
         self.save_config(self.config_file)                   # Konfiguration speichern
         Gtk.main_quit()                                      # Programm beenden
     
+    ###################################################################################################################################
     def on_key_press(self, widget, event):
         """Handler für Tastatureingaben"""
         keyval = event.keyval                                # Tastaturwert nehmen
@@ -402,11 +443,13 @@ class SoundboardWindow(Gtk.Window):
             return True                                      # True zurückgeben            
         return False                                         # False zurückgeben
     
+    ###################################################################################################################################
     def on_window_delete(self, widget, event):
         """Handler für das Schließen des Fensters per Kreuz"""
         self.save_config(self.config_file)                   # Konfiguration speichern
         return False                                         # False, damit das Fenster zerstört wird  
     
+    ###################################################################################################################################
     def on_window_configure(self, widget, event):
         """Handler für Größenänderungen des Fensters"""
         # Prüfe, ob sich die Größe tatsächlich geändert hat
@@ -416,6 +459,7 @@ class SoundboardWindow(Gtk.Window):
             self.config['window']['height'] = event.height        # Höhe setzen
         return False  # Weitergabe an andere Handler
     
+    ###################################################################################################################################
     def on_background_click(self, widget, event):
         """Handler für Klicks auf den Hintergrund des Fensters"""
         # Für Rechtsklicks sofort reagieren
@@ -446,6 +490,7 @@ class SoundboardWindow(Gtk.Window):
         
         return False  # Event weitergeben
     
+    ###################################################################################################################################
     def check_long_press(self):
         """Prüft, ob ein Langklick erkannt wurde"""
         # Verwende die aktuelle Zeit aus dem Gtk-System
@@ -471,6 +516,7 @@ class SoundboardWindow(Gtk.Window):
         # Timer fortsetzen  
         return True                                               # True zurückgeben
     
+    ###################################################################################################################################
     def show_global_settings(self):
         """Zeigt den globalen Einstellungs-Dialog an"""
         if self.global_settings_dialog_open:                      # Wenn der Dialog bereits geöffnet ist
@@ -516,6 +562,7 @@ class SoundboardWindow(Gtk.Window):
             
             print("Globale Einstellungen wurden erfolgreich angewendet!")  # Nachricht ausgeben
     
+    ###################################################################################################################################
     def on_add_button_clicked(self, button, event):
         """Handler für das Klicken des Add-Buttons"""
         try:
@@ -531,6 +578,7 @@ class SoundboardWindow(Gtk.Window):
             import traceback
             traceback.print_exc()                                 # Traceback ausgeben 
 
+###################################################################################################################################
 def main():
     """Main-Funktion"""
     # Argument-Parser erstellen

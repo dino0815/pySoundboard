@@ -3,7 +3,9 @@
         "width": 463,
         "height": 237,
         "title": "Soundboard",
-        "rootpfad": "."
+        "rootpfad": ".",
+        "soundpfad_prefix": ".",
+        "imagepfad_prefix": "."
     },
     "soundbutton": {
         "button_width": 100,
