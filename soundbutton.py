@@ -62,8 +62,8 @@ class SoundButton(Gtk.Box):
         self._apply_css_style()
         
         if not is_add_button:
-            print(f"SoundButton '{self.button_config['text']}' erstellt - Position: x={self.offset_x}, y={self.offset_y}")
-            print(f"SoundButton '{self.button_config['text']}' - Offset: x={self.offset_x}, y={self.offset_y}")
+            print(f"SoundButton '{self.button_config['text']}'")
+            print(f"SoundButton '{self.button_config['text']}'")
         
         # Widgets anzeigen
         self.show_all()
@@ -197,7 +197,7 @@ class SoundButton(Gtk.Box):
             # Lautstärkeregler rechts positionieren
             self.volume_container.set_halign(Gtk.Align.END)
             self.volume_container.set_valign(Gtk.Align.FILL)
-            self.volume_container.set_margin_end(5)  # Abstand zum rechten Rand
+            self.volume_container.set_margin_end(2)  # Abstand zum rechten Rand
             
             # Lautstärkeregler zum Overlay hinzufügen
             self.overlay.add_overlay(self.volume_container)
@@ -226,8 +226,8 @@ class SoundButton(Gtk.Box):
         self.volume_slider.set_inverted(True)
         
         # Reduziere den Abstand zum Rand, damit mehr Höhe für den Schieberegler bleibt
-        self.volume_slider.set_margin_top(10)
-        self.volume_slider.set_margin_bottom(10)
+        self.volume_slider.set_margin_top(5)
+        self.volume_slider.set_margin_bottom(5)
         self.volume_slider.connect("value-changed", self.on_volume_changed)
         
         # Container für den Lautstärkeregler

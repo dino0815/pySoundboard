@@ -1,9 +1,8 @@
 {
     "window": {
-        "width": 463,
-        "height": 237,
-        "title": "Soundboard",
-        "rootpfad": "."
+        "width": 658,
+        "height": 241,
+        "title": "Soundboard"
     },
     "soundbutton": {
         "button_width": 100,
@@ -34,33 +33,51 @@
         {
             "position": 0,
             "text": "Button 1",
-            "audio_file": "sounds/Knarren 6.wav",
-            "image_file": "",
-            "loop": false,
-            "line_breaks": true,
-            "text_align": "center",
-            "use_custom_text_position": true,
-            "text_margin_top": 0,
-            "text_margin_left": 0,
-            "use_custom_bg_color": true,
-            "background_color": "#813d9c",
-            "use_custom_text_color": false,
-            "text_color": "#000000",
-            "volume": 69
-        },
-        {
-            "position": 1,
-            "text": "Button 2\\n....",
             "audio_file": "sounds/example.mp3",
             "image_file": "",
             "loop": false,
             "line_breaks": true,
             "text_align": "center",
-            "use_custom_text_position": true,
+            "use_custom_text_position": false,
             "text_margin_top": 0,
             "text_margin_left": 0,
             "use_custom_bg_color": true,
-            "background_color": "#33d17a",
+            "background_color": "#c01c28",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "volume": 73
+        },
+        {
+            "position": 1,
+            "text": "Button 2",
+            "audio_file": "sounds/Schritte/Schritte im Schnee.ogg",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": true,
+            "background_color": "#3584e4",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "volume": 78
+        },
+        {
+            "position": 2,
+            "text": "Button 3",
+            "audio_file": "sounds/Glocken/Bells.mp3",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false,
+            "volume": 32,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": false,
+            "background_color": "#cccccc",
             "use_custom_text_color": false,
             "text_color": "#000000"
         }

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
+from global_settings_dialog import GlobalSettingsDialog
+from gi.repository import Gtk, Gdk, GLib
+from soundbutton import SoundButton
+import argparse
+import pygame
+import json
+import os
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GLib
-import json
-from soundbutton import SoundButton
-import pygame
-import os
-from global_settings_dialog import GlobalSettingsDialog
-import argparse
 
 class SoundboardWindow(Gtk.Window):
     # Konstanten für die Konfiguration
@@ -16,6 +16,7 @@ class SoundboardWindow(Gtk.Window):
             "width": 163,
             "height": 95,
             "title": "Soundboard"
+            "rootpfad: ."
         },
         "soundbutton": {
             "button_width": 100,
@@ -86,9 +87,7 @@ class SoundboardWindow(Gtk.Window):
         self.set_default_size(window_config['width'], window_config['height'])
         # Keine Mindestgröße setzen
         self.set_size_request(-1, -1)
-                
-
-    
+                    
     def _setup_ui(self):
         """Erstellt die Benutzeroberfläche mithilfe einer FlowBox für automatische Umbrechung"""
         # Scrolled Window für vertikales Scrollen
@@ -548,18 +547,13 @@ class SoundboardWindow(Gtk.Window):
 def main():
     """Main-Funktion"""
     # Argument-Parser erstellen
-    parser = argparse.ArgumentParser(description='pySoundboard - Ein Soundboard mit GTK3')
+    parser = argparse.ArgumentParser(description='pySoundboard - Ein Soundboard für eine GTK3 Umgebung')
     parser.add_argument('--config', '-c', 
                        help='Pfad zur Konfigurationsdatei (Standard: config.json)',
                        default='config.json')
     
     # Argumente parsen
     args = parser.parse_args()
-    
-    # Prüfen, ob die Konfigurationsdatei existiert
-    if not os.path.exists(args.config):
-        print(f"Fehler: Konfigurationsdatei '{args.config}' nicht gefunden!")
-        return
     
     # Soundboard mit der angegebenen Konfigurationsdatei starten
     win = SoundboardWindow(config_file=args.config)
