@@ -63,7 +63,6 @@ class SoundButton(Gtk.Box):
         
         if not is_add_button:
             print(f"SoundButton '{self.button_config['text']}'")
-            print(f"SoundButton '{self.button_config['text']}'")
         
         # Widgets anzeigen
         self.show_all()
@@ -626,16 +625,12 @@ class SoundButton(Gtk.Box):
                 # Stelle sicher, dass der alte Timer gestoppt ist
                 self._remove_timer()
                 
-                ###################################################################################################################################
-                #    if response == Gtk.ResponseType.OK:
-                #        filename = dialog.get_filename()
-                #        filename_relative = Path(filename)
-                #        filename_relative = filename_relative.relative_to(Path.cwd())
-                #        entry.set_text(str(filename_relative)
-                ###################################################################################################################################
-
-                self.sound = pygame.mixer.Sound(self.button_config['audio_file'])
+                # Löse den relativen Pfad auf
+                audio_file = os.path.join(os.getcwd(), self.button_config['audio_file'])
+                print(f"Spiele Sound ab von: {audio_file}")
                 
+                self.sound = pygame.mixer.Sound(audio_file)
+
                 # Hole die aktuelle Lautstärke vom Slider (0-100) und konvertiere zu pygame-Lautstärke (0.0-1.0)
                 volume = self.volume_slider.get_value() / 100.0
                 self.sound.set_volume(volume)
