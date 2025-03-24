@@ -350,7 +350,7 @@ class SoundButton(Gtk.Box):
         
         # Entferne alte CSS-Klassen
         for class_name in button_style.list_classes():
-            button_style.remove_class(class_name.get_name())
+            button_style.remove_class(class_name)  # class_name ist bereits ein String
         
         # Theme-Farben extrahieren
         theme_colors = self.get_theme_colors()

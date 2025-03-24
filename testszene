@@ -55,7 +55,8 @@
             "use_custom_bg_color": true,
             "background_color": "#e01b24",
             "use_custom_text_color": false,
-            "text_color": "#000000"
+            "text_color": "#000000",
+            "volume": 65
         },
         {
             "position": 1,
@@ -71,7 +72,25 @@
             "use_custom_bg_color": true,
             "background_color": "#1c71d8",
             "use_custom_text_color": false,
-            "text_color": "#000000"
+            "text_color": "#000000",
+            "volume": 52
+        },
+        {
+            "position": 2,
+            "text": "Bells",
+            "audio_file": "sounds/Glocken/Bells.mp3",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": true,
+            "background_color": "#2ec27e",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "volume": 54
         }
     ]
 }
