@@ -1,0 +1,33 @@
+{
+    "window": {
+        "width": 163,
+        "height": 95,
+        "title": "Soundboardrootpfad: ."
+    },
+    "soundbutton": {
+        "button_width": 100,
+        "button_height": 75,
+        "volume_height": 100,
+        "volume_width": 15,
+        "spacing": 5,
+        "radius": 15,
+        "delete_button_size": 20,
+        "text_size": 13,
+        "background_color": "#CCCCCC",
+        "text_color": "#000000",
+        "text_x": 17,
+        "text_y": 20,
+        "volume_min": 0,
+        "volume_max": 100,
+        "volume_default": 50,
+        "control_buttons": {
+            "size": 25,
+            "spacing": 5,
+            "background_color": "#FFFFFF",
+            "border_color": "#000000",
+            "symbol_color": "#000000",
+            "border_width": 1
+        }
+    },
+    "buttons": []
+}
