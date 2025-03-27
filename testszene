@@ -1,7 +1,7 @@
 {
     "window": {
         "width": 456,
-        "height": 222,
+        "height": 271,
         "title": "Soundboardrootpfad: .",
         "soundpfad_prefix": ".",
         "imagepfad_prefix": "."
@@ -32,11 +32,11 @@
         },
         "text_align": "center",
         "line_breaks": true,
-        "use_custom_text_position": false,
+        "use_custom_text_position": true,
         "text_margin_top": 0,
         "text_margin_left": 0,
-        "use_global_text_color": true,
-        "use_global_bg_color": true,
+        "use_global_text_color": false,
+        "use_global_bg_color": false,
         "default_image_file": "",
         "use_default_image": false
     },
@@ -54,7 +54,7 @@
             "text_margin_left": 0,
             "use_custom_bg_color": true,
             "background_color": "#e01b24",
-            "use_custom_text_color": false,
+            "use_custom_text_color": true,
             "text_color": "#000000",
             "volume": 65
         },
@@ -71,7 +71,7 @@
             "text_margin_left": 0,
             "use_custom_bg_color": true,
             "background_color": "#1c71d8",
-            "use_custom_text_color": false,
+            "use_custom_text_color": true,
             "text_color": "#000000",
             "volume": 52
         },
@@ -88,9 +88,81 @@
             "text_margin_left": 0,
             "use_custom_bg_color": true,
             "background_color": "#2ec27e",
-            "use_custom_text_color": false,
+            "use_custom_text_color": true,
             "text_color": "#000000",
             "volume": 54
+        },
+        {
+            "position": 3,
+            "text": "Button 4",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": false,
+            "background_color": "#cccccc",
+            "use_custom_text_color": false,
+            "text_color": "#000000"
+        },
+        {
+            "position": 4,
+            "text": "Knarren",
+            "audio_file": "sounds/Knarren 6.wav",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": false,
+            "background_color": "#cccccc",
+            "use_custom_text_color": false,
+            "text_color": "#000000"
+        },
+        {
+            "position": 5,
+            "text": "Button 6",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": false,
+            "background_color": "#cccccc",
+            "use_custom_text_color": false,
+            "text_color": "#000000"
+        },
+        {
+            "position": 6,
+            "text": "Button 7",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
+        },
+        {
+            "position": 7,
+            "text": "Button 8",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": true,
+            "text_margin_top": 0,
+            "text_margin_left": 0
         }
     ]
 }
