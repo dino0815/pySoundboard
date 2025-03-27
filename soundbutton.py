@@ -618,23 +618,31 @@ class SoundButton(Gtk.Box):
                 if not pygame.mixer.get_init():
                     print("Initialisiere pygame.mixer in SoundButton")
                     pygame.mixer.init()
-                    
+                print("1", end=" ")    
                 if self.sound and self.is_playing:
                     self.stop_sound()
                 
+                print("2", end=" ")    
                 # Stelle sicher, dass der alte Timer gestoppt ist
                 self._remove_timer()
                 
+                print("3", end=" ")    
                 # Löse den relativen Pfad auf
                 audio_file = os.path.join(os.getcwd(), self.button_config['audio_file'])
                 print(f"Spiele Sound ab von: {audio_file}")
                 
+                print("4", end=" ")    
                 self.sound = pygame.mixer.Sound(audio_file)
 
+                print("5", end=" ")    
                 # Hole die aktuelle Lautstärke aus der Button-Konfiguration oder vom Slider
-                volume = self.button_config.get('volume', self.volume_slider.get_value()) / 100.0
-                self.sound.set_volume(volume)
+                volume = self.button_config.get('volume', self.volume_slider.get_value())
+                if volume is None:  # Fallback auf Standardwert
+                    volume = self.config['soundbutton']['volume_default']
+                #self.sound.set_volume(volume / 100.0)  # Konvertiere zu 0.0-1.0
+                self.sound.set_volume(volume)  # Konvertiere zu 0.0-1.0
                 
+                print("6", end=" ")    
                 # Überprüfe ob Endlosschleife aktiviert ist
                 if self.button_config.get('loop', False):
                     self.sound.play(-1)  # -1 bedeutet Endlosschleife
@@ -647,7 +655,8 @@ class SoundButton(Gtk.Box):
                     if channel and hasattr(pygame.mixer, 'Channel'):
                         # Überprüfe periodisch, ob der Sound fertig ist
                         GLib.timeout_add(100, self._check_sound_finished, channel)
-                
+
+                print("7", end=" ")    
                 self.is_playing = True
                 
                 # Starte Fade-in
