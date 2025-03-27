@@ -37,46 +37,94 @@
             "volume": 63,
             "text": "Knarren",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/example.mp3",
-            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png"
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Gro\u00dferKnochen.png",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
         },
         {
             "position": 1,
             "volume": 48,
             "text": "Schritte",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Schritte/Schritte im Schnee.ogg",
-            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png"
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/Jonas_Favicon.png",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
         },
         {
             "position": 2,
             "volume": 22,
             "text": "Glocken",
             "audio_file": "/home/dino/Dokumente/coding/pySoundboard/sounds/Glocken/Bells.mp3",
-            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png"
+            "image_file": "/home/dino/Dokumente/coding/pySoundboard/images/StevesGalaxy.png",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
         },
         {
             "position": 3,
             "volume": 50,
-            "text": "Button 14"
+            "text": "Button 14",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": false,
+            "background_color": "#cc0000",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "loop": false
         },
         {
             "position": 4,
             "volume": 50,
-            "text": "Button 14"
+            "text": "Button 14",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false,
+            "text_margin_top": 0,
+            "text_margin_left": 0,
+            "use_custom_bg_color": false,
+            "background_color": "#097479",
+            "use_custom_text_color": false,
+            "text_color": "#000000",
+            "loop": false
         },
         {
             "position": 5,
             "volume": 50,
-            "text": "Button 14"
+            "text": "Button 14",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
         },
         {
             "position": 6,
             "volume": 50,
-            "text": "Button 14"
+            "text": "Button 14",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
         },
         {
             "position": 7,
             "volume": 50,
-            "text": "Button 8"
+            "text": "Button 8",
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
+        },
+        {
+            "position": 8,
+            "text": "Button 9",
+            "audio_file": "",
+            "image_file": "",
+            "loop": false,
+            "line_breaks": true,
+            "text_align": "center",
+            "use_custom_text_position": false
         }
     ]
 }

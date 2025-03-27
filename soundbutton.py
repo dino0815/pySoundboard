@@ -10,8 +10,8 @@ from settings_dialog import SettingsDialog
 
 class SoundButton(Gtk.Box):
     def __init__(self, position=0, config=None, on_delete=None, is_add_button=False):
-        print(f"SoundButton.__init__:position={position}, on_delete={on_delete}, is_add_button={is_add_button}")
-        print(f"config={config}")
+        #print(f"SoundButton.__init__:position={position}, on_delete={on_delete}, is_add_button={is_add_button}")
+        #print(f"config={config}")
         if config is None:
             raise ValueError("Keine Konfiguration übergeben. SoundButton benötigt eine gültige Konfiguration.")
         
@@ -69,20 +69,20 @@ class SoundButton(Gtk.Box):
     
     def _setup_ui(self):
         """Erstellt die Benutzeroberfläche mit einem normalen Button statt DrawingArea"""
-        sb_config = self.config['soundbutton']
+        button_config = self.config['soundbutton']
         
         # Container für Button und Regler
         self.button_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.button_container.set_size_request(sb_config['button_width'], sb_config['button_height'])
+        self.button_container.set_size_request(button_config['button_width'], button_config['button_height'])
         
         # Container für den Button
         self.button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.button_box.set_size_request(sb_config['button_width'], sb_config['button_height'])
+        self.button_box.set_size_request(button_config['button_width'], button_config['button_height'])
         
         # Erstelle einen normalen Button
-        button_width = sb_config['button_width']
+        button_width = button_config['button_width']
         self.button = Gtk.Button()
-        self.button.set_size_request(button_width, sb_config['button_height'])
+        self.button.set_size_request(button_width, button_config['button_height'])
         
         # Setze den Text auf dem Button
         if self.is_add_button:
@@ -105,7 +105,7 @@ class SoundButton(Gtk.Box):
             # Aktiviere Zeilenumbrüche im Label - verwende individuelle oder globale Einstellung
             line_breaks = self.button_config.get('line_breaks')
             if line_breaks is None:  # Wenn nicht gesetzt, verwende globale Einstellung
-                line_breaks = sb_config.get('line_breaks', True)
+                line_breaks = button_config.get('line_breaks', True)
                 self.button_config['line_breaks'] = line_breaks
             
             self.label.set_line_wrap(line_breaks)
@@ -114,7 +114,7 @@ class SoundButton(Gtk.Box):
             # Textausrichtung gemäß individueller oder globaler Konfiguration
             text_align = self.button_config.get('text_align')
             if text_align is None or text_align == "":  # Wenn nicht gesetzt, verwende globale Einstellung
-                text_align = sb_config.get('text_align', 'center')
+                text_align = button_config.get('text_align', 'center')
                 self.button_config['text_align'] = text_align
             
             if text_align == 'left':
@@ -131,7 +131,7 @@ class SoundButton(Gtk.Box):
             # Prüfen, ob individuelle Textposition verwendet werden soll
             use_custom_position = self.button_config.get('use_custom_text_position')
             if use_custom_position is None:  # Wenn nicht gesetzt, verwende globale Einstellung
-                use_custom_position = sb_config.get('use_custom_text_position', False)
+                use_custom_position = button_config.get('use_custom_text_position', False)
                 self.button_config['use_custom_text_position'] = use_custom_position
             
             # Zurücksetzen aller Margins
@@ -145,12 +145,12 @@ class SoundButton(Gtk.Box):
                 # Position von der oberen linken Ecke - verwende individuelle oder globale Werte
                 margin_top = self.button_config.get('text_margin_top')
                 if margin_top is None:
-                    margin_top = sb_config.get('text_margin_top', 0)
+                    margin_top = button_config.get('text_margin_top', 0)
                     self.button_config['text_margin_top'] = margin_top
                 
                 margin_left = self.button_config.get('text_margin_left')
                 if margin_left is None:
-                    margin_left = sb_config.get('text_margin_left', 0)
+                    margin_left = button_config.get('text_margin_left', 0)
                     self.button_config['text_margin_left'] = margin_left
                 
                 # Setze Margins für die Position
@@ -191,7 +191,7 @@ class SoundButton(Gtk.Box):
             self.overlay.add(self.button_container)
             
             # Lautstärkeregler erstellen
-            self._create_volume_slider(sb_config)
+            self._create_volume_slider(button_config)
             
             # Lautstärkeregler rechts positionieren
             self.volume_container.set_halign(Gtk.Align.END)
@@ -211,17 +211,17 @@ class SoundButton(Gtk.Box):
         self.set_hexpand(True)
         self.set_vexpand(False)
     
-    def _create_volume_slider(self, sb_config):
+    def _create_volume_slider(self, button_config):
         """Erstellt den Lautstärkeregler"""
         self.volume_slider = Gtk.Scale(orientation=Gtk.Orientation.VERTICAL)
         # Verwende nun volume_min und volume_max
-        self.volume_slider.set_range(sb_config['volume_min'], sb_config['volume_max'])
-        self.volume_slider.set_value(int(self.get_button_config().get('volume', sb_config['volume_default'])))
+        self.volume_slider.set_range(button_config['volume_min'], button_config['volume_max'])
+        self.volume_slider.set_value(int(self.get_button_config().get('volume', button_config['volume_default'])))
         self.volume_slider.set_draw_value(False)  # Zeige den Wert NICHT an
         self.volume_slider.set_digits(0)  # Keine Dezimalstellen
         self.volume_slider.set_vexpand(True)  # Nutze die gesamte verfügbare Höhe
         self.volume_slider.set_hexpand(False)
-        self.volume_slider.set_size_request(sb_config['volume_width'], sb_config['button_height'] - 20)
+        self.volume_slider.set_size_request(button_config['volume_width'], button_config['button_height'] - 20)
         self.volume_slider.set_inverted(True)
         
         # Reduziere den Abstand zum Rand, damit mehr Höhe für den Schieberegler bleibt
@@ -233,16 +233,16 @@ class SoundButton(Gtk.Box):
         self.volume_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.volume_container.set_vexpand(True)  # Nutze die gesamte verfügbare Höhe
         self.volume_container.set_hexpand(False)
-        self.volume_container.set_size_request(sb_config['volume_width'], sb_config['button_height'])
+        self.volume_container.set_size_request(button_config['volume_width'], button_config['button_height'])
         self.volume_container.pack_start(self.volume_slider, True, True, 0)  # True für expand und fill
     
     def get_button_config(self):
         """Lädt die Button-spezifische Konfiguration"""
-        sb_config = self.config['soundbutton']
+        button_config = self.config['soundbutton']
         if self.position >= len(self.config.get('buttons', [])):
             return {
                 'position': self.position,
-                'volume': sb_config['volume_default'],
+                'volume': button_config['volume_default'],
                 'text': f"Button {self.position + 1}"
             }
         
@@ -253,7 +253,7 @@ class SoundButton(Gtk.Box):
         
         return {
             'position': self.position,
-            'volume': sb_config['volume_default'],
+            'volume': button_config['volume_default'],
             'text': f"Button {self.position + 1}"
         }
     
@@ -344,7 +344,7 @@ class SoundButton(Gtk.Box):
     
     def _apply_css_style(self):
         """Wendet CSS-Styling auf den Button an"""
-        sb_config = self.config['soundbutton']
+        button_config = self.config['soundbutton']
         button_style = self.button.get_style_context()
         
         # Entferne alte CSS-Klassen
@@ -355,12 +355,12 @@ class SoundButton(Gtk.Box):
         theme_colors = self.get_theme_colors()
         
         # Einstellungen für Farbe und Bild
-        global_bg_color = sb_config.get('background_color', '#cccccc')
-        global_text_color = sb_config.get('text_color', '#000000')
-        use_global_bg_color = sb_config.get('use_global_bg_color', True)
-        use_global_text_color = sb_config.get('use_global_text_color', True)
-        use_default_image = sb_config.get('use_default_image', False)
-        default_image_file = sb_config.get('default_image_file', "")
+        global_bg_color = button_config.get('background_color', '#cccccc')
+        global_text_color = button_config.get('text_color', '#000000')
+        use_global_bg_color = button_config.get('use_global_bg_color', True)
+        use_global_text_color = button_config.get('use_global_text_color', True)
+        use_default_image = button_config.get('use_default_image', False)
+        default_image_file = button_config.get('default_image_file', "")
         
         # Prüfe, ob benutzerdefinierte Farben für diesen Button gesetzt sind
         use_custom_bg = self.button_config.get('use_custom_bg_color', False)
@@ -631,12 +631,12 @@ class SoundButton(Gtk.Box):
                 
                 self.sound = pygame.mixer.Sound(audio_file)
 
-                # Hole die aktuelle Lautstärke vom Slider (0-100) und konvertiere zu pygame-Lautstärke (0.0-1.0)
-                volume = self.volume_slider.get_value() / 100.0
+                # Hole die aktuelle Lautstärke aus der Button-Konfiguration oder vom Slider
+                volume = self.button_config.get('volume', self.volume_slider.get_value()) / 100.0
                 self.sound.set_volume(volume)
                 
                 # Überprüfe ob Endlosschleife aktiviert ist
-                if  self.button_config.get('loop', False):
+                if self.button_config.get('loop', False):
                     self.sound.play(-1)  # -1 bedeutet Endlosschleife
                     self.is_looping = True
                 else:
@@ -869,7 +869,7 @@ class SoundButton(Gtk.Box):
             print(f"Aktualisiere Button {self.position} nach Einstellungsänderung (vollständige Neuzeichnung)")
             
             # Komplette Neuinitialisierung des Buttons
-            sb_config = self.config['soundbutton']
+            button_config = self.config['soundbutton']
             
             # 1. Entferne alle Widgets vom Button-Container
             for child in self.get_children():
@@ -878,16 +878,16 @@ class SoundButton(Gtk.Box):
             # 2. Erstelle den Button komplett neu
             # Container für Button und Regler
             self.button_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self.button_container.set_size_request(sb_config['button_width'], sb_config['button_height'])
+            self.button_container.set_size_request(button_config['button_width'], button_config['button_height'])
             
             # Container für den Button
             self.button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-            self.button_box.set_size_request(sb_config['button_width'], sb_config['button_height'])
+            self.button_box.set_size_request(button_config['button_width'], button_config['button_height'])
             
             # Erstelle einen normalen Button
-            button_width = sb_config['button_width']
+            button_width = button_config['button_width']
             self.button = Gtk.Button()
-            self.button.set_size_request(button_width, sb_config['button_height'])
+            self.button.set_size_request(button_width, button_config['button_height'])
             
             # Anstatt direkt das Label zu setzen, erstellen wir ein Label-Widget,
             # das Zeilenumbrüche unterstützt
@@ -907,7 +907,7 @@ class SoundButton(Gtk.Box):
             # Aktiviere Zeilenumbrüche im Label - verwende individuelle oder globale Einstellung
             line_breaks = self.button_config.get('line_breaks')
             if line_breaks is None:  # Wenn nicht gesetzt, verwende globale Einstellung
-                line_breaks = sb_config.get('line_breaks', True)
+                line_breaks = button_config.get('line_breaks', True)
                 self.button_config['line_breaks'] = line_breaks
             
             self.label.set_line_wrap(line_breaks)
@@ -917,7 +917,7 @@ class SoundButton(Gtk.Box):
             # Textausrichtung gemäß individueller oder globaler Konfiguration
             text_align = self.button_config.get('text_align')
             if text_align is None or text_align == "":  # Wenn nicht gesetzt, verwende globale Einstellung
-                text_align = sb_config.get('text_align', 'center')
+                text_align = button_config.get('text_align', 'center')
                 self.button_config['text_align'] = text_align
             
             if text_align == 'left':
@@ -935,7 +935,7 @@ class SoundButton(Gtk.Box):
             # Prüfen, ob individuelle Textposition verwendet werden soll
             use_custom_position = self.button_config.get('use_custom_text_position')
             if use_custom_position is None:  # Wenn nicht gesetzt, verwende globale Einstellung
-                use_custom_position = sb_config.get('use_custom_text_position', False)
+                use_custom_position = button_config.get('use_custom_text_position', False)
                 self.button_config['use_custom_text_position'] = use_custom_position
             
             # Zurücksetzen aller Margins
@@ -949,12 +949,12 @@ class SoundButton(Gtk.Box):
                 # Position von der oberen linken Ecke - verwende individuelle oder globale Werte
                 margin_top = self.button_config.get('text_margin_top')
                 if margin_top is None:
-                    margin_top = sb_config.get('text_margin_top', 0)
+                    margin_top = button_config.get('text_margin_top', 0)
                     self.button_config['text_margin_top'] = margin_top
                 
                 margin_left = self.button_config.get('text_margin_left')
                 if margin_left is None:
-                    margin_left = sb_config.get('text_margin_left', 0)
+                    margin_left = button_config.get('text_margin_left', 0)
                     self.button_config['text_margin_left'] = margin_left
                 
                 # Setze Margins für die Position
@@ -994,7 +994,7 @@ class SoundButton(Gtk.Box):
             self.overlay.add(self.button_container)
             
             # Lautstärkeregler erstellen
-            self._create_volume_slider(sb_config)
+            self._create_volume_slider(button_config)
             
             # Lautstärkeregler rechts positionieren
             self.volume_container.set_halign(Gtk.Align.END)

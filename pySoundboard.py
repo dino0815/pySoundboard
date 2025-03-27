@@ -138,7 +138,7 @@ class SoundboardWindow(Gtk.Window):
         scrolled.add(main_box)
                 
         # Feste Abstände zwischen den Buttons
-        sb_config = self.config['soundbutton']
+        button_config = self.config['soundbutton']
 
         # FlowBox konfigurieren für automatische Anordnung
         self.flowbox = Gtk.FlowBox()                            # FlowBox erstellen
@@ -149,12 +149,12 @@ class SoundboardWindow(Gtk.Window):
         self.flowbox.set_selection_mode(Gtk.SelectionMode.NONE) # Keine Auswahl möglich
         self.flowbox.set_min_children_per_line(1)               # Mindestens 1 Button pro Zeile
         self.flowbox.set_max_children_per_line(20)              # Höchstens 20 Buttons pro Zeile
-        self.flowbox.set_row_spacing(sb_config['spacing'])      # Abstand zwischen den Zeilen
-        self.flowbox.set_column_spacing(sb_config['spacing'])   # Abstand zwischen den Spalten
-        self.flowbox.set_margin_start(sb_config['spacing'])     # Abstand zum linken Rand
-        self.flowbox.set_margin_end(sb_config['spacing'])       # Abstand zum rechten Rand
-        self.flowbox.set_margin_top(sb_config['spacing'])       # Abstand zum oberen Rand
-        self.flowbox.set_margin_bottom(sb_config['spacing'])    # Abstand zum unteren Rand
+        self.flowbox.set_row_spacing(button_config['spacing'])      # Abstand zwischen den Zeilen
+        self.flowbox.set_column_spacing(button_config['spacing'])   # Abstand zwischen den Spalten
+        self.flowbox.set_margin_start(button_config['spacing'])     # Abstand zum linken Rand
+        self.flowbox.set_margin_end(button_config['spacing'])       # Abstand zum rechten Rand
+        self.flowbox.set_margin_top(button_config['spacing'])       # Abstand zum oberen Rand
+        self.flowbox.set_margin_bottom(button_config['spacing'])    # Abstand zum unteren Rand
         
         # Event für Klicks auf den Hintergrund der FlowBox
         event_box = Gtk.EventBox()                              # EventBox erstellen
@@ -545,13 +545,13 @@ class SoundboardWindow(Gtk.Window):
                 self.config['soundbutton']['use_global_text_color'] = True # Standardwert setzen
             
             # Aktualisieren Sie die FlowBox-Abstände
-            sb_config = self.config['soundbutton']                # Konfiguration nehmen
-            self.flowbox.set_row_spacing(sb_config['spacing'])    # Abstand zwischen den Zeilen setzen
-            self.flowbox.set_column_spacing(sb_config['spacing']) # Abstand zwischen den Spalten setzen
-            self.flowbox.set_margin_start(sb_config['spacing'])   # Abstand zum linken Rand setzen
-            self.flowbox.set_margin_end(sb_config['spacing'])     # Abstand zum rechten Rand setzen
-            self.flowbox.set_margin_top(sb_config['spacing'])     # Abstand zum oberen Rand setzen
-            self.flowbox.set_margin_bottom(sb_config['spacing'])  # Abstand zum unteren Rand setzen
+            button_config = self.config['soundbutton']                # Konfiguration nehmen
+            self.flowbox.set_row_spacing(button_config['spacing'])    # Abstand zwischen den Zeilen setzen
+            self.flowbox.set_column_spacing(button_config['spacing']) # Abstand zwischen den Spalten setzen
+            self.flowbox.set_margin_start(button_config['spacing'])   # Abstand zum linken Rand setzen
+            self.flowbox.set_margin_end(button_config['spacing'])     # Abstand zum rechten Rand setzen
+            self.flowbox.set_margin_top(button_config['spacing'])     # Abstand zum oberen Rand setzen
+            self.flowbox.set_margin_bottom(button_config['spacing'])  # Abstand zum unteren Rand setzen
             
             # Aktualisieren Sie alle Buttons, um die neuen globalen Einstellungen anzuwenden
             self.update_all_buttons()                             # Buttons aktualisieren
