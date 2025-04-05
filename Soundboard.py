@@ -124,24 +124,52 @@ class Soundboard(Gtk.Window):
         keyval = event.keyval                                # Tastaturwert nehmen
         keyname = Gdk.keyval_name(keyval)                    # Tastaturname nehmen
         ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) # Strg-Taste prüfen
+        shift = (event.state & Gdk.ModifierType.SHIFT_MASK)  # Shift-Taste prüfen
+        #alt = (event.state & Gdk.ModifierType.ALT_MASK)     # Alt-Taste prüfen gibt es nicht
+        alt = (event.state & Gdk.ModifierType.MOD1_MASK)     # Alt-Taste prüfen
+        mod2 = (event.state & Gdk.ModifierType.MOD2_MASK)     # Alt-Taste prüfen
+        mod3 = (event.state & Gdk.ModifierType.MOD3_MASK)     # Alt-Taste prüfen
+        super = (event.state & Gdk.ModifierType.SUPER_MASK) # Super-Taste prüfen
+        lock = (event.state & Gdk.ModifierType.LOCK_MASK)   # Lock-Taste prüfen
+        hyper = (event.state & Gdk.ModifierType.HYPER_MASK) # Hyper-Taste prüfen
+        meta = (event.state & Gdk.ModifierType.META_MASK)   # Meta-Taste prüfen
+        num = (event.state & Gdk.ModifierType.LOCK_MASK) # Num-Taste prüfen
         
-        if keyname == 'Escape':                              # Escape-Taste: Fenster schließen
-            self.config.save_config()                        # Konfiguration speichern
-            self.destroy()                                   # Fenster schließen
-            return True                                      # keine Weitergabe an andere Handler
+        # Debug-Ausgabe für alle Tastenkombinationen
+        #print(f"Taste gedrückt: {keyname}, \nStrg:  {ctrl}, \nShift: {shift}, \nSuper: {super}, \nLock:  {lock}, \nHyper: {hyper}, \nMeta:  {meta}, \nNum:   {num}, \nMod1/Alt:  {alt}, \nMod2:  {mod2}, \nMod3:  {mod3}")
+        """
+        print(f"Taste gedrückt: {keyname}", end="")
+        if alt: print("+Alt", end="")
+        if ctrl: print("+Strg", end="")
+        if shift: print("+Shift", end="")
+        if super: print("+Super", end="")
+        if lock: print("+Lock", end="")
+        if hyper: print("Hyper gedrückt", end="")
+        if meta: print("+Meta", end="")
+        if num: print("+Num", end="")
+        print(" ")
+        """
+
+        #if keyname == 'Escape':                               # Escape-Taste: Fenster schließen
+        if ctrl and keyname == 'q':                            # Strg+Q: Fenster schließen
+            self.config.save_config()                         # Konfiguration speichern
+            self.destroy()                                    # Fenster schließen
+            return True                                       # keine Weitergabe an andere Handler
         
-        if keyname == 'F5':                                  # F5-Taste: Fenster neuzeichnen
-            #self.flowbox.queue_resize()                      # FlowBox neu anpassen
-            #self.flowbox.queue_draw()                        # FlowBox neu zeichnen        
-            #self.default_button.apply_base_css()
-            #self.on_theme_changed(Gtk.Settings.get_default())
-            return True                                      # keine Weitergabe an andere Handler
+        #if keyname == 'F5':                                  # F5-Taste: Fenster neuzeichnen
+        #    return True                                      # keine Weitergabe an andere Handler
         
-        if ctrl and keyname == 's':                          # Strg+S: Konfiguration speichern
-            self.config.save_config()                        # Konfiguration speichern
-            print("Konfiguration manuell gespeichert!")      # Nachricht ausgeben
-            return True                                      # True zurückgeben           
-        return False                                         # Weitergabe an andere Handler
+        if ctrl and shift and keyname == 'S':                  # Strg+Shift+S: Konfiguration unter neuem Namen speichern
+            print("Konfiguration unter neuem Namen speichern")
+            self.config.save_config_as_dialog(self)            # Öffne den Dialog zum Speichern unter einem neuen Namen
+            return True                                        # keine Weitergabe an andere Handler
+
+        if ctrl and keyname == 's':                            # Strg+S: Konfiguration speichern
+            print("Konfiguration gespeichert")
+            self.config.save_config()                          # Konfiguration speichern
+            return True                                        # keine Weitergabe an andere Handler
+        
+        return False                                           # Weitergabe an andere Handler
     
     ########################################################################################################
     def on_window_configure(self, widget, event):
@@ -217,6 +245,11 @@ class Soundboard(Gtk.Window):
             button.delete_button()
             return True
         return False
+
+    ########################################################################################################
+    def on_save_config_as(self):
+        """Öffnet einen Dateiauswahldialog zum Speichern der Konfiguration unter einem neuen Namen"""
+        self.config.save_config_as_dialog(self)
 
 ############################################################################################################
 if len(sys.argv) > 1:

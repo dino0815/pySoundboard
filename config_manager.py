@@ -116,6 +116,76 @@ class ConfigManager:
             json.dump(self.data, f, indent=4)
 
     ###################################################################################################################################
+    def save_config_as(self, new_config_file):
+        """Speichert die aktuelle Konfiguration unter einem neuen Dateinamen"""
+        self.config_file = new_config_file
+        self.save_config()
+        return True
+
+    ###################################################################################################################################
+    def save_config_as_dialog(self, parent_window):
+        """Öffnet einen Dateiauswahldialog zum Speichern der Konfiguration unter einem neuen Namen"""
+        import gi
+        gi.require_version('Gtk', '3.0')
+        from gi.repository import Gtk
+        
+        print("Öffne Dateiauswahldialog...")
+        
+        try:
+            dialog = Gtk.FileChooserDialog(
+                title="Konfiguration speichern unter",
+                parent=parent_window,
+                action=Gtk.FileChooserAction.SAVE
+            )
+            
+            # Filter für JSON-Dateien
+            filter_json = Gtk.FileFilter()
+            filter_json.set_name("JSON-Dateien")
+            filter_json.add_mime_type("application/json")
+            filter_json.add_pattern("*.json")
+            dialog.add_filter(filter_json)
+            
+            # Aktuelle Konfigurationsdatei als Vorschlag setzen
+            if self.config_file:
+                dialog.set_filename(self.config_file)
+            
+            dialog.add_buttons(
+                Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK
+            )
+            dialog.set_modal(True)             # Stelle sicher, dass der Dialog modal ist
+            dialog.show_all()                   # Zeige den Dialog an
+            #print("Dialog wird angezeigt...")
+            response = dialog.run()
+            #print(f"Dialog-Antwort: {response}")
+            if response == Gtk.ResponseType.OK:
+                new_config_file = dialog.get_filename()
+                #print(f"Ausgewählte Datei: {new_config_file}")
+                
+                # Stelle sicher, dass die Datei die Endung .json hat
+                if not new_config_file.endswith('.json'):
+                    new_config_file += '.json'
+                    #print(f"Dateiendung hinzugefügt: {new_config_file}")
+                
+                # Speichere die Konfiguration unter dem neuen Namen
+                if self.save_config_as(new_config_file):
+                    print(f"Konfiguration wurde unter '{new_config_file}' gespeichert")
+                    dialog.destroy()
+                    return True
+                else:
+                    print(f"Fehler beim Speichern der Konfiguration unter '{new_config_file}'")
+                    dialog.destroy()
+                    return False
+            
+            dialog.destroy()
+            return False
+        except Exception as e:
+            print(f"Fehler im save_config_as_dialog: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    ###################################################################################################################################
     def add_minimal_button(self):
         """Fügt einen minimalen Button zur Konfiguration hinzu"""
         new_position = len(self.data['buttons'])              # Bestimme die neue Position basierend auf der Länge der Liste
