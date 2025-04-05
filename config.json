@@ -1,8 +1,8 @@
 {
     "Window": {
         "title": "Soundboard",
-        "window_width": 745,
-        "window_height": 454
+        "window_width": 709,
+        "window_height": 266
     },
     "buttons": [
         {
@@ -35,25 +35,31 @@
         {
             "position": 1,
             "text": "Minimal\nButton",
-            "volume": 50,
+            "volume": 88,
             "background_color": "#1a5fb4",
             "use_custom_bg_color": true,
             "audio_file": "Knarren/Knarren 9.wav",
-            "loop": true
+            "loop": true,
+            "image_file": "StevesGalaxy.png"
         },
         {
             "position": 2,
             "text": "Minimal\nButton",
-            "volume": 50,
+            "volume": 42,
             "audio_file": "example.mp3",
             "image_file": "Gro\u00dferKnochen.png"
         },
         {
             "position": 3,
             "text": "Minimal\nButton",
-            "volume": 50,
+            "volume": 4,
             "background_color": "#a51d2d",
-            "use_custom_bg_color": true
+            "use_custom_bg_color": false
+        },
+        {
+            "position": 4,
+            "text": "Minimal\nButton",
+            "volume": 82
         }
     ]
 }

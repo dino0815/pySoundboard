@@ -314,9 +314,11 @@ class Soundbutton(Gtk.EventBox):
     def on_volume_changed(self, scale):
         """Handler für Lautstärkeänderungen"""
         volume = scale.get_value()
+        # Runde den Volumenwert auf eine Ganzzahl
+        volume_int = int(round(volume))
         if self.sound:
-            self.sound.set_volume(volume / 100.0)
-        self.button_config['volume'] = volume # Speichere den neuen Wert in der Konfiguration
+            self.sound.set_volume(volume_int / 100.0)
+        self.button_config['volume'] = volume_int # Speichere den gerundeten Wert in der Konfiguration
 
     #########################################################################################################
     def activate_button(self):
@@ -406,7 +408,10 @@ class Soundbutton(Gtk.EventBox):
         menu = Gtk.Menu()
         
         # Menüeintrag "Sounddatei auswählen"
-        item1 = Gtk.MenuItem(label="Sounddatei auswählen")
+        if self.button_config.get('audio_file', '') != '':
+            item1 = Gtk.MenuItem(label="Sounddatei ändern")
+        else:
+            item1 = Gtk.MenuItem(label="Sounddatei auswählen")
         item1.connect("activate", self.on_select_sound)
         menu.append(item1)
         
@@ -459,8 +464,8 @@ class Soundbutton(Gtk.EventBox):
             item8.connect("activate", self.on_add_image)
             menu.append(item8)
         
-        # Menüeintrag "Move Button"
-        item10 = Gtk.MenuItem(label="Move Button")
+        # Menüeintrag "Button verschieben"
+        item10 = Gtk.MenuItem(label="Button verschieben")
         item10.connect("activate", self.on_move_button)
         menu.append(item10)
         
