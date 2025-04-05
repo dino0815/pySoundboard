@@ -73,13 +73,15 @@ class Soundbutton(Gtk.EventBox):
         self.status_icon.set_valign(Gtk.Align.START)  # Box-Ausrichtung: oben
         hbox.pack_start(self.status_icon, False, False, 0)  # Füge den Slider zur horizontalen Box hinzu
         self.status_icon.set_margin_top(5)
-        self.status_icon.get_style_context().add_class("status-icon")
+        #self.status_icon.get_style_context().add_class("status-icon")
         #self.status_icon.set_margin_top(self.default_button['text_y'])
         #self.status_icon.set_margin_end(5)
         self.status_icon.set_text("∞")
         #self.status_icon.set_text("🔊")
         #self.status_icon.set_text("")
 
+       # Initialisiere das Status-Icon basierend auf den Button-Eigenschaften
+        self.update_status_icon()
 
         # Erstelle einen Slider (Gtk.Scale)
         self.volume = Gtk.Scale.new_with_range(Gtk.Orientation.VERTICAL, 0, 100, 1)
@@ -535,6 +537,7 @@ class Soundbutton(Gtk.EventBox):
                 self.sound = pygame.mixer.Sound(full_path)
                 self.sound.set_volume(self.button_config['volume'] / 100.0)
                 print(f"Neuer Sound geladen: {rel_path}")
+                self.update_status_icon()                 # Aktualisiere das Status-Icon
             except Exception as e:
                 print(f"Fehler beim Laden des Sounds: {e}")
         
@@ -546,6 +549,7 @@ class Soundbutton(Gtk.EventBox):
         """Schaltet die Endlosschleife ein oder aus"""
         self.button_config['loop'] = not self.button_config.get('loop', False)
         print(f"Endlos wiederholen: {'Ein' if self.button_config['loop'] else 'Aus'}")
+        self.update_status_icon()                 # Aktualisiere das Status-Icon
         # Menü explizit schließen
         menu = widget.get_parent()
         menu.popdown()
@@ -831,3 +835,13 @@ class Soundbutton(Gtk.EventBox):
         
         # Menü schließen
         widget.get_parent().popdown()
+
+    #########################################################################################################
+    def update_status_icon(self):
+        """Aktualisiert das Status-Icon basierend auf den Button-Eigenschaften"""
+        if self.button_config.get('audio_file', '') == '':
+            self.status_icon.set_text("🔇")
+        elif self.button_config.get('loop', False):
+            self.status_icon.set_text("∞")
+        else:
+            self.status_icon.set_text("") # oder 🔊
