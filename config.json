@@ -35,6 +35,23 @@
         {
             "position": 1,
             "text": "Minimal\nButton",
+            "volume": 42,
+            "audio_file": "example.mp3",
+            "image_file": "Gro\u00dferKnochen.png"
+        },
+        {
+            "position": 2,
+            "text": "Minimal\nButton",
+            "volume": 82
+        },
+        {
+            "position": 3,
+            "text": "Minimal\nButton",
+            "volume": 50
+        },
+        {
+            "position": 4,
+            "text": "Minimal\nButton",
             "volume": 88,
             "background_color": "#1a5fb4",
             "use_custom_bg_color": true,
@@ -43,28 +60,11 @@
             "image_file": "StevesGalaxy.png"
         },
         {
-            "position": 2,
-            "text": "Minimal\nButton",
-            "volume": 42,
-            "audio_file": "example.mp3",
-            "image_file": "Gro\u00dferKnochen.png"
-        },
-        {
-            "position": 3,
-            "text": "Minimal\nButton",
+            "position": 5,
+            "text": "Minimal\nButton2to12",
             "volume": 4,
             "background_color": "#a51d2d",
             "use_custom_bg_color": false
-        },
-        {
-            "position": 4,
-            "text": "Minimal\nButton",
-            "volume": 82
-        },
-        {
-            "position": 5,
-            "text": "Minimal\nButton",
-            "volume": 50
         }
     ]
 }

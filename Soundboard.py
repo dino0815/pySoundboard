@@ -75,7 +75,7 @@ class Soundboard(Gtk.Window):
     def on_background_click(self, window, event):
         """ Diese Funktion wird nur bei Rechtsklick auf den Hintergrund ausgeführt """
         if event.button == 3:  # Nur bei Rechtsklick
-            print("--- Hintergrund Rechtsklick ---")
+            #print("--- Hintergrund Rechtsklick ---")
             self.open_kontextmenu(event)  # Öffne das Kontextmenü
             return True  # Event wurde behandelt
         return False  # Bei Linksklick: Event ignorieren
@@ -105,18 +105,12 @@ class Soundboard(Gtk.Window):
     ########################################################################################################
     def on_add_button(self, widget):
         """Fügt einen neuen Button am Ende der Liste hinzu"""
-        # Füge einen minimalen Button zur Konfiguration hinzu
-        new_position = self.config.add_minimal_button()
-        
+        new_position = self.config.add_minimal_button() # Füge einen minimalen Button zur Konfiguration hinzu      
         # Erstelle den neuen Button und füge ihn zur FlowBox hinzu
         new_button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=self.config.data['buttons'][new_position])
-        self.flowbox.add(new_button)
-        
-        # Aktualisiere die Anzeige
-        self.flowbox.show_all()
-        
-        # Menü schließen
-        widget.get_parent().popdown()
+        self.flowbox.add(new_button) 
+        self.flowbox.show_all()                         # Aktualisiere die Anzeige
+        widget.get_parent().popdown()                   # Menü schließen
 
     ########################################################################################################
     def on_key_press(self, widget, event):
@@ -125,19 +119,8 @@ class Soundboard(Gtk.Window):
         keyname = Gdk.keyval_name(keyval)                    # Tastaturname nehmen
         ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) # Strg-Taste prüfen
         shift = (event.state & Gdk.ModifierType.SHIFT_MASK)  # Shift-Taste prüfen
-        #alt = (event.state & Gdk.ModifierType.ALT_MASK)     # Alt-Taste prüfen gibt es nicht
         alt = (event.state & Gdk.ModifierType.MOD1_MASK)     # Alt-Taste prüfen
-        mod2 = (event.state & Gdk.ModifierType.MOD2_MASK)     # Alt-Taste prüfen
-        mod3 = (event.state & Gdk.ModifierType.MOD3_MASK)     # Alt-Taste prüfen
-        super = (event.state & Gdk.ModifierType.SUPER_MASK) # Super-Taste prüfen
-        lock = (event.state & Gdk.ModifierType.LOCK_MASK)   # Lock-Taste prüfen
-        hyper = (event.state & Gdk.ModifierType.HYPER_MASK) # Hyper-Taste prüfen
-        meta = (event.state & Gdk.ModifierType.META_MASK)   # Meta-Taste prüfen
-        num = (event.state & Gdk.ModifierType.LOCK_MASK) # Num-Taste prüfen
-        
-        # Debug-Ausgabe für alle Tastenkombinationen
-        #print(f"Taste gedrückt: {keyname}, \nStrg:  {ctrl}, \nShift: {shift}, \nSuper: {super}, \nLock:  {lock}, \nHyper: {hyper}, \nMeta:  {meta}, \nNum:   {num}, \nMod1/Alt:  {alt}, \nMod2:  {mod2}, \nMod3:  {mod3}")
-        """
+        """ # Debug-Ausgabe für alle Tastenkombinationen
         print(f"Taste gedrückt: {keyname}", end="")
         if alt: print("+Alt", end="")
         if ctrl: print("+Strg", end="")
@@ -149,15 +132,14 @@ class Soundboard(Gtk.Window):
         if num: print("+Num", end="")
         print(" ")
         """
-
-        #if keyname == 'Escape':                               # Escape-Taste: Fenster schließen
-        if ctrl and keyname == 'q':                            # Strg+Q: Fenster schließen
-            self.config.save_config()                         # Konfiguration speichern
-            self.destroy()                                    # Fenster schließen
-            return True                                       # keine Weitergabe an andere Handler
+        if ctrl and keyname == 'n':                            # Strg+N: Button hinzufügen
+            self.on_add_button()                               # Button hinzufügen
+            return True                                        # keine Weitergabe an andere Handler
         
-        #if keyname == 'F5':                                  # F5-Taste: Fenster neuzeichnen
-        #    return True                                      # keine Weitergabe an andere Handler
+        if ctrl and keyname == 'q':                            # Strg+Q: Fenster schließen
+            self.config.save_config()                          # Konfiguration speichern
+            self.destroy()                                     # Fenster schließen
+            return True                                        # keine Weitergabe an andere Handler
         
         if ctrl and shift and keyname == 'S':                  # Strg+Shift+S: Konfiguration unter neuem Namen speichern
             print("Konfiguration unter neuem Namen speichern")
@@ -211,28 +193,15 @@ class Soundboard(Gtk.Window):
     #########################################################################################################
     def move_button(self, current_position, new_position):
         """Verschiebt den Button die neue Position"""
-
-        # Aktualisiere die Konfiguration
-        #button_to_move = self.config.data['buttons'][current_position]    # Sicherung des Buttons, der bewegt werden soll
-        #self.config.data['buttons'].pop(current_position)                 # Entferne den Button aus der Liste
-        #self.config.data['buttons'].insert(new_position, button_to_move)  # Füge den Button an der neuen Position ein
-        
         button_to_move = self.flowbox.get_children()[current_position-1]        # Hole das Button-Widget
         self.flowbox.remove(button_to_move)         # Entferne den Button von der FlowBox
         self.flowbox.insert(button_to_move, new_position-1)  # Füge den Button an der neuen Position ein
 
-        # Stelle sicher, dass der Button wieder anwählbar ist
-        button_to_move.show_all()
-        button_to_move.queue_draw()
-
         for i, child in enumerate(self.flowbox.get_children()):
             if isinstance(child.get_child(), Soundbutton):  # Sicherstellen, dass es sich um einen Button handelt
                 child.get_child().button_config['position'] = i+1
-                #child.apply_colors_and_css()
-                #child.queue_draw()
         buttonlist = sorted(self.config.data['buttons'], key=lambda x: x.get('position', 0))
         self.config.data['buttons'] = buttonlist
-        
         self.flowbox.show_all()
 
     #########################################################################################################
@@ -241,8 +210,7 @@ class Soundboard(Gtk.Window):
         if hasattr(self, 'flowbox'):
             self.flowbox.remove(button)
             self.flowbox.show_all()
-            # Button zerstören
-            button.delete_button()
+            button.delete_button()       
             return True
         return False
 

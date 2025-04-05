@@ -81,13 +81,11 @@ Ein einfaches Soundboard für Linux, mit dem du Sounds per Klick abspielen kanns
 - `config.json` - Speichert die Konfiguration (Optional, Name beliebig)
 
 ## Tastenkombinationen
-- **Strg+S**: Speichern der Konfiguration / des Soundboards
-- **ESC**:    Beendet das Programm
+- **Strg+N**:       Fügt einen neuen Button hinzu 
+- **Strg+S**:       Speichern der Konfiguration / des Soundboards
+- **Strg+Shift+S**: Speichern der Konfiguration / des Soundboards undter neuem Namen
+- **Strg+Q**:       Beendet das Programm 
 - Auch mit **Strg+C** in der Konsole kann das Programm sauber beendet werden.
-
-- (noch nicht)**Strg+Shift+S**: Speichern der Konfiguration / des Soundboards undter neuem Namen
-- (noch nicht)**Strg+N**: Fügt einen neuen Button hinzu (noch nicht)
-- (noch nicht)**Strg+Q**: Beendet das Programm (noch nicht)
 
 ## Fehlerbehebung / FAQ
 - **Problem**: "ModuleNotFoundError: No module named 'gi'"
