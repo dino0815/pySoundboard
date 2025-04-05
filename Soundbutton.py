@@ -68,6 +68,19 @@ class Soundbutton(Gtk.EventBox):
 
         hbox.pack_start(self.text_label, True, True, 0)
 
+        self.status_icon = Gtk.Label(label="🔇")
+        self.status_icon.set_halign(Gtk.Align.END)  # Box-Ausrichtung: rechts
+        self.status_icon.set_valign(Gtk.Align.START)  # Box-Ausrichtung: oben
+        hbox.pack_start(self.status_icon, False, False, 0)  # Füge den Slider zur horizontalen Box hinzu
+        self.status_icon.set_margin_top(5)
+        self.status_icon.get_style_context().add_class("status-icon")
+        #self.status_icon.set_margin_top(self.default_button['text_y'])
+        #self.status_icon.set_margin_end(5)
+        self.status_icon.set_text("∞")
+        #self.status_icon.set_text("🔊")
+        #self.status_icon.set_text("")
+
+
         # Erstelle einen Slider (Gtk.Scale)
         self.volume = Gtk.Scale.new_with_range(Gtk.Orientation.VERTICAL, 0, 100, 1)
         self.volume.set_hexpand(False)       # Slider horizontal NICHT ausdehnen
@@ -199,12 +212,20 @@ class Soundbutton(Gtk.EventBox):
             border-color: {shadow_color} {highlight_color} {highlight_color} {shadow_color};
             transition: all 0.05s ease;
         }}
+
+        .status-icon {{
+            font-weight: bold;
+            font-size: 20px;
+        }}
         """
+        #    font-size: {text_size+10}px;
         
         # CSS Provider erstellen und anwenden
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css.encode())
         self.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+        self.status_icon.get_style_context().add_class("status-icon")
 
     #########################################################################################################
     def apply_image(self):
