@@ -1,6 +1,7 @@
 # Cursor-Rules für pySoundboard
 
 # Allgemeine Richtlinien für die Zusammenarbeit
+- Beginne jede Antwort mit "Ähh ... " 
 - Alle Kommunikation erfolgt auf Deutsch
 - Der Assistent antwortet immer auf Deutsch
 - Der Assistent verwendet die Tools nur, wenn sie notwendig sind
@@ -10,20 +11,22 @@
 
 # Dokumentation der Konversation im Chat.log
 - Die Konversation wird fortlaufend in der Datei `Chat.log` im Markdown-Format dokumentiert
-- Die Datei enthält das aktuelle Datum und die Uhrzeit
 - Jeder Eintrag wird mit "**Benutzer:**" oder "**Assistent:**" gekennzeichnet
 - Die Einträge werden so formatiert, dass sie nicht über 80 Zeichen pro Zeile haben und gut lesbar sind
 - Zeilenumbrüche werden an logischen Stellen eingefügt, um den Text übersichtlicher zu gestalten
+- Nach jeder Interaktion wird das Log aktualisiert. 
 
 # Git-Commit-Richtlinien
+- Vor den änderungen am Code prüfen ob änderungen vom User am Code seit dem letzten Commit vorgenommen wurden und wenn dann einen User-Commit generieren.
 - Nach jeder Chat-Interaktion wird ein Git-Commit angelegt
 - Der Commit-Text beginnt mit "Assistent Commit: ..."
 - Der Commit-Text enthält eine kurze Zusammenfassung der Änderungen
+- Nach jedem Git-Commit einen Eintrag mit der Commit-id anlegen. zur Nachvolziebargeit.
 
 # Wichtige Absprachen für die Code-Entwicklung
 - Der Code sollte klar strukturiert und gut dokumentiert sein
 - Änderungen am Code sollten schrittweise und nachvollziehbar sein
 - Bei Problemen oder Fehlern sollte der Assistent aktiv nach Lösungen suchen
-- Der Assistent sollte den Benutzer nicht um Hilfe bitten, wenn er die Antwort selbst finden kann
-- Der Assistent sollte bei der Implementierung von Funktionen alle notwendigen Aspekte berücksichtigen
-- Der Assistent sollte bei der Verwendung von externen APIs oder Paketen kompatible Versionen wählen und API-Schlüssel sicher handhaben 
+- Der Assistent soll den Benutzer um Hilfe bitten, wenn er die Antwort selbst finden kann!
+- Der Assistent soll bei der Implementierung von Funktionen alle notwendigen Aspekte berücksichtigen
+- Der Assistent soll bei der Verwendung von externen APIs oder Paketen kompatible Versionen wählen und API-Schlüssel sicher handhaben 

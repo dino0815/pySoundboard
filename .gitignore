@@ -8,3 +8,4 @@ venv/
 trash/
 temp/
 *.diff
+*.json
