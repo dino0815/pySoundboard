@@ -663,12 +663,6 @@ class Soundbutton(Gtk.EventBox):
         widget.get_parent().popdown()
 
     #########################################################################################################
-    def delete_button(self):
-        """Löscht den Button"""
-        self.deactivate_button()
-        self.destroy()
-
-    #########################################################################################################
     def create_default_button(self):
         """Erstellt einen Standard-Button"""
         return {
@@ -800,6 +794,16 @@ class Soundbutton(Gtk.EventBox):
         widget.get_parent().popdown()
 
     #########################################################################################################
+    def update_status_icon(self):
+        """Aktualisiert das Status-Icon basierend auf den Button-Eigenschaften"""
+        if self.button_config.get('audio_file', '') == '':
+            self.status_icon.set_text("🔇")
+        elif self.button_config.get('loop', False):
+            self.status_icon.set_text("∞")
+        else:
+            self.status_icon.set_text("") # oder 🔊  
+
+    #########################################################################################################
     def on_delete_button(self, widget):
         """Öffnet einen Dialog zur Bestätigung der Button-Löschung"""
         # Erstelle einen Bestätigungsdialog
@@ -842,11 +846,7 @@ class Soundbutton(Gtk.EventBox):
         widget.get_parent().popdown()
 
     #########################################################################################################
-    def update_status_icon(self):
-        """Aktualisiert das Status-Icon basierend auf den Button-Eigenschaften"""
-        if self.button_config.get('audio_file', '') == '':
-            self.status_icon.set_text("🔇")
-        elif self.button_config.get('loop', False):
-            self.status_icon.set_text("∞")
-        else:
-            self.status_icon.set_text("") # oder 🔊
+    def delete_button(self):
+        """Löscht den Button"""
+        self.deactivate_button()
+        self.destroy()

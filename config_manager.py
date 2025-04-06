@@ -7,6 +7,7 @@ class ConfigManager:
         self.config_file = config_file
         self.data = self.load_config()
         self.buttonlist = self.load_buttonlist()
+        self.is_new_config = config_file == '' or config_file is None
         
     ###################################################################################################################################
     # Konstanten für die Konfiguration
@@ -15,6 +16,7 @@ class ConfigManager:
             "title":             "Soundboard",
             "window_width":               200,
             "window_height":              100,
+            "read_only":                False
         },
         "buttons": [
             {
@@ -54,6 +56,11 @@ class ConfigManager:
     ###################################################################################################################################
     def load_config(self):
         """Lädt die Konfiguration aus der Datei und ergänzt fehlende Werte mit Standardwerten"""
+        # Wenn kein Dateiname angegeben ist, verwende die Standardkonfiguration
+        if self.config_file == '' or self.config_file is None:
+            print("Keine Konfigurationsdatei angegeben, verwende Standardkonfiguration!")
+            return self.DEFAULT_CONFIG.copy()
+            
         try:
             with open(self.config_file, 'r') as f:
                 data = json.load(f)
@@ -110,10 +117,24 @@ class ConfigManager:
         return buttonlist
     
     ###################################################################################################################################
-    def save_config(self):
+    def save_config(self, parent_window=None):
         """Speichert die aktuelle Konfiguration in die Datei"""
-        with open(self.config_file, 'w') as f:
-            json.dump(self.data, f, indent=4)
+        # Wenn keine Datei angegeben ist oder es sich um eine neue Konfiguration handelt,
+        # öffne den "Speichern unter"-Dialog
+        if self.config_file == '' or self.config_file is None or self.is_new_config:
+            if parent_window:
+                return self.save_config_as_dialog(parent_window)
+            else:
+                print("Fehler: Kein übergeordnetes Fenster für den Dialog angegeben!")
+                return False
+        elif self.data['Window']['read_only']:
+            print("Konfiguration ist schreibgeschützt!")
+            return self.save_config_as_dialog(parent_window)
+        else:
+            # Speichere die Konfiguration in die angegebene Datei
+            with open(self.config_file, 'w') as f:
+                json.dump(self.data, f, indent=4)
+        return True
 
     ###################################################################################################################################
     def save_config_as(self, new_config_file):
@@ -199,16 +220,9 @@ class ConfigManager:
     ###################################################################################################################################
     def delete_button(self, position):
         """Entfernt einen Button anhand seiner Position aus der Konfiguration"""
-        # Finde den Button in der Konfiguration
-        for i, button in enumerate(self.data['buttons']):
+        for i, button in enumerate(self.data['buttons']):             # Finde den Button in der Konfiguration
             if button.get('position') == position:
-                # Entferne den Button aus der Konfiguration
-                del self.data['buttons'][i]
-                # Speichere die Konfiguration
-                #self.save_config()
-                # Aktualisiere die Buttonliste
-                self.buttonlist = self.load_buttonlist()
-                return True
-        
-        # Button nicht gefunden
-        return False
+                del self.data['buttons'][i]                           # Entferne den Button aus der Konfiguration
+                self.buttonlist = self.load_buttonlist()              # Aktualisiere die Buttonliste
+                return True        
+        return False                                                  # Button nicht gefunden

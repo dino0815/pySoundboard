@@ -2,7 +2,8 @@
     "Window": {
         "title": "Soundboard",
         "window_width": 709,
-        "window_height": 266
+        "window_height": 266,
+        "read_only": false
     },
     "buttons": [
         {

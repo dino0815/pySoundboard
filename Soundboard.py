@@ -13,9 +13,9 @@ class Soundboard(Gtk.Window):
         Gtk.Window.__init__(self, title="Soundboard")
         pygame.mixer.init()                  # Pygame für Audio initialisieren
         
-        # Wenn keine Konfigurationsdatei angegeben wurde, verwende die Standard-Datei
+        # Wenn keine Konfigurationsdatei angegeben wurde, verwende einen leeren String
         if config_file is None:
-            config_file = "config.json"
+            config_file = ""
         self.config = ConfigManager(config_file)
         self.set_default_size(self.config.data['Window']['window_width'], self.config.data['Window']['window_height'])
         self.set_size_request(-1, -1)        # Keine Mindestgröße setzen
@@ -103,14 +103,15 @@ class Soundboard(Gtk.Window):
         menu.popdown()
         
     ########################################################################################################
-    def on_add_button(self, widget):
+    def on_add_button(self, widget=None):
         """Fügt einen neuen Button am Ende der Liste hinzu"""
         new_position = self.config.add_minimal_button() # Füge einen minimalen Button zur Konfiguration hinzu      
         # Erstelle den neuen Button und füge ihn zur FlowBox hinzu
         new_button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=self.config.data['buttons'][new_position])
         self.flowbox.add(new_button) 
         self.flowbox.show_all()                         # Aktualisiere die Anzeige
-        widget.get_parent().popdown()                   # Menü schließen
+        if widget:                                      # Nur wenn ein Widget übergeben wurde (Menüpunkt)
+            widget.get_parent().popdown()               # Menü schließen
 
     ########################################################################################################
     def on_key_press(self, widget, event):
@@ -133,11 +134,11 @@ class Soundboard(Gtk.Window):
         print(" ")
         """
         if ctrl and keyname == 'n':                            # Strg+N: Button hinzufügen
-            self.on_add_button()                               # Button hinzufügen
+            self.on_add_button(None)                           # Button hinzufügen (None als Widget-Parameter)
             return True                                        # keine Weitergabe an andere Handler
         
         if ctrl and keyname == 'q':                            # Strg+Q: Fenster schließen
-            self.config.save_config()                          # Konfiguration speichern
+            self.config.save_config(self)                      # Konfiguration speichern
             self.destroy()                                     # Fenster schließen
             return True                                        # keine Weitergabe an andere Handler
         
@@ -148,7 +149,7 @@ class Soundboard(Gtk.Window):
 
         if ctrl and keyname == 's':                            # Strg+S: Konfiguration speichern
             print("Konfiguration gespeichert")
-            self.config.save_config()                          # Konfiguration speichern
+            self.config.save_config(self)                      # Konfiguration speichern
             return True                                        # keine Weitergabe an andere Handler
         
         return False                                           # Weitergabe an andere Handler
@@ -173,15 +174,6 @@ class Soundboard(Gtk.Window):
                 child.get_child().apply_colors_and_css()
                 child.get_child().queue_draw()
         self.flowbox.show_all()
-
-    ########################################################################################################
-    def on_destroy(self, widget, event=None):
-        """Cleanup beim Schließen des Fensters"""
-        self.stop_all_sounds()
-        pygame.mixer.quit()
-        self.config.save_config()
-        Gtk.main_quit()
-        return False
 
     ########################################################################################################
     def stop_all_sounds(self):
@@ -219,6 +211,17 @@ class Soundboard(Gtk.Window):
         """Öffnet einen Dateiauswahldialog zum Speichern der Konfiguration unter einem neuen Namen"""
         self.config.save_config_as_dialog(self)
 
+    ########################################################################################################
+    def on_destroy(self, widget, event=None):
+        """Cleanup beim Schließen des Fensters"""
+        for button in self.flowbox.get_children():
+            if isinstance(button.get_child(), Soundbutton):    # Sicherstellen, dass es sich um einen Button handelt
+                button.get_child().delete_button()             # Löscht den Button
+        pygame.mixer.quit()
+        self.config.save_config(self)                          # Konfiguration speichern
+        Gtk.main_quit()                                        # Beende die GTK-Hauptschleife
+        return False
+
 ############################################################################################################
 if len(sys.argv) > 1:
     app = Soundboard(config_file=sys.argv[1])
@@ -226,3 +229,4 @@ else:
     app = Soundboard()
 app.show_all()
 Gtk.main() # Starte die GTK-Hauptschleife
+sys.exit(0) # Stelle sicher, dass das Programm beendet wird
