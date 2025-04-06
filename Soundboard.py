@@ -2,6 +2,7 @@ import sys   # Importiere sys, um das Kommandozeilenargument zu verarbeiten
 import pygame
 import signal
 import gi    # Importiere gi, um die GTK-Bibliothek zu verwenden
+import json
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 from config_manager import ConfigManager
@@ -60,7 +61,9 @@ class Soundboard(Gtk.Window):
         self.connect("button-press-event", self.on_background_click) # Für Klicks auf Fensterhintergrund
         self.connect("configure-event",    self.on_window_configure) # Signalhandler für Größenänderungen des Fensters
         self.connect("destroy",            self.on_destroy)          # Signalhandler für Fenster-Schließen
-        signal.signal(signal.SIGINT,       self.on_destroy)          # Signal-Handler für SIGINT (Strg+C) registrieren
+        
+        # Signal-Handler für SIGINT (Strg+C) registrieren
+        signal.signal(signal.SIGINT, self.on_sigint)
 
         # Abonniere das Signal für Änderungen des Themas
         self.connect("realize", self.on_realize)
@@ -215,30 +218,149 @@ class Soundboard(Gtk.Window):
         self.config.save_config_as_dialog(self)
 
     ########################################################################################################
-    def on_destroy(self, widget, event=None):
-        """Cleanup beim Schließen des Fensters"""
+    def on_destroy(self, widget, data=None):
+        """Behandelt das Schließen des Fensters"""
+        # Prüfen, ob es ungespeicherte Änderungen gibt
+        if self.config.has_unsaved_changes():
+            # Prüfen, ob die Konfiguration schreibgeschützt ist
+            if self.config.data['Window'].get('read_only', False):
+                # Wenn schreibgeschützt, nur "Speichern unter" anbieten
+                dialog = Gtk.MessageDialog(
+                    transient_for=self,
+                    flags=0,
+                    message_type=Gtk.MessageType.QUESTION,
+                    buttons=Gtk.ButtonsType.NONE,
+                    text="Es gibt ungespeicherte Änderungen. Die aktuelle Konfiguration ist schreibgeschützt."
+                )
+                dialog.format_secondary_text("Möchten Sie die Änderungen unter einem neuen Namen speichern?")
+                dialog.add_buttons(
+                    "Speichern unter", Gtk.ResponseType.YES,
+                    "Verwerfen", Gtk.ResponseType.NO,
+                    "Abbrechen", Gtk.ResponseType.CANCEL
+                )
+                response = dialog.run()
+                dialog.destroy()
+                
+                if response == Gtk.ResponseType.YES:
+                    # Speichern unter neuem Namen
+                    self.config.save_config_as_dialog(self)
+                    self.cleanup_resources()
+                    Gtk.main_quit()
+                elif response == Gtk.ResponseType.NO:
+                    # Änderungen verwerfen
+                    self.cleanup_resources()
+                    Gtk.main_quit()
+                else:  # CANCEL
+                    # Beenden abbrechen
+                    self.show_all()  # Fenster wieder anzeigen
+                    return
+            else:
+                # Wenn nicht schreibgeschützt, alle Optionen anbieten
+                dialog = Gtk.MessageDialog(
+                    transient_for=self,
+                    flags=0,
+                    message_type=Gtk.MessageType.QUESTION,
+                    buttons=Gtk.ButtonsType.NONE,
+                    text="Es gibt ungespeicherte Änderungen."
+                )
+                dialog.format_secondary_text("Was möchten Sie mit den Änderungen tun?")
+                dialog.add_buttons(
+                    "Speichern", Gtk.ResponseType.YES,
+                    "Speichern unter", Gtk.ResponseType.ACCEPT,
+                    "Verwerfen", Gtk.ResponseType.NO,
+                    "Abbrechen", Gtk.ResponseType.CANCEL
+                )
+                response = dialog.run()
+                dialog.destroy()
+                
+                if response == Gtk.ResponseType.YES:
+                    # Speichern in der aktuellen Datei
+                    self.config.save_config(self)
+                    self.cleanup_resources()
+                    Gtk.main_quit()
+                elif response == Gtk.ResponseType.ACCEPT:
+                    # Speichern unter neuem Namen
+                    self.config.save_config_as_dialog(self)
+                    self.cleanup_resources()
+                    Gtk.main_quit()
+                elif response == Gtk.ResponseType.NO:
+                    # Änderungen verwerfen
+                    self.cleanup_resources()
+                    Gtk.main_quit()
+                else:  # CANCEL
+                    # Beenden abbrechen
+                    self.show_all()  # Fenster wieder anzeigen
+                    return
+        else:
+            # Keine Änderungen, direkt beenden
+            self.cleanup_resources()
+            Gtk.main_quit()
+
+    ########################################################################################################
+    def cleanup_resources(self):
+        """Gibt alle Ressourcen frei"""
         for button in self.flowbox.get_children():
             if isinstance(button.get_child(), Soundbutton):    # Sicherstellen, dass es sich um einen Button handelt
                 button.get_child().delete_button()             # Löscht den Button
         pygame.mixer.quit()
+
+    ########################################################################################################
+    def on_sigint(self, signum, frame):
+        """Handler für SIGINT (Strg+C)"""
+        print("Strg+C gedrückt, beende Programm...")
         
         # Prüfe, ob es ungespeicherte Änderungen gibt
         if self.config.has_unsaved_changes():
-            dialog = Gtk.MessageDialog(
-                transient_for=self,
-                flags=0,
-                message_type=Gtk.MessageType.QUESTION,
-                buttons=Gtk.ButtonsType.YES_NO,
-                text="Es gibt ungespeicherte Änderungen. Möchten Sie diese speichern?"
-            )
-            response = dialog.run()
-            dialog.destroy()
-            
-            if response == Gtk.ResponseType.YES:
-                self.config.save_config(self)
+            print("Ungespeicherte Änderungen gefunden, erstelle Autosave...")
+            self.create_autosave()
         
-        Gtk.main_quit()                                        # Beende die GTK-Hauptschleife
-        return False
+        # Ressourcen freigeben und Programm beenden
+        self.cleanup_resources()
+        Gtk.main_quit()  # Beende die GTK-Hauptschleife
+        sys.exit(0)  # Stelle sicher, dass das Programm beendet wird
+
+    ########################################################################################################    
+    def create_autosave(self):
+        """Erstellt eine automatische Sicherungskopie der Konfiguration"""
+        import os
+        import glob
+        
+        # Bestimme den Basisnamen für die Autosave-Datei
+        if self.config.config_file and self.config.config_file != "":
+            # Wenn eine Konfigurationsdatei existiert, verwende ihren Namen als Basis
+            base_name = os.path.splitext(os.path.basename(self.config.config_file))[0]
+            base_dir = os.path.dirname(self.config.config_file)
+        else:
+            # Wenn keine Konfigurationsdatei existiert, verwende "unnamed_soundboard"
+            base_name = "unnamed_soundboard"
+            base_dir = os.getcwd()  # Aktuelles Verzeichnis
+        
+        # Suche nach existierenden Autosave-Dateien
+        pattern = os.path.join(base_dir, f"{base_name}_autosave_*.json")
+        existing_autosaves = glob.glob(pattern)
+        
+        # Bestimme die höchste Nummer
+        max_num = 0
+        for autosave in existing_autosaves:
+            try:
+                # Extrahiere die Nummer aus dem Dateinamen
+                num_str = os.path.basename(autosave).split("_autosave_")[1].split(".json")[0]
+                num = int(num_str)
+                if num > max_num:
+                    max_num = num
+            except (ValueError, IndexError):
+                # Ignoriere Dateien, die nicht dem erwarteten Format entsprechen
+                pass
+        
+        # Erstelle den neuen Dateinamen mit der nächsthöheren Nummer
+        new_num = max_num + 1
+        autosave_file = os.path.join(base_dir, f"{base_name}_autosave_{new_num}.json")
+        
+        # Speichere die Konfiguration
+        with open(autosave_file, 'w') as f:
+            json.dump(self.config.data, f, indent=4)
+        
+        print(f"Autosave erstellt: {autosave_file}")
 
 ############################################################################################################
 if len(sys.argv) > 1:
