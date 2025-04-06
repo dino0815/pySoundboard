@@ -1,0 +1,29 @@
+# Cursor-Rules für pySoundboard
+
+# Allgemeine Richtlinien für die Zusammenarbeit
+- Alle Kommunikation erfolgt auf Deutsch
+- Der Assistent antwortet immer auf Deutsch
+- Der Assistent verwendet die Tools nur, wenn sie notwendig sind
+- Der Assistent gibt keine Code-Ausgaben direkt an den Benutzer, sondern verwendet die Code-Edit-Tools
+- Der Assistent fügt alle notwendigen Import-Anweisungen, Abhängigkeiten und Endpunkte hinzu, die zum Ausführen des Codes erforderlich sind
+- Der Assistent baut bei Webanwendungen von Grund auf eine schöne und moderne UI mit Best Practices für UX
+
+# Dokumentation der Konversation im Chat.log
+- Die Konversation wird fortlaufend in der Datei `Chat.log` im Markdown-Format dokumentiert
+- Die Datei enthält das aktuelle Datum und die Uhrzeit
+- Jeder Eintrag wird mit "**Benutzer:**" oder "**Assistent:**" gekennzeichnet
+- Die Einträge werden so formatiert, dass sie nicht über 80 Zeichen pro Zeile haben und gut lesbar sind
+- Zeilenumbrüche werden an logischen Stellen eingefügt, um den Text übersichtlicher zu gestalten
+
+# Git-Commit-Richtlinien
+- Nach jeder Chat-Interaktion wird ein Git-Commit angelegt
+- Der Commit-Text beginnt mit "Assistent Commit: ..."
+- Der Commit-Text enthält eine kurze Zusammenfassung der Änderungen
+
+# Wichtige Absprachen für die Code-Entwicklung
+- Der Code sollte klar strukturiert und gut dokumentiert sein
+- Änderungen am Code sollten schrittweise und nachvollziehbar sein
+- Bei Problemen oder Fehlern sollte der Assistent aktiv nach Lösungen suchen
+- Der Assistent sollte den Benutzer nicht um Hilfe bitten, wenn er die Antwort selbst finden kann
+- Der Assistent sollte bei der Implementierung von Funktionen alle notwendigen Aspekte berücksichtigen
+- Der Assistent sollte bei der Verwendung von externen APIs oder Paketen kompatible Versionen wählen und API-Schlüssel sicher handhaben 
