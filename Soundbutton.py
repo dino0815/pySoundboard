@@ -319,6 +319,8 @@ class Soundbutton(Gtk.EventBox):
         if self.sound:
             self.sound.set_volume(volume_int / 100.0)
         self.button_config['volume'] = volume_int # Speichere den gerundeten Wert in der Konfiguration
+        if self.parent and self.parent.config:
+            self.parent.config.mark_changed()  # Markiere Änderungen
 
     #########################################################################################################
     def activate_button(self):
@@ -543,6 +545,8 @@ class Soundbutton(Gtk.EventBox):
                 self.sound.set_volume(self.button_config['volume'] / 100.0)
                 print(f"Neuer Sound geladen: {rel_path}")
                 self.update_status_icon()                 # Aktualisiere das Status-Icon
+                if self.parent and self.parent.config:
+                    self.parent.config.mark_changed()  # Markiere Änderungen
             except Exception as e:
                 print(f"Fehler beim Laden des Sounds: {e}")
         
@@ -558,6 +562,8 @@ class Soundbutton(Gtk.EventBox):
         # Menü explizit schließen
         menu = widget.get_parent()
         menu.popdown()
+        if self.parent and self.parent.config:
+            self.parent.config.mark_changed()  # Markiere Änderungen
 
     #########################################################################################################
     def on_change_text(self, widget):
@@ -578,6 +584,8 @@ class Soundbutton(Gtk.EventBox):
             self.button_config['text'] = entry.get_text()
             self.text_label.set_text(self.button_config['text'])
             print(f"Neuer Button-Text: {self.button_config['text']}")
+            if self.parent and self.parent.config:
+                self.parent.config.mark_changed()  # Markiere Änderungen
         
         dialog.destroy()
         widget.get_parent().popdown()
@@ -607,6 +615,8 @@ class Soundbutton(Gtk.EventBox):
             
             # Wende die neue Farbe an
             self.apply_colors_and_css()
+            if self.parent and self.parent.config:
+                self.parent.config.mark_changed()  # Markiere Änderungen
         
         dialog.destroy()
         widget.get_parent().popdown()
@@ -647,6 +657,8 @@ class Soundbutton(Gtk.EventBox):
             
             # Wende die neue Farbe an
             self.apply_colors_and_css()
+            if self.parent and self.parent.config:
+                self.parent.config.mark_changed()  # Markiere Änderungen
         
         dialog.destroy()
         widget.get_parent().popdown()
@@ -739,6 +751,8 @@ class Soundbutton(Gtk.EventBox):
             
             # Wende das neue Bild an
             self.apply_image()
+            if self.parent and self.parent.config:
+                self.parent.config.mark_changed()  # Markiere Änderungen
         
         dialog.destroy()
         widget.get_parent().popdown()
@@ -785,6 +799,8 @@ class Soundbutton(Gtk.EventBox):
                 if self.parent and hasattr(self.parent, 'move_button'):
                     print(f"Button von Position {self.button_config['position']} nach {new_position} verschoben")
                     self.parent.move_button(current_position=self.button_config['position'], new_position=new_position)
+                    if self.parent and self.parent.config:
+                        self.parent.config.mark_changed()  # Markiere Änderungen
                 else:
                     print("Fehler: Soundboard-Referenz nicht verfügbar oder move_button-Methode nicht gefunden")
             except ValueError as e:

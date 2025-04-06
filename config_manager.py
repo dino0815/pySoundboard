@@ -8,6 +8,7 @@ class ConfigManager:
         self.data = self.load_config()
         self.buttonlist = self.load_buttonlist()
         self.is_new_config = config_file == '' or config_file is None
+        self.has_changes = False  # Statusvariable für Änderungen
         
     ###################################################################################################################################
     # Konstanten für die Konfiguration
@@ -134,6 +135,7 @@ class ConfigManager:
             # Speichere die Konfiguration in die angegebene Datei
             with open(self.config_file, 'w') as f:
                 json.dump(self.data, f, indent=4)
+            self.mark_saved()  # Markiere, dass alle Änderungen gespeichert wurden
         return True
 
     ###################################################################################################################################
@@ -226,3 +228,19 @@ class ConfigManager:
                 self.buttonlist = self.load_buttonlist()              # Aktualisiere die Buttonliste
                 return True        
         return False                                                  # Button nicht gefunden
+
+    def mark_changed(self):
+        """Markiert, dass es Änderungen am Soundboard gegeben hat"""
+        self.has_changes = True
+        return True
+        
+    ###################################################################################################################################
+    def mark_saved(self):
+        """Markiert, dass alle Änderungen gespeichert wurden"""
+        self.has_changes = False
+        return True
+        
+    ###################################################################################################################################
+    def has_unsaved_changes(self):
+        """Gibt zurück, ob es ungespeicherte Änderungen gibt"""
+        return self.has_changes

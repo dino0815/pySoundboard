@@ -112,6 +112,7 @@ class Soundboard(Gtk.Window):
         self.flowbox.show_all()                         # Aktualisiere die Anzeige
         if widget:                                      # Nur wenn ein Widget übergeben wurde (Menüpunkt)
             widget.get_parent().popdown()               # Menü schließen
+        self.config.mark_changed()  # Markiere Änderungen
 
     ########################################################################################################
     def on_key_press(self, widget, event):
@@ -195,6 +196,7 @@ class Soundboard(Gtk.Window):
         buttonlist = sorted(self.config.data['buttons'], key=lambda x: x.get('position', 0))
         self.config.data['buttons'] = buttonlist
         self.flowbox.show_all()
+        self.config.mark_changed()  # Markiere Änderungen
 
     #########################################################################################################
     def remove_button(self, button):
@@ -203,6 +205,7 @@ class Soundboard(Gtk.Window):
             self.flowbox.remove(button)
             self.flowbox.show_all()
             button.delete_button()       
+            self.config.mark_changed()  # Markiere Änderungen
             return True
         return False
 
@@ -218,7 +221,22 @@ class Soundboard(Gtk.Window):
             if isinstance(button.get_child(), Soundbutton):    # Sicherstellen, dass es sich um einen Button handelt
                 button.get_child().delete_button()             # Löscht den Button
         pygame.mixer.quit()
-        self.config.save_config(self)                          # Konfiguration speichern
+        
+        # Prüfe, ob es ungespeicherte Änderungen gibt
+        if self.config.has_unsaved_changes():
+            dialog = Gtk.MessageDialog(
+                transient_for=self,
+                flags=0,
+                message_type=Gtk.MessageType.QUESTION,
+                buttons=Gtk.ButtonsType.YES_NO,
+                text="Es gibt ungespeicherte Änderungen. Möchten Sie diese speichern?"
+            )
+            response = dialog.run()
+            dialog.destroy()
+            
+            if response == Gtk.ResponseType.YES:
+                self.config.save_config(self)
+        
         Gtk.main_quit()                                        # Beende die GTK-Hauptschleife
         return False
 
