@@ -235,8 +235,7 @@ class Soundboard(Gtk.Window):
                 dialog.format_secondary_text("Möchten Sie die Änderungen unter einem neuen Namen speichern?")
                 dialog.add_buttons(
                     "Speichern unter", Gtk.ResponseType.YES,
-                    "Verwerfen", Gtk.ResponseType.NO,
-                    "Abbrechen", Gtk.ResponseType.CANCEL
+                    "Verwerfen", Gtk.ResponseType.NO
                 )
                 response = dialog.run()
                 dialog.destroy()
@@ -246,14 +245,10 @@ class Soundboard(Gtk.Window):
                     self.config.save_config_as_dialog(self)
                     self.cleanup_resources()
                     Gtk.main_quit()
-                elif response == Gtk.ResponseType.NO:
+                else:  # NO
                     # Änderungen verwerfen
                     self.cleanup_resources()
                     Gtk.main_quit()
-                else:  # CANCEL
-                    # Beenden abbrechen
-                    self.show_all()  # Fenster wieder anzeigen
-                    return
             else:
                 # Wenn nicht schreibgeschützt, alle Optionen anbieten
                 dialog = Gtk.MessageDialog(
@@ -267,8 +262,7 @@ class Soundboard(Gtk.Window):
                 dialog.add_buttons(
                     "Speichern", Gtk.ResponseType.YES,
                     "Speichern unter", Gtk.ResponseType.ACCEPT,
-                    "Verwerfen", Gtk.ResponseType.NO,
-                    "Abbrechen", Gtk.ResponseType.CANCEL
+                    "Verwerfen", Gtk.ResponseType.NO
                 )
                 response = dialog.run()
                 dialog.destroy()
@@ -283,14 +277,10 @@ class Soundboard(Gtk.Window):
                     self.config.save_config_as_dialog(self)
                     self.cleanup_resources()
                     Gtk.main_quit()
-                elif response == Gtk.ResponseType.NO:
+                else:  # NO
                     # Änderungen verwerfen
                     self.cleanup_resources()
                     Gtk.main_quit()
-                else:  # CANCEL
-                    # Beenden abbrechen
-                    self.show_all()  # Fenster wieder anzeigen
-                    return
         else:
             # Keine Änderungen, direkt beenden
             self.cleanup_resources()
