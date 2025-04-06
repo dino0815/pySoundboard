@@ -1,5 +1,5 @@
 import json
-#import os
+import os
 
 ###################################################################################################################################
 class ConfigManager:
@@ -130,7 +130,27 @@ class ConfigManager:
                 return False
         elif self.data['Window']['read_only']:
             print("Konfiguration ist schreibgeschützt!")
-            return self.save_config_as_dialog(parent_window)
+            if parent_window:
+                # Zeige einen Dialog, der erklärt, dass die Konfiguration schreibgeschützt ist
+                dialog = Gtk.MessageDialog(
+                    transient_for=parent_window,
+                    flags=0,
+                    message_type=Gtk.MessageType.WARNING,
+                    buttons=Gtk.ButtonsType.OK_CANCEL,
+                    text="Die Konfiguration ist schreibgeschützt und kann nicht direkt gespeichert werden."
+                )
+                dialog.format_secondary_text("Möchten Sie die Konfiguration unter einem neuen Namen speichern?")
+                
+                response = dialog.run()
+                dialog.destroy()
+                
+                if response == Gtk.ResponseType.OK:
+                    return self.save_config_as_dialog(parent_window)
+                else:
+                    return False
+            else:
+                print("Fehler: Kein übergeordnetes Fenster für den Dialog angegeben!")
+                return False
         else:
             # Speichere die Konfiguration in die angegebene Datei
             with open(self.config_file, 'w') as f:
@@ -141,9 +161,18 @@ class ConfigManager:
     ###################################################################################################################################
     def save_config_as(self, new_config_file):
         """Speichert die aktuelle Konfiguration unter einem neuen Dateinamen"""
-        self.config_file = new_config_file
-        self.save_config()
-        return True
+        # Speichere die Konfiguration direkt in die neue Datei
+        try:
+            with open(new_config_file, 'w') as f:
+                json.dump(self.data, f, indent=4)
+            self.config_file = new_config_file
+            self.is_new_config = False  # Markiere, dass es keine neue Konfiguration mehr ist
+            self.mark_saved()  # Markiere, dass alle Änderungen gespeichert wurden
+            print(f"Konfiguration wurde unter '{new_config_file}' gespeichert")
+            return True
+        except Exception as e:
+            print(f"Fehler beim Speichern der Konfiguration unter '{new_config_file}': {e}")
+            return False
 
     ###################################################################################################################################
     def save_config_as_dialog(self, parent_window):
@@ -189,6 +218,62 @@ class ConfigManager:
                 if not new_config_file.endswith('.json'):
                     new_config_file += '.json'
                     #print(f"Dateiendung hinzugefügt: {new_config_file}")
+                
+                # Prüfe, ob die Datei bereits existiert
+                if os.path.exists(new_config_file):
+                    # Versuche, die existierende Konfiguration zu laden
+                    try:
+                        with open(new_config_file, 'r') as f:
+                            existing_config = json.load(f)
+                        
+                        # Prüfe, ob die Konfiguration schreibgeschützt ist
+                        if 'Window' in existing_config and 'read_only' in existing_config['Window'] and existing_config['Window']['read_only']:
+                            # Konfiguration ist schreibgeschützt, zeige Fehlermeldung
+                            error_dialog = Gtk.MessageDialog(
+                                transient_for=parent_window,
+                                flags=0,
+                                message_type=Gtk.MessageType.ERROR,
+                                buttons=Gtk.ButtonsType.OK,
+                                text="Die ausgewählte Konfiguration ist schreibgeschützt und kann nicht überschrieben werden."
+                            )
+                            error_dialog.run()
+                            error_dialog.destroy()
+                            
+                            # Schließe den aktuellen Dialog und öffne einen neuen
+                            dialog.destroy()
+                            return self.save_config_as_dialog(parent_window)
+                        else:
+                            # Konfiguration ist nicht schreibgeschützt, frage nach Überschreiben
+                            confirm_dialog = Gtk.MessageDialog(
+                                transient_for=parent_window,
+                                flags=0,
+                                message_type=Gtk.MessageType.QUESTION,
+                                buttons=Gtk.ButtonsType.YES_NO,
+                                text=f"Die Datei '{new_config_file}' existiert bereits. Möchten Sie sie überschreiben?"
+                            )
+                            confirm_response = confirm_dialog.run()
+                            confirm_dialog.destroy()
+                            
+                            if confirm_response != Gtk.ResponseType.YES:
+                                # Benutzer möchte nicht überschreiben, schließe den Dialog
+                                dialog.destroy()
+                                return False
+                    except (json.JSONDecodeError, FileNotFoundError):
+                        # Datei existiert, ist aber keine gültige JSON-Datei
+                        confirm_dialog = Gtk.MessageDialog(
+                            transient_for=parent_window,
+                            flags=0,
+                            message_type=Gtk.MessageType.QUESTION,
+                            buttons=Gtk.ButtonsType.YES_NO,
+                            text=f"Die Datei '{new_config_file}' existiert bereits, ist aber keine gültige Konfigurationsdatei. Möchten Sie sie überschreiben?"
+                        )
+                        confirm_response = confirm_dialog.run()
+                        confirm_dialog.destroy()
+                        
+                        if confirm_response != Gtk.ResponseType.YES:
+                            # Benutzer möchte nicht überschreiben, schließe den Dialog
+                            dialog.destroy()
+                            return False
                 
                 # Speichere die Konfiguration unter dem neuen Namen
                 if self.save_config_as(new_config_file):

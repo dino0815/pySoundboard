@@ -222,17 +222,20 @@ class Soundboard(Gtk.Window):
         """Behandelt das Schließen des Fensters"""
         # Prüfen, ob es ungespeicherte Änderungen gibt
         if self.config.has_unsaved_changes():
-            # Prüfen, ob die Konfiguration schreibgeschützt ist
-            if self.config.data['Window'].get('read_only', False):
-                # Wenn schreibgeschützt, nur "Speichern unter" anbieten
+            # Prüfen, ob die Konfiguration schreibgeschützt ist oder eine neue Konfiguration ist
+            if self.config.data['Window'].get('read_only', False) or self.config.is_new_config:
+                # Wenn schreibgeschützt oder neue Konfiguration, nur "Speichern unter" anbieten
                 dialog = Gtk.MessageDialog(
                     transient_for=self,
                     flags=0,
                     message_type=Gtk.MessageType.QUESTION,
                     buttons=Gtk.ButtonsType.NONE,
-                    text="Es gibt ungespeicherte Änderungen. Die aktuelle Konfiguration ist schreibgeschützt."
+                    text="Es gibt ungespeicherte Änderungen."
                 )
-                dialog.format_secondary_text("Möchten Sie die Änderungen unter einem neuen Namen speichern?")
+                if self.config.data['Window'].get('read_only', False):
+                    dialog.format_secondary_text("Die aktuelle Konfiguration ist schreibgeschützt.")
+                else:
+                    dialog.format_secondary_text("Es handelt sich um eine neue Konfiguration.")
                 dialog.add_buttons(
                     "Speichern unter", Gtk.ResponseType.YES,
                     "Verwerfen", Gtk.ResponseType.NO
@@ -250,7 +253,7 @@ class Soundboard(Gtk.Window):
                     self.cleanup_resources()
                     Gtk.main_quit()
             else:
-                # Wenn nicht schreibgeschützt, alle Optionen anbieten
+                # Wenn nicht schreibgeschützt und keine neue Konfiguration, alle Optionen anbieten
                 dialog = Gtk.MessageDialog(
                     transient_for=self,
                     flags=0,
