@@ -327,4 +327,72 @@ Ich werde die drei Probleme nacheinander angehen:
 1. Zuerst aktualisiere ich die Chat.log nach dem letzten Beitrag.
 2. Dann schaue ich mir das Problem mit dem Speichern der Konfiguration an.
 3. Schließlich passe ich die Dialog-Optionen an, wenn eine neue Konfiguration 
-   erstellt wurde. 
+   erstellt wurde.
+
+**Benutzer:**  
+Hallo, füge bitte dem Soundboard kontextmenü die beiden punkte Speichern und speichern unter hinzu. 
+Speichern soll nur angezeigt werden, wenn schon ein konfigname bekannt ist, unter dem gespeichert 
+werden könnte.
+
+**Assistent:**  
+Ich habe dem Soundboard-Kontextmenü die beiden Punkte "Speichern" und "Speichern unter" 
+hinzugefügt. Der "Speichern"-Punkt wird nur angezeigt, wenn bereits ein Konfigurationsname 
+bekannt ist, unter dem gespeichert werden könnte. 
+
+Die Änderungen wurden in der `open_kontextmenu`-Methode der Soundboard-Klasse vorgenommen. 
+Ich habe eine Bedingung hinzugefügt, die prüft, ob `self.config.config_file` existiert und 
+nicht leer ist und ob es sich nicht um eine neue Konfiguration handelt. Nur wenn diese 
+Bedingung erfüllt ist, wird der "Speichern"-Punkt im Kontextmenü angezeigt.
+
+Der "Speichern unter"-Punkt wird immer angezeigt, unabhängig davon, ob bereits ein 
+Konfigurationsname bekannt ist oder nicht.
+
+Die Änderungen wurden mit dem Commit "Assistent Commit: Speichern und Speichern unter zum 
+Kontextmenü hinzugefügt" dokumentiert.
+
+**Benutzer:**  
+Wenn ich versuche das SpeichernUnter bei einer neuen Konfig auszulösen kommt folgende Fehlermeldung:
+TypeError: Soundboard.on_save_config_as() takes 1 positional argument but 2 were given
+
+**Assistent:**  
+Ich habe das Problem behoben. Der Fehler trat auf, weil die `on_save_config_as`-Methode in der 
+Soundboard-Klasse nicht korrekt definiert war. Die Methode erwartete nur einen Parameter (self), 
+aber beim Aufruf über das Kontextmenü wurde ein zusätzlicher Parameter (widget) übergeben.
+
+Ich habe die Methode angepasst, um den zusätzlichen Parameter zu akzeptieren:
+
+```python
+def on_save_config_as(self, widget=None):
+    """Öffnet einen Dateiauswahldialog zum Speichern der Konfiguration unter einem neuen Namen"""
+    self.config.save_config_as_dialog(self)
+    # Wenn die Methode über das Kontextmenü aufgerufen wurde, schließe das Menü
+    if widget:
+        widget.get_parent().popdown()
+```
+
+Die Änderungen wurden mit dem Commit "Assistent Commit: on_save_config_as-Methode angepasst, um 
+widget-Parameter zu akzeptieren" dokumentiert.
+
+**Benutzer:**  
+Im Titel des Fensters soll nun stehen: "Soundboard: <KONFIGURATIONSNAME OHNE JSON>" und wenn 
+nichtgespeicherte änderungen vorhanden sind soll ein * am ende des Titels stehen. Wenn bei neu 
+erstellten konfigurationen noch kein name bekannt ist soll "Soundboard: unbenannt" stehen.
+
+**Assistent:**  
+Ich habe den Fenstertitel angepasst, um den Konfigurationsnamen anzuzeigen und ein Sternchen 
+hinzuzufügen, wenn es ungespeicherte Änderungen gibt. 
+
+Ich habe eine neue Methode `update_window_title` in der Soundboard-Klasse implementiert, die den 
+Fenstertitel basierend auf dem Konfigurationsnamen und dem Status der ungespeicherten Änderungen 
+aktualisiert. Diese Methode wird an relevanten Stellen im Code aufgerufen, wie nach der 
+Initialisierung, beim Speichern und bei Änderungen.
+
+Die Methode extrahiert den Dateinamen ohne Erweiterung aus dem Konfigurationsnamen, wenn eine 
+Konfigurationsdatei existiert und es sich nicht um eine neue Konfiguration handelt. Wenn keine 
+Konfigurationsdatei existiert oder es sich um eine neue Konfiguration handelt, wird "unbenannt" 
+als Konfigurationsname verwendet.
+
+Wenn es ungespeicherte Änderungen gibt, wird ein Sternchen (*) am Ende des Titels hinzugefügt.
+
+Die Änderungen wurden mit dem Commit "Assistent Commit: Fenstertitel zeigt Konfigurationsnamen und 
+ungespeicherte Änderungen an" dokumentiert. 

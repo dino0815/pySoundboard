@@ -1,27 +1,21 @@
 # Cursor-Rules für pySoundboard
 
 # Allgemeine Richtlinien für die Zusammenarbeit
-- Beginne jede Antwort mit "Ähh ... " 
 - Alle Kommunikation erfolgt auf Deutsch
-- Der Assistent antwortet immer auf Deutsch
 - Der Assistent verwendet die Tools nur, wenn sie notwendig sind
 - Der Assistent gibt keine Code-Ausgaben direkt an den Benutzer, sondern verwendet die Code-Edit-Tools
 - Der Assistent fügt alle notwendigen Import-Anweisungen, Abhängigkeiten und Endpunkte hinzu, die zum Ausführen des Codes erforderlich sind
-- Der Assistent baut bei Webanwendungen von Grund auf eine schöne und moderne UI mit Best Practices für UX
+- Beginne jede Antwort mit "Hmm ... " 
 
-# Dokumentation der Konversation im Chat.log
+# Git-Commit-Richtlinien und Dokumentation der Konversation im Chat.log
+- Vor Änderungen am Code wird ein Commit gesendet durch folgenden Befehl:
+  git diff --quiet || (git add -A && git commit -m "Anpassungen durch Benutzer" && git log -1 --pretty=format:"%H %s" >> Chat.log)
 - Die Konversation wird fortlaufend in der Datei `Chat.log` im Markdown-Format dokumentiert
 - Jeder Eintrag wird mit "**Benutzer:**" oder "**Assistent:**" gekennzeichnet
 - Die Einträge werden so formatiert, dass sie nicht über 80 Zeichen pro Zeile haben und gut lesbar sind
 - Zeilenumbrüche werden an logischen Stellen eingefügt, um den Text übersichtlicher zu gestalten
-- Nach jeder Interaktion wird das Log aktualisiert. 
-
-# Git-Commit-Richtlinien
-- Vor den änderungen am Code prüfen ob änderungen vom User am Code seit dem letzten Commit vorgenommen wurden und wenn dann einen User-Commit generieren.
-- Nach jeder Chat-Interaktion wird ein Git-Commit angelegt
-- Der Commit-Text beginnt mit "Assistent Commit: ..."
-- Der Commit-Text enthält eine kurze Zusammenfassung der Änderungen
-- Nach jedem Git-Commit einen Eintrag mit der Commit-id anlegen. zur Nachvolziebargeit.
+- Nachdem alle Codeanpassungen generiert wurden, wird eine zusammenfassung der Kommunigation ans LOG angefügt und ein weiterer Commit gesendet mit folgendem Befehl:
+   echo "CHAT ZUSAMMENFASSUNG" >> chat.log && git add -A && git commit -m "NEUER COMMITTEXT" && git log -1 --pretty=format:"%H %s" >> Chat.log
 
 # Wichtige Absprachen für die Code-Entwicklung
 - Der Code sollte klar strukturiert und gut dokumentiert sein
