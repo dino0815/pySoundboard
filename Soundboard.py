@@ -21,6 +21,10 @@ class Soundboard(Gtk.Window):
         self.set_default_size(self.config.data['Window']['window_width'], self.config.data['Window']['window_height'])
         self.set_size_request(-1, -1)        # Keine Mindestgröße setzen
         self.default_button = None           # Default-Button
+        
+        # Aktualisiere den Fenstertitel
+        self.update_window_title()
+        
         # Erstelle ScrolledWindow mit optimierter Konfiguration
         self.scrolled_window = Gtk.ScrolledWindow()
         self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -127,6 +131,7 @@ class Soundboard(Gtk.Window):
         if widget:                                      # Nur wenn ein Widget übergeben wurde (Menüpunkt)
             widget.get_parent().popdown()               # Menü schließen
         self.config.mark_changed()  # Markiere Änderungen
+        self.update_window_title()  # Aktualisiere den Fenstertitel
 
     ########################################################################################################
     def on_key_press(self, widget, event):
@@ -154,17 +159,20 @@ class Soundboard(Gtk.Window):
         
         if ctrl and keyname == 'q':                            # Strg+Q: Fenster schließen
             self.config.save_config(self)                      # Konfiguration speichern
+            self.update_window_title()                         # Aktualisiere den Fenstertitel
             self.destroy()                                     # Fenster schließen
             return True                                        # keine Weitergabe an andere Handler
         
         if ctrl and shift and keyname == 'S':                  # Strg+Shift+S: Konfiguration unter neuem Namen speichern
             print("Konfiguration unter neuem Namen speichern")
             self.config.save_config_as_dialog(self)            # Öffne den Dialog zum Speichern unter einem neuen Namen
+            self.update_window_title()                         # Aktualisiere den Fenstertitel
             return True                                        # keine Weitergabe an andere Handler
 
         if ctrl and keyname == 's':                            # Strg+S: Konfiguration speichern
             print("Konfiguration gespeichert")
             self.config.save_config(self)                      # Konfiguration speichern
+            self.update_window_title()                         # Aktualisiere den Fenstertitel
             return True                                        # keine Weitergabe an andere Handler
         
         return False                                           # Weitergabe an andere Handler
@@ -211,6 +219,7 @@ class Soundboard(Gtk.Window):
         self.config.data['buttons'] = buttonlist
         self.flowbox.show_all()
         self.config.mark_changed()  # Markiere Änderungen
+        self.update_window_title()  # Aktualisiere den Fenstertitel
 
     #########################################################################################################
     def remove_button(self, button):
@@ -220,6 +229,7 @@ class Soundboard(Gtk.Window):
             self.flowbox.show_all()
             button.delete_button()       
             self.config.mark_changed()  # Markiere Änderungen
+            self.update_window_title()  # Aktualisiere den Fenstertitel
             return True
         return False
 
@@ -227,6 +237,8 @@ class Soundboard(Gtk.Window):
     def on_save_config_as(self, widget=None):
         """Öffnet einen Dateiauswahldialog zum Speichern der Konfiguration unter einem neuen Namen"""
         self.config.save_config_as_dialog(self)
+        # Aktualisiere den Fenstertitel nach dem Speichern
+        self.update_window_title()
         # Wenn die Methode über das Kontextmenü aufgerufen wurde, schließe das Menü
         if widget:
             widget.get_parent().popdown()
@@ -260,6 +272,7 @@ class Soundboard(Gtk.Window):
                 if response == Gtk.ResponseType.YES:
                     # Speichern unter neuem Namen
                     self.config.save_config_as_dialog(self)
+                    self.update_window_title()  # Aktualisiere den Fenstertitel
                     self.cleanup_resources()
                     Gtk.main_quit()
                 else:  # NO
@@ -287,11 +300,13 @@ class Soundboard(Gtk.Window):
                 if response == Gtk.ResponseType.YES:
                     # Speichern in der aktuellen Datei
                     self.config.save_config(self)
+                    self.update_window_title()  # Aktualisiere den Fenstertitel
                     self.cleanup_resources()
                     Gtk.main_quit()
                 elif response == Gtk.ResponseType.ACCEPT:
                     # Speichern unter neuem Namen
                     self.config.save_config_as_dialog(self)
+                    self.update_window_title()  # Aktualisiere den Fenstertitel
                     self.cleanup_resources()
                     Gtk.main_quit()
                 else:  # NO
@@ -368,6 +383,28 @@ class Soundboard(Gtk.Window):
             json.dump(self.config.data, f, indent=4)
         
         print(f"Autosave erstellt: {autosave_file}")
+
+    ########################################################################################################
+    def update_window_title(self):
+        """Aktualisiert den Fenstertitel basierend auf dem Konfigurationsnamen und dem Status der ungespeicherten Änderungen"""
+        import os
+        
+        # Bestimme den Konfigurationsnamen
+        if self.config.config_file and self.config.config_file != "" and not self.config.is_new_config:
+            # Extrahiere den Dateinamen ohne Erweiterung
+            config_name = os.path.splitext(os.path.basename(self.config.config_file))[0]
+        else:
+            # Wenn keine Konfigurationsdatei existiert oder es sich um eine neue Konfiguration handelt
+            config_name = "unbenannt"
+        
+        # Füge ein Sternchen hinzu, wenn es ungespeicherte Änderungen gibt
+        if self.config.has_changes:
+            title = f"Soundboard: {config_name} *"
+        else:
+            title = f"Soundboard: {config_name}"
+        
+        # Setze den Fenstertitel
+        self.set_title(title)
 
 ############################################################################################################
 if len(sys.argv) > 1:
