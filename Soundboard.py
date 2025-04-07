@@ -397,11 +397,14 @@ class Soundboard(Gtk.Window):
             # Wenn keine Konfigurationsdatei existiert oder es sich um eine neue Konfiguration handelt
             config_name = "unbenannt"
         
+        # Hole den Titel-Prefix aus der Konfiguration
+        title_prefix = self.config.data['Window'].get('title_prefix', 'Soundboard: ')
+        
         # Füge ein Sternchen hinzu, wenn es ungespeicherte Änderungen gibt
         if self.config.has_changes:
-            title = f"Soundboard: {config_name} *"
+            title = f"{title_prefix}{config_name} *"
         else:
-            title = f"Soundboard: {config_name}"
+            title = f"{title_prefix}{config_name}"
         
         # Setze den Fenstertitel
         self.set_title(title)
