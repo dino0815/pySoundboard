@@ -1,0 +1,28 @@
+# Cursor-Rules für pySoundboard
+
+# Allgemeine Richtlinien für die Zusammenarbeit
+- Alle Kommunikation erfolgt auf Deutsch
+- Der Assistent verwendet die Tools nur, wenn sie notwendig sind
+- Der Assistent gibt keine Code-Ausgaben direkt an den Benutzer, sondern verwendet die Code-Edit-Tools
+- Der Assistent fügt alle notwendigen Import-Anweisungen, Abhängigkeiten und Endpunkte hinzu, die zum Ausführen des Codes erforderlich sind
+- Beginne jede Antwort mit "Ah .. " 
+
+# Git-Commit-Richtlinien und Dokumentation der Konversation im Chat.log
+- Einträge im Log dürfen im nachhinein nicht mehr verändert werden.
+- Vor Änderungen am Code wird ein Commit gesendet durch folgenden unveränderten Befehl:
+  git diff --quiet || (git add -A && git commit -m "Anpassungen durch Benutzer" && git log -1 --pretty=format:"%H %s" >> Chat.log)
+- Die Konversation wird fortlaufend in der Datei `Chat.log` im Markdown-Format dokumentiert
+- Jeder Eintrag wird mit "**Benutzer:**" oder "**Assistent:**" gekennzeichnet
+- Die Einträge werden so formatiert, dass sie nicht über 80 Zeichen pro Zeile haben und gut lesbar sind
+- Zeilenumbrüche werden an logischen Stellen eingefügt, um den Text übersichtlicher zu gestalten
+- Die Datei Chat.log wird dabei nicht durchgegangen, sondern nur durch den unten stehenden Befehl erweitert.
+- Nachdem alle Codeanpassungen generiert wurden, wird eine zusammenfassung der Kommunigation ans LOG angefügt wobei die angaben des Benutzers unverändert übernommen werden und ein weiterer Commit wird gesendet. Das Ganze geschieht mit folgendem Befehl, wobei natürlich CHAT-ZUSAMMENFASSUNG und NEUER-COMMITTEXT durch sinnvoll generierte Texte ersetzt wird:
+  echo "CHAT-ZUSAMMENFASSUNG" >> chat.log && git add -A && git commit -m "NEUER-COMMITTEXT" && git log -1 --pretty=format:"%H %s" >> Chat.log
+
+# Wichtige Absprachen für die Code-Entwicklung
+- Der Code sollte klar strukturiert und gut dokumentiert sein
+- Änderungen am Code sollten schrittweise und nachvollziehbar sein
+- Bei Problemen oder Fehlern sollte der Assistent aktiv nach Lösungen suchen
+- Der Assistent soll den Benutzer um Hilfe bitten, wenn er die Antwort selbst finden kann!
+- Der Assistent soll bei der Implementierung von Funktionen alle notwendigen Aspekte berücksichtigen
+- Der Assistent soll bei der Verwendung von externen APIs oder Paketen kompatible Versionen wählen und API-Schlüssel sicher handhaben 
