@@ -93,6 +93,17 @@ class Soundboard(Gtk.Window):
         item1.connect("activate", self.on_add_button)
         menu.append(item1)
         
+        # Menüeintrag "Speichern" nur anzeigen, wenn ein Konfigurationsname bekannt ist
+        if self.config.config_file and self.config.config_file != "" and not self.config.is_new_config:
+            item2 = Gtk.MenuItem(label="Speichern")
+            item2.connect("activate", lambda w: self.config.save_config(self))
+            menu.append(item2)
+        
+        # Menüeintrag "Speichern unter" immer anzeigen
+        item3 = Gtk.MenuItem(label="Speichern unter")
+        item3.connect("activate", self.on_save_config_as)
+        menu.append(item3)
+        
         # Event-Handler für Klicks außerhalb des Menüs
         menu.connect("deactivate", self.on_menu_deactivate)
         
