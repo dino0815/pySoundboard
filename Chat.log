@@ -395,4 +395,4 @@ als Konfigurationsname verwendet.
 Wenn es ungespeicherte Änderungen gibt, wird ein Sternchen (*) am Ende des Titels hinzugefügt.
 
 Die Änderungen wurden mit dem Commit "Assistent Commit: Fenstertitel zeigt Konfigurationsnamen und 
-ungespeicherte Änderungen an" dokumentiert. 
+ungespeicherte Änderungen an" dokumentiert. 208d13386c4a224c0e32d66510cad47a54723ec8 NEUER COMMITTEXT
