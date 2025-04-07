@@ -5,10 +5,10 @@
 [x] Dialog Buttom-Einstellungen
 [x] Neuzeichnen nach schließen der Dialoge
 [x] Verschieben implementieren
+[x] Konfig Filename als Fenster Titel
+[x] * im Titel, wenn ungespeicherte änderungen bestehen
 [ ] Button vorschau im Button-Dialog, der sofort aktualisiert wird
 [ ] Dialog Globale-Einstellingen
-[ ] Konfig Filename als Fenster titel, wenn kein anderer angegeben
 [ ] Titel über kontextmenu ändern
-[ ] * im Titel, wenn ungespeicherte änderungen bestehen
 
 # #############################################################################################################

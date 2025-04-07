@@ -14,9 +14,9 @@ class ConfigManager:
     # Konstanten für die Konfiguration
     DEFAULT_CONFIG = {
         "Window": {
-            "title":             "Soundboard",
-            "window_width":               200,
-            "window_height":              100,
+            "title_prefix":             "Soundboard: ",
+            "window_width":               400,
+            "window_height":              200,
             "read_only":                False
         },
         "buttons": [
