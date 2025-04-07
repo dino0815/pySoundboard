@@ -224,9 +224,12 @@ class Soundboard(Gtk.Window):
         return False
 
     ########################################################################################################
-    def on_save_config_as(self):
+    def on_save_config_as(self, widget=None):
         """Öffnet einen Dateiauswahldialog zum Speichern der Konfiguration unter einem neuen Namen"""
         self.config.save_config_as_dialog(self)
+        # Wenn die Methode über das Kontextmenü aufgerufen wurde, schließe das Menü
+        if widget:
+            widget.get_parent().popdown()
 
     ########################################################################################################
     def on_destroy(self, widget, data=None):
