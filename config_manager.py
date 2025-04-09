@@ -301,7 +301,6 @@ class ConfigManager:
         new_button['position'] = new_position                 # Setze die neue Position
         self.data['buttons'].append(new_button)               # Füge den neuen Button zur Konfiguration hinzu
         self.buttonlist = self.load_buttonlist()              # Aktualisiere die Buttonliste
-        #self.save_config()                                    # Speichere die Konfiguration        
         return new_position
 
     ###################################################################################################################################
@@ -314,6 +313,7 @@ class ConfigManager:
                 return True        
         return False                                                  # Button nicht gefunden
 
+    ###################################################################################################################################
     def mark_changed(self):
         """Markiert, dass es Änderungen am Soundboard gegeben hat"""
         self.has_changes = True
