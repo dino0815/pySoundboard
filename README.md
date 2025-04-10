@@ -107,7 +107,6 @@ Ein einfaches Soundboard für Linux, mit dem du Sounds per Klick abspielen kanns
   **Lösung**: Überprüfe, ob die Sounddateien im richtigen Verzeichnis liegen und die Berechtigungen korrekt sind
 
 ## Noch fehlende Features:
-- Einzelne konfigurierte Buttons exportieren und importieren
 - Vorkonfugurierte Button-Datenbank mit Schlagwort Filterung
 
 ## Lizenz
