@@ -897,4 +897,16 @@ Jetzt sollte das Programm starten und die Drag & Drop-Funktionalität für Datei
 Leider wird kene Datei erkannt, wenn ich sie ins Fenster ziehe. Egal ob *.wav, *.mp3 oder *.png
 Fehler beim Verarbeiten der Drag & Drop-Daten: Expecting value: line 1 column 1 (char 0)
 Fehler beim Verarbeiten der Drag & Drop-Daten: Expecting value: line 1 column 1 (char 0)
-Fehler beim Verarbeiten der Drag & Drop-Daten: Expecting value: line 1 column 1 (char 0)
+Fehler beim Verarbeiten der Drag & Drop-Daten: Expecting value: line 1 column 1 (char 0)7f68f32d581b103c15f143a3fcb1831fea336f3a README.md aktualisiert - Neue Funktionen dokumentiert
+**Benutzer:**
+q@git_messages.txt Bitte überarbeite die Readmedatei mit den hinzugekommenen funktionen die in der githistory erwähnt werden
+
+**Assistent:**
+Die README.md wurde aktualisiert, um die neuen Funktionen zu dokumentieren:
+- Drag & Drop Funktionalität für Bilder, Sounds und Buttons
+- Verbesserte Speicherfunktionen
+- Neue Tastaturkürzel
+- Status-Anzeige für Sounds
+- Verbesserte Pfadbehandlung
+
+Die Änderungen wurden committed und in der Chat.log dokumentiert.
