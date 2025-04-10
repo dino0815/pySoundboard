@@ -123,9 +123,10 @@ class Soundboard(Gtk.Window):
     ########################################################################################################
     def on_add_button(self, widget=None):
         """Fügt einen neuen Button am Ende der Liste hinzu"""
-        new_position = self.config.add_minimal_button() # Füge einen minimalen Button zur Konfiguration hinzu      
+        new_button_config = self.config.add_minimal_button() # Füge einen minimalen Button zur Konfiguration hinzu 
+        print(f"new_button_config: {new_button_config}")
         # Erstelle den neuen Button und füge ihn zur FlowBox hinzu
-        new_button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=self.config.data['buttons'][new_position])
+        new_button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=new_button_config)
         self.flowbox.add(new_button) 
         self.flowbox.show_all()                         # Aktualisiere die Anzeige
         if widget:                                      # Nur wenn ein Widget übergeben wurde (Menüpunkt)

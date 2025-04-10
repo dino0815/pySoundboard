@@ -425,7 +425,10 @@ class Soundbutton(Gtk.EventBox):
         """Handler für das Loslassen der Maustaste"""
         if not self.drag_started and event.button == 1:
             # Wenn kein Drag-and-Drop gestartet wurde, normalen Klick behandeln
-            self.on_eventbox_click(widget, event)
+            if self.is_pressed:           # Zurück zum normalen Zustand
+                self.deactivate_button()  # Komplette Deaktivierung des Buttons                
+            else:                         # Zum gedrückten Zustand wechseln
+                self.activate_button()    # Komplette Aktivierung des Buttons
         self.drag_started = False
         self.click_position = None
 
@@ -504,6 +507,7 @@ class Soundbutton(Gtk.EventBox):
         if event.button == 1:  # Linksklick
             self.click_position = (event.x_root, event.y_root)
             self.drag_started = False
+            return True  # Beende die Funktion hier, um die Aktivierung zu verhindern
 
         if event.button == 3:             # Nur bei Rechtsklick
             print(f"--- Button Rechtsklick --- {self.button_config['text']}")
@@ -512,13 +516,7 @@ class Soundbutton(Gtk.EventBox):
                 self.open_kontextmenu(event)  # Öffne das Kontextmenü
             return True                   # Event wird nicht weitergegeben
 
-        elif event.button == 1:           # Nur bei linksklick:
-            print(f"--- Button Linksklick --- {self.button_config['text']}")
-            if self.is_pressed:           # Zurück zum normalen Zustand
-                self.deactivate_button()  # Komplette Deaktivierung des Buttons                
-            else:                         # Zum gedrückten Zustand wechseln
-                self.activate_button()    # Komplette Aktivierung des Buttons
-            return True  # Bei Linksklick: Event nicht weitergeben an on_toggle
+        return False  # Weitergabe an andere Handler
 
     #########################################################################################################
     def open_kontextmenu(self, event):
