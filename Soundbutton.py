@@ -3,6 +3,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib, Gdk, GdkPixbuf
 import pygame
 import os
+import json
 
 #############################################################################################################
 class Soundbutton(Gtk.EventBox):
@@ -474,24 +475,55 @@ class Soundbutton(Gtk.EventBox):
     #########################################################################################################
     def on_drag_data_get(self, widget, drag_context, data, info, time):
         """Handler für das Abrufen der Drag-and-Drop-Daten"""
-        # Speichere die aktuelle Position des Buttons
-        data.set_text(str(self.button_config['position']), -1)
+        # Erstelle eine portable Version der Button-Konfiguration
+        if self.parent and self.parent.config:
+            portable_config = self.parent.config.create_portable_config(self.button_config)
+            # Konvertiere die Konfiguration in einen JSON-String
+            data.set_text(json.dumps(portable_config), -1)
+        else:
+            # Fallback: Nur die Position senden
+            data.set_text(str(self.button_config['position']), -1)
 
     #########################################################################################################
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         """Handler für das Empfangen der Drag-and-Drop-Daten"""
         try:
-            source_position = int(data.get_text())
-            target_position = self.button_config['position']
+            # Versuche, die Daten als JSON zu parsen
+            portable_config = json.loads(data.get_text())
             
-            # Wenn die Positionen unterschiedlich sind, verschiebe den Button
-            if source_position != target_position and self.parent:
-                print(f"Button von Position {source_position} nach {target_position} verschoben")
-                self.parent.move_button(current_position=source_position, new_position=target_position)
+            # Prüfe, ob es sich um ein Drag & Drop innerhalb des gleichen Boards handelt
+            if self.parent and self.parent.config:
+                if 'CopyOf' in portable_config:
+                    source_board = portable_config['CopyOf']
+                    current_board = os.path.splitext(os.path.basename(self.parent.config.config_file))[0] if self.parent.config.config_file else "unnamed_soundboard"
+                    
+                    if source_board == current_board:
+                        # Internes Drag & Drop: Nur Position ändern
+                        source_position = portable_config['position']
+                        target_position = self.button_config['position']
+                        
+                        if source_position != target_position:
+                            print(f"Button von Position {source_position} nach {target_position} verschoben")
+                            self.parent.move_button(current_position=source_position, new_position=target_position)
+                    else:
+                        # Externes Drag & Drop: Button kopieren
+                        print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
+                        # TODO: Implementierung des Button-Kopierens
+                        # Hier kommt später die Add_portableButton-Methode zum Einsatz
+                        Gtk.drag_finish(drag_context, False, False, time)
+                        return
+                else:
+                    # Altes Format: Nur Position
+                    source_position = int(portable_config)
+                    target_position = self.button_config['position']
+                    
+                    if source_position != target_position:
+                        print(f"Button von Position {source_position} nach {target_position} verschoben")
+                        self.parent.move_button(current_position=source_position, new_position=target_position)
             
             Gtk.drag_finish(drag_context, True, False, time)
-        except (ValueError, TypeError):
-            # Wenn die Daten nicht als Position interpretiert werden können
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
+            print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
             Gtk.drag_finish(drag_context, False, False, time)
 
     #########################################################################################################

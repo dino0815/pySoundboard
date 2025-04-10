@@ -330,3 +330,77 @@ class ConfigManager:
     def has_unsaved_changes(self):
         """Gibt zurück, ob es ungespeicherte Änderungen gibt"""
         return self.has_changes
+
+    ###################################################################################################################################
+    def create_portable_config(self, button_config):
+        """Erstellt eine portable Version der Button-Konfiguration für Drag & Drop zwischen Soundboards"""
+        import os
+        
+        # Erstelle eine Kopie der Button-Konfiguration
+        portable_config = button_config.copy()
+        
+        # Konvertiere relative Pfade zu absoluten Pfaden
+        if 'audio_file' in portable_config and portable_config['audio_file']:
+            if not os.path.isabs(portable_config['audio_file']):
+                # Wenn ein soundpfad_prefix vorhanden ist, verwende es
+                if 'soundpfad_prefix' in portable_config:
+                    base_path = os.path.dirname(self.config_file) if self.config_file else os.getcwd()
+                    portable_config['audio_file'] = os.path.join(base_path, portable_config['soundpfad_prefix'], portable_config['audio_file'])
+                else:
+                    base_path = os.path.dirname(self.config_file) if self.config_file else os.getcwd()
+                    portable_config['audio_file'] = os.path.join(base_path, portable_config['audio_file'])
+        
+        if 'image_file' in portable_config and portable_config['image_file']:
+            if not os.path.isabs(portable_config['image_file']):
+                # Wenn ein imagepfad_prefix vorhanden ist, verwende es
+                if 'imagepfad_prefix' in portable_config:
+                    base_path = os.path.dirname(self.config_file) if self.config_file else os.getcwd()
+                    portable_config['image_file'] = os.path.join(base_path, portable_config['imagepfad_prefix'], portable_config['image_file'])
+                else:
+                    base_path = os.path.dirname(self.config_file) if self.config_file else os.getcwd()
+                    portable_config['image_file'] = os.path.join(base_path, portable_config['image_file'])
+        
+        # Füge Informationen über das Quell-Soundboard hinzu
+        if self.config_file:
+            portable_config['CopyOf'] = os.path.splitext(os.path.basename(self.config_file))[0]
+        else:
+            portable_config['CopyOf'] = "unnamed_soundboard"
+        
+        return portable_config
+
+    ###################################################################################################################################
+    def import_portable_config(self, portable_config, target_position=None):
+        """Importiert eine portable Button-Konfiguration und konvertiert sie in eine lokale Konfiguration"""
+        import os
+        
+        # Erstelle eine Kopie der portablen Konfiguration
+        local_config = portable_config.copy()
+        
+        # Konvertiere absolute Pfade zurück zu relativen Pfaden
+        if 'audio_file' in local_config and local_config['audio_file']:
+            if os.path.isabs(local_config['audio_file']):
+                # Versuche, den Pfad relativ zum Konfigurationsverzeichnis zu machen
+                if self.config_file:
+                    base_path = os.path.dirname(self.config_file)
+                    try:
+                        local_config['audio_file'] = os.path.relpath(local_config['audio_file'], base_path)
+                    except ValueError:
+                        # Wenn der Pfad nicht relativ gemacht werden kann, behalte den absoluten Pfad
+                        pass
+        
+        if 'image_file' in local_config and local_config['image_file']:
+            if os.path.isabs(local_config['image_file']):
+                # Versuche, den Pfad relativ zum Konfigurationsverzeichnis zu machen
+                if self.config_file:
+                    base_path = os.path.dirname(self.config_file)
+                    try:
+                        local_config['image_file'] = os.path.relpath(local_config['image_file'], base_path)
+                    except ValueError:
+                        # Wenn der Pfad nicht relativ gemacht werden kann, behalte den absoluten Pfad
+                        pass
+        
+        # Setze die Position
+        #if target_position is not None:
+        #    local_config['position'] = target_position
+        
+        return local_config

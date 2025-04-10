@@ -561,7 +561,7 @@ Fazit, beim Drag-Start muss die Config angepasst werden, dies sollte eine Method
 2. Ein Feld "CopyOf" hinzufügen, wo der Soundboardname eingefügt wird.
 Weiter brauchen wir eine Methode, die die PortableConfig wieder in eine Bordspezifische ButtonConfig überträgt. Hier ist vermutlich nur die Pfadreduzierung auf relative Pfade wichtig und die anpassung der Position. Der CopyOf Eintrag kann ja bleiben und wird beim erneuten Kopieren einfach überschrieben. 
 
-Lass und Schrittweise Vorgehen:
+Lass uns Schrittweise Vorgehen:
 0. PortableConfig per id für einen Button erzeugen und zurückgeben (configmanager)
 1. den Internen Move nur minimal anpassen um mit PortablenConfigs zu arbeiten, wobei alles bis auf position ignoriert wird und wie bisher weitergemacht wird
 2. Den Eintrag  CopyOf hinzufügen
@@ -570,29 +570,30 @@ wenn nicht fehlermeldung , wenn ja gleiches verhalten wie bei 1
 4. PortableConfig zu lokaler übersetzen (im configmanager)
 5. Config übersetzer zu einer Add_portableButton Funktion ausarbeiten
 6. Statt Fehlermeldung mittels der Add_portableButton methode den Button ins Board hinzufügen und an die gewünschte position schieben.
+
 **Assistent:** 
 Ah .. Ihre Klärungen und der schrittweise Ansatz sind sehr gut durchdacht. Lassen Sie uns die einzelnen Schritte im Detail analysieren:
-Schritt 0 - PortableConfig im ConfigManager:
+## Schritt 0 - PortableConfig im ConfigManager:
 Sehr gute Idee, dies im ConfigManager zu implementieren
 Klare Trennung der Verantwortlichkeiten
 Ermöglicht zentrale Verwaltung der Pfadkonvertierung
-Schritt 1 - Anpassung des internen Moves:
+## Schritt 1 - Anpassung des internen Moves:
 Minimalinvasive Änderung
 Behält die bestehende Logik bei
 Nur Erweiterung um PortableConfig-Handling
-Schritt 2 - CopyOf Eintrag:
+## Schritt 2 - CopyOf Eintrag:
 Gute Lösung für die Nachverfolgung
 Ermöglicht später eventuell auch "Update von Original" Funktionalität
 Einfach zu implementieren
-Schritt 3 - Board-Erkennung:
+## Schritt 3 - Board-Erkennung:
 Klare Trennung zwischen internem und externem Drag & Drop
 Fehlermeldung als Zwischenschritt ist gut für Debugging
 Später einfach durch Add_portableButton zu ersetzen
-Schritt 4 & 5 - Config-Übersetzung:
+## Schritt 4 & 5 - Config-Übersetzung:
 Logische Trennung der Konvertierungsaufgaben
 Zentrale Verwaltung im ConfigManager
 Wiederverwendbare Funktionen
-Schritt 6 - Finale Integration:
+## Schritt 6 - Finale Integration:
 Saubere Ablösung der Fehlermeldung
 Klare Verantwortlichkeiten
 Gute Testbarkeit
@@ -611,3 +612,29 @@ Zum Schluss die Integration:
 Add_portableButton
 Finale Drag & Drop-Logik
 Möchten Sie, dass wir mit einem bestimmten Schritt beginnen? Ich würde vorschlagen, mit der ConfigManager-Erweiterung zu starten, da dies die Grundlage für alle weiteren Schritte bildet.
+4402dff62e07d15f492b98cc9b1dd4e1c27fbdc1 Planung des Vorgehens
+
+**Benutzer:** 
+Ja, lass und in der Reihenfolge vorgehen
+
+**Assistent:** 
+Ah .. sehr gut, dann beginnen wir mit der ConfigManager-Erweiterung. Lassen Sie uns zunächst die aktuelle Implementierung des ConfigManagers analysieren.
+Basierend auf der Code-Analyse schlage ich vor, dass wir die ConfigManager-Erweiterung wie folgt implementieren:
+1. Zuerst fügen wir die neue Methode create_portable_config zum ConfigManager hinzu:
+
+Ausgezeichnet! Ich habe die beiden neuen Methoden zum ConfigManager hinzugefügt:
+## 1. create_portable_config:
+- Erstellt eine portable Version der Button-Konfiguration
+- Konvertiert relative Pfade zu absoluten Pfaden
+- Fügt das CopyOf-Feld mit dem Namen des Quell-Soundboards hinzu
+## 2. import_portable_config:
+- Importiert eine portable Konfiguration
+- Konvertiert absolute Pfade zurück zu relativen Pfaden
+- Setzt die gewünschte Position
+## Die Implementierung berücksichtigt:
+- Korrekte Pfadkonvertierung für Audio- und Bilddateien
+- Berücksichtigung von Präfix-Pfaden
+- Fehlerbehandlung bei nicht konvertierbaren Pfaden
+- Beibehaltung des CopyOf-Feldes für spätere Verwendung
+Als nächstes sollten wir die Drag & Drop-Funktionalität im Soundbutton anpassen, um diese neuen Methoden zu nutzen. Sollen wir damit fortfahren?
+
