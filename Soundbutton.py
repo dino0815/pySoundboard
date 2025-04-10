@@ -259,7 +259,6 @@ class Soundbutton(Gtk.EventBox):
     #########################################################################################################
     def apply_image(self):
         """Wendet ein Hintergrundbild auf den Button an wenn eines eingestellt ist."""
-        print(f"apply_image:")
         if self.button_config.get('image_file', False): # Wenn ein individuelles Bild eingestellt ist            
             self.get_style_context().add_class("sound-button-with-image") 
             # Lade den X Positionierungswert    
@@ -334,7 +333,6 @@ class Soundbutton(Gtk.EventBox):
             """.encode())
             self.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         else:
-            print(f"use no image")
             self.get_style_context().remove_class("sound-button-with-image")    
 
     #########################################################################################################

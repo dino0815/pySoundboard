@@ -27,9 +27,11 @@ class Soundboard(Gtk.Window):
         self.update_window_title()
         
         # Aktiviere Drag & Drop für das Fenster
-        self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
+        target_entries = Gtk.TargetEntry.new("text/uri-list", 0, 0)
+        self.drag_dest_set(Gtk.DestDefaults.ALL, [target_entries], Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
         self.drag_dest_add_text_targets()
-        self.connect('drag-data-received', self.on_window_drag_data_received)
+        #self.connect('drag-data-received', self.on_window_drag_data_received)
+        self.connect('drag-data-received', self.on_background_drag_data_received)
         
         # Erstelle ScrolledWindow mit optimierter Konfiguration
         self.scrolled_window = Gtk.ScrolledWindow()
@@ -422,17 +424,41 @@ class Soundboard(Gtk.Window):
         # Setze den Fenstertitel
         self.set_title(title)
 
+    ########################################################################################################
+    def update_buttons(self):
+        """Aktualisiert die Anzeige der Buttons"""
+        # Entferne alle existierenden Buttons
+        for child in self.flowbox.get_children():
+            self.flowbox.remove(child)
+        
+        # Füge die Buttons neu hinzu
+        for button in self.config.buttonlist:
+            if button.get('position') != 0:  # solange es nicht der Default-Button ist
+                button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=button)
+                self.flowbox.add(button)
+        
+        # Aktualisiere die Anzeige
+        self.flowbox.show_all()
+
+    ############################################################################################################
     def on_background_drag_data_received(self, widget, drag_context, x, y, data, info, time):
+        print(f"on_background_drag_data_received")
         """Handler für das Empfangen der Drag-and-Drop-Daten auf dem Hintergrund"""
         try:
             # Versuche, die Daten als JSON zu parsen
             portable_config = json.loads(data.get_text())
             
+            print("########################################################")
+            print(f"x:{x}, y:{y}")
             # Hole die FlowBox-Dimensionen und Abstände
             flowbox_width = self.flowbox.get_allocated_width()
+            print(f"flowbox_width: {flowbox_width}")
             flowbox_height = self.flowbox.get_allocated_height()
+            print(f"flowbox_height: {flowbox_height}")
             column_spacing = self.flowbox.get_column_spacing()
+            print(f"column_spacing: {column_spacing}")
             row_spacing = self.flowbox.get_row_spacing()
+            print(f"row_spacing: {row_spacing}")
             
             # Hole die Button-Dimensionen (nehmen wir den ersten Button als Referenz)
             children = self.flowbox.get_children()
@@ -443,24 +469,28 @@ class Soundboard(Gtk.Window):
                 # Hole die Dimensionen des ersten Buttons
                 first_button = children[0].get_child()
                 button_width = first_button.get_allocated_width()
+                print(f"button_width: {button_width}")
                 button_height = first_button.get_allocated_height()
-                
+                print(f"button_height: {button_height}")
                 # Berechne die maximale Anzahl von Buttons pro Zeile
                 max_buttons_per_row = int((flowbox_width + column_spacing) / (button_width + column_spacing))
-                
+                print(f"max_buttons_per_row: {max_buttons_per_row}")
                 # Berechne die aktuelle Zeile und Spalte basierend auf der Drop-Position
-                current_row = int(y / (button_height + row_spacing))
+                current_row = int(y / (button_height + row_spacing))    
+                print(f"current_row: {current_row}")
                 current_col = int(x / (button_width + column_spacing))
+                print(f"current_col: {current_col}")
                 
                 # Berechne die absolute Position
                 target_position = current_row * max_buttons_per_row + current_col + 1
-                
+                print(f"target_position: {target_position}")
                 # Wenn der Button in den unteren Bereich gezogen wird, hänge ihn ans Ende an
-                if y > flowbox_height - button_height - row_spacing:
+                if y > flowbox_height - row_spacing:
                     target_position = len(children) + 1
-                
+                print(f"target_position: {target_position}")
                 # Stelle sicher, dass die Position gültig ist
                 target_position = max(1, min(target_position, len(children) + 1))
+                print(f"target_position: {target_position}")
             
             if 'CopyOf' in portable_config:
                 source_board = portable_config['CopyOf']
@@ -496,79 +526,14 @@ class Soundboard(Gtk.Window):
                         target_position -= 1
                     print(f"Button von Position {source_position} nach {target_position} verschoben")
                     self.move_button(current_position=source_position, new_position=target_position)
+                    print(f"Altes Format sollte nicht mehr vorkommen")
             
             Gtk.drag_finish(drag_context, True, False, time)
         except (ValueError, TypeError, json.JSONDecodeError) as e:
             print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
             Gtk.drag_finish(drag_context, False, False, time)
 
-    def update_buttons(self):
-        """Aktualisiert die Anzeige der Buttons"""
-        # Entferne alle existierenden Buttons
-        for child in self.flowbox.get_children():
-            self.flowbox.remove(child)
-        
-        # Füge die Buttons neu hinzu
-        for button in self.config.buttonlist:
-            if button.get('position') != 0:  # solange es nicht der Default-Button ist
-                button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=button)
-                self.flowbox.add(button)
-        
-        # Aktualisiere die Anzeige
-        self.flowbox.show_all()
-
-    def on_window_drag_data_received(self, widget, drag_context, x, y, data, info, time):
-        """Handler für das Empfangen der Drag-and-Drop-Daten auf dem Fenster"""
-        try:
-            # Versuche, die Daten als JSON zu parsen
-            portable_config = json.loads(data.get_text())
-            
-            # Hole die ScrolledWindow-Dimensionen
-            scrolled_width = self.scrolled_window.get_allocated_width()
-            scrolled_height = self.scrolled_window.get_allocated_height()
-            
-            # Prüfe, ob der Drop außerhalb der FlowBox erfolgt
-            if y > scrolled_height - 50:  # 50 Pixel Toleranz am unteren Rand
-                # Button ans Ende anhängen
-                target_position = len(self.config.buttonlist) + 1
-                
-                if 'CopyOf' in portable_config:
-                    source_board = portable_config['CopyOf']
-                    current_board = os.path.splitext(os.path.basename(self.config.config_file))[0] if self.config.config_file else "unnamed_soundboard"
-                    
-                    if source_board == current_board:
-                        # Internes Drag & Drop: Button ans Ende verschieben
-                        source_position = portable_config['position']
-                        if source_position != target_position:
-                            print(f"Button von Position {source_position} ans Ende verschoben")
-                            self.move_button(current_position=source_position, new_position=target_position)
-                    else:
-                        # Externes Drag & Drop: Button ans Ende kopieren
-                        print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
-                        if self.config.add_portable_button(portable_config, target_position=target_position):
-                            print("Button erfolgreich kopiert")
-                            self.update_buttons()
-                        else:
-                            print("Fehler beim Kopieren des Buttons")
-                            Gtk.drag_finish(drag_context, False, False, time)
-                            return
-                else:
-                    # Altes Format: Button ans Ende verschieben
-                    source_position = int(portable_config)
-                    if source_position != target_position:
-                        print(f"Button von Position {source_position} ans Ende verschoben")
-                        self.move_button(current_position=source_position, new_position=target_position)
-                
-                Gtk.drag_finish(drag_context, True, False, time)
-                return
-            
-            # Wenn der Drop innerhalb der FlowBox erfolgt, leite ihn an die FlowBox weiter
-            self.flowbox.emit('drag-data-received', drag_context, x, y, data, info, time)
-        except (ValueError, TypeError, json.JSONDecodeError) as e:
-            print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
-            Gtk.drag_finish(drag_context, False, False, time)
-
-############################################################################################################
+ ############################################################################################################
 if len(sys.argv) > 1:
     app = Soundboard(config_file=sys.argv[1])
 else:
