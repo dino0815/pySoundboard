@@ -3,6 +3,7 @@ import pygame
 import signal
 import gi    # Importiere gi, um die GTK-Bibliothek zu verwenden
 import json
+import os    # Importiere os für Pfadoperationen
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 from config_manager import ConfigManager
@@ -51,6 +52,12 @@ class Soundboard(Gtk.Window):
         self.flowbox.set_activate_on_single_click(False)        # Deaktiviere automatische Aktivierung
         self.flowbox.set_filter_func(None)                      # Keine Filterfunktion
         self.flowbox.set_sort_func(None)                        # Keine Sortierfunktion
+        
+        # Aktiviere Drag & Drop für den Hintergrund
+        self.flowbox.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
+        self.flowbox.drag_dest_add_text_targets()
+        self.flowbox.connect('drag-data-received', self.on_background_drag_data_received)
+        
         self.scrolled_window.add(self.flowbox)
 
         # Erstelle Buttons aus der gefilterten Buttonliste (ohne Default-Button)
@@ -410,45 +417,76 @@ class Soundboard(Gtk.Window):
         # Setze den Fenstertitel
         self.set_title(title)
 
-    def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
-        """Handler für das Empfangen der Drag-and-Drop-Daten"""
+    def on_background_drag_data_received(self, widget, drag_context, x, y, data, info, time):
+        """Handler für das Empfangen der Drag-and-Drop-Daten auf dem Hintergrund"""
         try:
             # Versuche, die Daten als JSON zu parsen
             portable_config = json.loads(data.get_text())
             
-            # Prüfe, ob es sich um ein Drag & Drop innerhalb des gleichen Boards handelt
-            if self.parent and self.parent.config:
-                if 'CopyOf' in portable_config:
-                    source_board = portable_config['CopyOf']
-                    current_board = os.path.splitext(os.path.basename(self.parent.config.config_file))[0] if self.parent.config.config_file else "unnamed_soundboard"
-                    
-                    if source_board == current_board:
-                        # Internes Drag & Drop: Nur Position ändern
-                        source_position = portable_config['position']
-                        target_position = self.button_config['position']
-                        
-                        if source_position != target_position:
-                            print(f"Button von Position {source_position} nach {target_position} verschoben")
-                            self.parent.move_button(current_position=source_position, new_position=target_position)
-                    else:
-                        # Externes Drag & Drop: Button kopieren
-                        print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
-                        if self.parent.config.add_portable_button(portable_config, target_position=self.button_config['position']):
-                            print("Button erfolgreich kopiert")
-                            # Aktualisiere die Anzeige
-                            self.parent.update_buttons()
-                        else:
-                            print("Fehler beim Kopieren des Buttons")
-                            Gtk.drag_finish(drag_context, False, False, time)
-                            return
-                else:
-                    # Altes Format: Nur Position
-                    source_position = int(portable_config)
-                    target_position = self.button_config['position']
-                    
+            # Hole die FlowBox-Dimensionen und Abstände
+            flowbox_width = self.flowbox.get_allocated_width()
+            flowbox_height = self.flowbox.get_allocated_height()
+            column_spacing = self.flowbox.get_column_spacing()
+            row_spacing = self.flowbox.get_row_spacing()
+            
+            # Hole die Button-Dimensionen (nehmen wir den ersten Button als Referenz)
+            children = self.flowbox.get_children()
+            if not children:
+                # Wenn keine Buttons vorhanden sind, ans Ende anhängen
+                target_position = 1
+            else:
+                # Hole die Dimensionen des ersten Buttons
+                first_button = children[0].get_child()
+                button_width = first_button.get_allocated_width()
+                button_height = first_button.get_allocated_height()
+                
+                # Berechne die maximale Anzahl von Buttons pro Zeile
+                max_buttons_per_row = int((flowbox_width + column_spacing) / (button_width + column_spacing))
+                
+                # Berechne die aktuelle Zeile und Spalte basierend auf der Drop-Position
+                current_row = int(y / (button_height + row_spacing))
+                current_col = int(x / (button_width + column_spacing))
+                
+                # Berechne die absolute Position
+                target_position = current_row * max_buttons_per_row + current_col + 1
+                
+                # Stelle sicher, dass die Position gültig ist
+                target_position = max(1, min(target_position, len(children) + 1))
+            
+            if 'CopyOf' in portable_config:
+                source_board = portable_config['CopyOf']
+                current_board = os.path.splitext(os.path.basename(self.config.config_file))[0] if self.config.config_file else "unnamed_soundboard"
+                
+                if source_board == current_board:
+                    # Internes Drag & Drop: Button an berechnete Position verschieben
+                    source_position = portable_config['position']
                     if source_position != target_position:
+                        # Wenn der Button von einer niedrigeren Position nach hinten verschoben wird,
+                        # müssen wir die Zielposition um 1 reduzieren
+                        if source_position < target_position:
+                            target_position -= 1
                         print(f"Button von Position {source_position} nach {target_position} verschoben")
-                        self.parent.move_button(current_position=source_position, new_position=target_position)
+                        self.move_button(current_position=source_position, new_position=target_position)
+                else:
+                    # Externes Drag & Drop: Button an berechnete Position kopieren
+                    print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
+                    if self.config.add_portable_button(portable_config, target_position=target_position):
+                        print("Button erfolgreich kopiert")
+                        self.update_buttons()
+                    else:
+                        print("Fehler beim Kopieren des Buttons")
+                        Gtk.drag_finish(drag_context, False, False, time)
+                        return
+            else:
+                # Altes Format: Button an berechnete Position verschieben
+                source_position = int(portable_config)
+                if source_position != target_position:
+                    # Wenn der Button von einer niedrigeren Position nach hinten verschoben wird,
+                    # müssen wir die Zielposition um 1 reduzieren
+                    if source_position < target_position:
+                        target_position -= 1
+                    print(f"Button von Position {source_position} nach {target_position} verschoben")
+                    self.move_button(current_position=source_position, new_position=target_position)
             
             Gtk.drag_finish(drag_context, True, False, time)
         except (ValueError, TypeError, json.JSONDecodeError) as e:
