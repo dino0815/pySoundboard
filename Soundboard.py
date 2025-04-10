@@ -138,6 +138,7 @@ class Soundboard(Gtk.Window):
         new_button_config = self.config.add_minimal_button() # Füge einen minimalen Button zur Konfiguration hinzu 
         if sound_file:
             new_button_config['audio_file'] = sound_file
+            new_button_config['text'] = os.path.splitext(os.path.basename(sound_file))[0]
         if image_file:
             new_button_config['image_file'] = image_file
         print(f"new_button_config: {new_button_config}")
