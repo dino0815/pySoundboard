@@ -6,9 +6,12 @@ Ein einfaches Soundboard für Linux, mit dem du Sounds per Klick abspielen kanns
 - Passe das Aussehen der Buttons an (Farbe, Text, Bilder)
 - Steuere die Lautstärke jedes Sounds individuell
 - Aktiviere Endlosschleifen für Sounds
-- Verschiebe Buttons per Kontextmenü
+- Verschiebe Buttons per Drag & Drop oder Kontextmenü
+- Drag & Drop von Bild- und Sounddateien auf Buttons oder Hintergrund
 - Kontextmenü für schnelle Anpassungen
 - Speichere deine Konfiguration für spätere Verwendung
+- Status-Anzeige für Sound-Zuordnung und Loop-Funktion
+- Verbesserte Pfadbehandlung für portable Konfigurationen
 
 ## Installation
 
@@ -83,9 +86,15 @@ Ein einfaches Soundboard für Linux, mit dem du Sounds per Klick abspielen kanns
 ## Tastenkombinationen
 - **Strg+N**:       Fügt einen neuen Button hinzu 
 - **Strg+S**:       Speichern der Konfiguration / des Soundboards
-- **Strg+Shift+S**: Speichern der Konfiguration / des Soundboards undter neuem Namen
+- **Strg+Shift+S**: Speichern der Konfiguration / des Soundboards unter neuem Namen
 - **Strg+Q**:       Beendet das Programm 
 - Auch mit **Strg+C** in der Konsole kann das Programm sauber beendet werden.
+
+## Drag & Drop Funktionen
+- **Bilder und Sounds**: Ziehe Dateien per Drag & Drop auf einen Button um diese Datei hinzu zufügen
+- **Bilder und Sounds**: Ziehe Dateien per Drag & Drop auf den Hintergrund um damit neue Buttons zu erzeugen.
+- **Button-Verschiebung**: Verschiebe Buttons per Drag & Drop an neue Positionen
+- **Board-Übertragung**: Verschiebe Buttons zwischen verschiedenen Soundboards
 
 ## Fehlerbehebung / FAQ
 - **Problem**: "ModuleNotFoundError: No module named 'gi'"

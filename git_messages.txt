@@ -1,0 +1,50 @@
+Jetzt können Bild und Ton Daten per Drag&Drop auf dem Hintergrung abgeworfen werden und es entstehen dadurch neue Buttons.
+Jetzt können Bild und Ton Daten per Drag&Drop einem Button der noch keine entsprechende Datei zugeordnet hat eingefügt werden.
+FlowBox und Window on_background_drag_data_received Methode zu einer Funktion zusammengefügt
+chat.log verfollständigt
+DnD funktioniert nun überall im Soundboardfenster und wird wie erwartet einsortiert
+DnD funktioniert nun auch auf den Hintergrund der FlowBox
+DnD von einem Board ins andere funktioniert nun auch
+DnD mit PortablerConfig Übergabe
+Planung des Vorgehens
+Drag&Drop für Button-Move implementiert
+Chat.log aktualisiert
+Chat.log aktualisiert
+Buttons lösen beim verschieben nicht mehr aus und noch einen kleinen Fehler im add_Button korrigiert
+Drag&Drop ButtonMove funktioniert, nur noch Feinschliff nötig
+nur kleine Anpassungen
+chat.log
+Assistent Commit: Chat.log aktualisiert
+Assistent Commit: Fenstertitel verwendet title_prefix aus der Konfiguration
+anpassung in der default_config
+Anpassung der cursorrules
+NEUER COMMITTEXT
+Assistent Commit: Fenstertitel zeigt Konfigurationsnamen und ungespeicherte Änderungen an
+Assistent Commit: on_save_config_as-Methode angepasst, um widget-Parameter zu akzeptieren
+Assistent Commit: Speichern und Speichern unter zum Kontextmenü hinzugefügt
+aktualisierung von gitignore und cursorrules
+Assistent Commit: Speicherfunktion verbessert - Direktes Speichern in save_config_as und angepasste Dialog-Optionen für neue Konfigurationen
+Assistent Commit: 'Abbrechen'-Buttons entfernt - Fenster wird nicht mehr wiederhergestellt
+Assistent Commit: on_destroy-Methode angepasst - Fenster wird wieder angezeigt, wenn der Benutzer 'Abbrechen' wählt
+Assistent Commit: .cursorrules hinzugefügt - Zusammenarbeitsrichtlinien als Cursor-Rules hinterlegt
+Assistent Commit: Chat.log aktualisiert - Timestamps entfernt und Formatierung verbessert
+status ob änderungen am Board vorgenommen wurden hinzugefürgt und beim beenden behandelt
+leichte Anpassungen
+Tastaturkürzel hinzugefügt: Strg-n für neuen Button, Strg+Shift+S: SaveAs, Strg+q: Programm beenden
+Entlich geht auch Strg+Shift+S als SaveAs und Strg+Q wird nun zum beenden verwendet
+Nachkommastellen der Volumenwerte beseitigt.
+Es wird jetzt per Sound-Status-Icon angezeigt, ob kein Sound zugeordnet ist oder die loot-funktion aktiv ist
+Sound-Icon ist positioniert, aber noch nicht an den aktuellen Status gebunden
+Komplette Neuerstellung
+fehlersuche volume erstwerte, add debugausgaben
+aufräumen in den Files
+kleine Anpassungen
+etwas verbesserte relative pfadbehandlung, aber noch in arbeit
+addbutton geht wieder
+leichte aufräumarbeiten, aber der addbutton erscheint nicht mehr
+leichte Quelltextanpassungen + Kommentare
+leichte Anpassungen
+Relative Pfage
+README.md hinzugefügt
+ zwischenstand
+zwischenschritt
