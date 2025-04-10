@@ -815,3 +815,4 @@ Das bedeutet:
 Wenn du einen Button von Position 2 nach Position 5 ziehst, wird er tatsächlich an Position 4 eingefügt
 Wenn du einen Button von Position 5 nach Position 2 ziehst, wird er an Position 2 eingefügt (keine Anpassung nötig)
 Diese Änderung sollte das Verhalten jetzt korrekt machen. Möchtest du die neue Funktionalität testen?
+8eea77f4363f4c07f52b780d2787bbc5de37dd5a DnD funktioniert nun auch auf den Hintergrund der FlowBox

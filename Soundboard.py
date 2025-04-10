@@ -26,6 +26,11 @@ class Soundboard(Gtk.Window):
         # Aktualisiere den Fenstertitel
         self.update_window_title()
         
+        # Aktiviere Drag & Drop für das Fenster
+        self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
+        self.drag_dest_add_text_targets()
+        self.connect('drag-data-received', self.on_window_drag_data_received)
+        
         # Erstelle ScrolledWindow mit optimierter Konfiguration
         self.scrolled_window = Gtk.ScrolledWindow()
         self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -450,6 +455,10 @@ class Soundboard(Gtk.Window):
                 # Berechne die absolute Position
                 target_position = current_row * max_buttons_per_row + current_col + 1
                 
+                # Wenn der Button in den unteren Bereich gezogen wird, hänge ihn ans Ende an
+                if y > flowbox_height - button_height - row_spacing:
+                    target_position = len(children) + 1
+                
                 # Stelle sicher, dass die Position gültig ist
                 target_position = max(1, min(target_position, len(children) + 1))
             
@@ -507,6 +516,57 @@ class Soundboard(Gtk.Window):
         
         # Aktualisiere die Anzeige
         self.flowbox.show_all()
+
+    def on_window_drag_data_received(self, widget, drag_context, x, y, data, info, time):
+        """Handler für das Empfangen der Drag-and-Drop-Daten auf dem Fenster"""
+        try:
+            # Versuche, die Daten als JSON zu parsen
+            portable_config = json.loads(data.get_text())
+            
+            # Hole die ScrolledWindow-Dimensionen
+            scrolled_width = self.scrolled_window.get_allocated_width()
+            scrolled_height = self.scrolled_window.get_allocated_height()
+            
+            # Prüfe, ob der Drop außerhalb der FlowBox erfolgt
+            if y > scrolled_height - 50:  # 50 Pixel Toleranz am unteren Rand
+                # Button ans Ende anhängen
+                target_position = len(self.config.buttonlist) + 1
+                
+                if 'CopyOf' in portable_config:
+                    source_board = portable_config['CopyOf']
+                    current_board = os.path.splitext(os.path.basename(self.config.config_file))[0] if self.config.config_file else "unnamed_soundboard"
+                    
+                    if source_board == current_board:
+                        # Internes Drag & Drop: Button ans Ende verschieben
+                        source_position = portable_config['position']
+                        if source_position != target_position:
+                            print(f"Button von Position {source_position} ans Ende verschoben")
+                            self.move_button(current_position=source_position, new_position=target_position)
+                    else:
+                        # Externes Drag & Drop: Button ans Ende kopieren
+                        print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
+                        if self.config.add_portable_button(portable_config, target_position=target_position):
+                            print("Button erfolgreich kopiert")
+                            self.update_buttons()
+                        else:
+                            print("Fehler beim Kopieren des Buttons")
+                            Gtk.drag_finish(drag_context, False, False, time)
+                            return
+                else:
+                    # Altes Format: Button ans Ende verschieben
+                    source_position = int(portable_config)
+                    if source_position != target_position:
+                        print(f"Button von Position {source_position} ans Ende verschoben")
+                        self.move_button(current_position=source_position, new_position=target_position)
+                
+                Gtk.drag_finish(drag_context, True, False, time)
+                return
+            
+            # Wenn der Drop innerhalb der FlowBox erfolgt, leite ihn an die FlowBox weiter
+            self.flowbox.emit('drag-data-received', drag_context, x, y, data, info, time)
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
+            print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
+            Gtk.drag_finish(drag_context, False, False, time)
 
 ############################################################################################################
 if len(sys.argv) > 1:
