@@ -297,11 +297,12 @@ class ConfigManager:
     def add_minimal_button(self):
         """Fügt einen minimalen Button zur Konfiguration hinzu"""
         new_position = len(self.data['buttons'])              # Bestimme die neue Position basierend auf der Länge der Liste
+        print(f"new_position: {new_position}")
         new_button = self.DEFAULT_CONFIG['buttons'][1].copy() # Kopiere den minimalen Button aus der Standardkonfiguration
         new_button['position'] = new_position                 # Setze die neue Position
         self.data['buttons'].append(new_button)               # Füge den neuen Button zur Konfiguration hinzu
         self.buttonlist = self.load_buttonlist()              # Aktualisiere die Buttonliste
-        return new_position
+        return new_button
 
     ###################################################################################################################################
     def delete_button(self, position):

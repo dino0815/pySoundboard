@@ -1,6 +1,6 @@
 import gi    # Importiere gi, um die GTK-Bibliothek zu verwenden
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GLib, Gdk
+from gi.repository import Gtk, GLib, Gdk, GdkPixbuf
 import pygame
 import os
 
@@ -25,11 +25,34 @@ class Soundbutton(Gtk.EventBox):
         self.timer_id             = None
         self.is_pressed           = False
         self.last_click_time      = 0       # Für Cooldown
+        self.drag_started         = False   # Für Drag-and-Drop
+        self.click_position       = None    # Für Drag-and-Drop
 
         self.set_size_request(150, 75)
         self.set_hexpand(False)             # EventBox horizontal NICHT ausdehnen
         self.set_vexpand(False)             # EventBox vertikal NICHT ausdehnen	
         self.connect("button-press-event", self.on_eventbox_click)
+        
+        # Drag-and-Drop-Funktionalität hinzufügen
+        self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
+                        Gdk.EventMask.BUTTON_RELEASE_MASK |
+                        Gdk.EventMask.POINTER_MOTION_MASK)
+        
+        self.connect("motion-notify-event", self.on_motion_notify)
+        self.connect("button-release-event", self.on_button_release)
+        self.connect("drag-begin", self.on_drag_begin)
+        
+        # Drag-and-Drop-Quelle und Ziel konfigurieren
+        self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [], Gdk.DragAction.MOVE)
+        self.drag_source_add_text_targets()
+        self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.MOVE)
+        self.drag_dest_add_text_targets()
+        
+        self.connect("drag-data-get", self.on_drag_data_get)
+        self.connect("drag-data-received", self.on_drag_data_received)
+        
+        # Füge die sound-button-Klasse zum EventBox hinzu
+        self.get_style_context().add_class("sound-button")
         
         # Erstelle eine horizontale Box für Text und Slider
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -228,6 +251,9 @@ class Soundbutton(Gtk.EventBox):
         self.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.status_icon.get_style_context().add_class("status-icon")
+        
+        # Füge die sound-button-Klasse zum EventBox hinzu
+        self.get_style_context().add_class("sound-button")
 
     #########################################################################################################
     def apply_image(self):
@@ -381,6 +407,94 @@ class Soundbutton(Gtk.EventBox):
             self.channel = None
 
     #########################################################################################################
+    def on_motion_notify(self, widget, event):
+        """Handler für Mausbewegungen, um Drag-and-Drop zu starten"""
+        if event.state & Gdk.ModifierType.BUTTON1_MASK and self.click_position:
+            dx = abs(event.x_root - self.click_position[0])
+            dy = abs(event.y_root - self.click_position[1])
+            if (dx > 8 or dy > 8) and not self.drag_started:
+                self.drag_started = True
+                # Erstelle eine TargetList für Text
+                targets = Gtk.TargetList.new([])
+                targets.add_text_targets(0)
+                # Starte den Drag-Vorgang mit einem gültigen Objekt
+                self.drag_begin_with_coordinates(targets, Gdk.DragAction.MOVE, 1, event, event.x_root, event.y_root)
+
+    #########################################################################################################
+    def on_button_release(self, widget, event):
+        """Handler für das Loslassen der Maustaste"""
+        if not self.drag_started and event.button == 1:
+            # Wenn kein Drag-and-Drop gestartet wurde, normalen Klick behandeln
+            if self.is_pressed:           # Zurück zum normalen Zustand
+                self.deactivate_button()  # Komplette Deaktivierung des Buttons                
+            else:                         # Zum gedrückten Zustand wechseln
+                self.activate_button()    # Komplette Aktivierung des Buttons
+        self.drag_started = False
+        self.click_position = None
+
+    #########################################################################################################
+    def on_drag_begin(self, widget, drag_context):
+        """Handler für den Beginn des Drag-and-Drop-Vorgangs"""
+        # Erstelle ein Pixbuf für die Vorschau
+        alloc = self.get_allocation()
+        
+        # Hole den Stilkontext und zeichne den Button
+        style_context = self.get_style_context()
+        style_context.save()
+        style_context.add_class("sound-button")
+        
+        # Erstelle einen Cairo-Kontext für das Pixbuf
+        window = self.get_window()
+        if window:
+            cr = window.cairo_create()
+            
+            # Zeichne den Button
+            Gtk.render_background(style_context, cr, 0, 0, alloc.width, alloc.height)
+            Gtk.render_frame(style_context, cr, 0, 0, alloc.width, alloc.height)
+            
+            # Zeichne den Text
+            layout = self.text_label.get_layout()
+            layout.set_text(self.text_label.get_text(), -1)
+            text_width, text_height = layout.get_pixel_size()
+            text_x = (alloc.width - text_width) / 2
+            text_y = (alloc.height - text_height) / 2
+            
+            Gtk.render_layout(style_context, cr, text_x, text_y, layout)
+            
+            # Konvertiere den Cairo-Kontext in ein Pixbuf
+            surface = cr.get_target()
+            pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0, alloc.width, alloc.height)
+            
+            # Setze das Pixbuf als Drag-Icon
+            Gtk.drag_set_icon_pixbuf(drag_context, pixbuf, 0, 0)
+        
+        # Stelle den Stilkontext wieder her
+        style_context.restore()
+
+    #########################################################################################################
+    def on_drag_data_get(self, widget, drag_context, data, info, time):
+        """Handler für das Abrufen der Drag-and-Drop-Daten"""
+        # Speichere die aktuelle Position des Buttons
+        data.set_text(str(self.button_config['position']), -1)
+
+    #########################################################################################################
+    def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
+        """Handler für das Empfangen der Drag-and-Drop-Daten"""
+        try:
+            source_position = int(data.get_text())
+            target_position = self.button_config['position']
+            
+            # Wenn die Positionen unterschiedlich sind, verschiebe den Button
+            if source_position != target_position and self.parent:
+                print(f"Button von Position {source_position} nach {target_position} verschoben")
+                self.parent.move_button(current_position=source_position, new_position=target_position)
+            
+            Gtk.drag_finish(drag_context, True, False, time)
+        except (ValueError, TypeError):
+            # Wenn die Daten nicht als Position interpretiert werden können
+            Gtk.drag_finish(drag_context, False, False, time)
+
+    #########################################################################################################
     def on_eventbox_click(self, button, event):
         """Diese Funktion wird aufgerufen, wenn der Button geklickt wird"""
         # Cooldown von 100ms (0.1 Sekunden)
@@ -389,6 +503,12 @@ class Soundbutton(Gtk.EventBox):
             return True
         self.last_click_time = current_time
 
+        # Speichere die Klickposition für Drag-and-Drop
+        if event.button == 1:  # Linksklick
+            self.click_position = (event.x_root, event.y_root)
+            self.drag_started = False
+            return True  # Beende die Funktion hier, um die Aktivierung zu verhindern
+
         if event.button == 3:             # Nur bei Rechtsklick
             print(f"--- Button Rechtsklick --- {self.button_config['text']}")
             if self.parent is not None:
@@ -396,13 +516,7 @@ class Soundbutton(Gtk.EventBox):
                 self.open_kontextmenu(event)  # Öffne das Kontextmenü
             return True                   # Event wird nicht weitergegeben
 
-        elif event.button == 1:           # Nur bei linksklick:
-            print(f"--- Button Linksklick --- {self.button_config['text']}")
-            if self.is_pressed:           # Zurück zum normalen Zustand
-                self.deactivate_button()  # Komplette Deaktivierung des Buttons                
-            else:                         # Zum gedrückten Zustand wechseln
-                self.activate_button()    # Komplette Aktivierung des Buttons
-            return True  # Bei Linksklick: Event nicht weitergeben an on_toggle
+        return False  # Weitergabe an andere Handler
 
     #########################################################################################################
     def open_kontextmenu(self, event):
@@ -865,4 +979,8 @@ class Soundbutton(Gtk.EventBox):
     def delete_button(self):
         """Löscht den Button"""
         self.deactivate_button()
+        # Entferne die CSS-Klassen
+        style_context = self.get_style_context()
+        style_context.remove_class("sound-button")
+        style_context.remove_class("sound-button-active")
         self.destroy()
