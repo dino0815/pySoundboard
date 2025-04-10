@@ -4,6 +4,7 @@ from gi.repository import Gtk, GLib, Gdk, GdkPixbuf
 import pygame
 import os
 import json
+from urllib.parse import unquote
 
 #############################################################################################################
 class Soundbutton(Gtk.EventBox):
@@ -46,7 +47,8 @@ class Soundbutton(Gtk.EventBox):
         # Drag-and-Drop-Quelle und Ziel konfigurieren
         self.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [], Gdk.DragAction.MOVE)
         self.drag_source_add_text_targets()
-        self.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.MOVE)
+        target_entries = Gtk.TargetEntry.new("text/uri-list", 0, 0)
+        self.drag_dest_set(Gtk.DestDefaults.ALL, [target_entries], Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
         self.drag_dest_add_text_targets()
         
         self.connect("drag-data-get", self.on_drag_data_get)
@@ -100,7 +102,7 @@ class Soundbutton(Gtk.EventBox):
         #self.status_icon.get_style_context().add_class("status-icon")
         #self.status_icon.set_margin_top(self.default_button['text_y'])
         #self.status_icon.set_margin_end(5)
-        self.status_icon.set_text("∞")
+        #self.status_icon.set_text("∞")
         #self.status_icon.set_text("🔊")
         #self.status_icon.set_text("")
 
@@ -485,48 +487,72 @@ class Soundbutton(Gtk.EventBox):
     #########################################################################################################
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         """Handler für das Empfangen der Drag-and-Drop-Daten"""
-        try:
-            # Versuche, die Daten als JSON zu parsen
-            portable_config = json.loads(data.get_text())
-            
-            # Prüfe, ob es sich um ein Drag & Drop innerhalb des gleichen Boards handelt
-            if self.parent and self.parent.config:
-                if 'CopyOf' in portable_config:
-                    source_board = portable_config['CopyOf']
-                    current_board = os.path.splitext(os.path.basename(self.parent.config.config_file))[0] if self.parent.config.config_file else "unnamed_soundboard"
-                    
-                    if source_board == current_board:
-                        # Internes Drag & Drop: Nur Position ändern
-                        source_position = portable_config['position']
+        uris = data.get_uris()
+        if uris:
+            print("Elementanzahl: ", len(uris))
+            print(f"uris: {uris}")
+            for uri in uris:
+
+                path = unquote(uri.replace("file://", "").strip())                 # Datei-URI -> Pfad dekodieren
+                path = os.path.abspath(path)                                       # Sicherheitshalber echte Pfade auflösen
+                print("Dateipfad empfangen:", path)
+                if path.endswith(('.jpg', '.png')):                                # Bilddatei erkannt
+                    print("Bilddatei:", path)
+                    if not self.button_config.get('image_file', False):
+                        self.button_config['image_file'] = path
+                        self.apply_image()
+                elif path.endswith(('.mp3', '.wav')):                  # Audio-Datei erkannt
+                    print("Audio-Datei:", path)
+                    if not self.button_config.get('audio_file', False):
+                        #self.button_config['audio_file'] = path
+                        self.add_sound(path)
+                        self.update_status_icon()
+                else:
+                    print("Nicht unterstützter Dateityp.")
+        else:
+            #print("Keine URIs empfangen")
+            try:
+                # Versuche, die Daten als JSON zu parsen
+                portable_config = json.loads(data.get_text())
+                
+                # Prüfe, ob es sich um ein Drag & Drop innerhalb des gleichen Boards handelt
+                if self.parent and self.parent.config:
+                    if 'CopyOf' in portable_config:
+                        source_board = portable_config['CopyOf']
+                        current_board = os.path.splitext(os.path.basename(self.parent.config.config_file))[0] if self.parent.config.config_file else "unnamed_soundboard"
+                        
+                        if source_board == current_board:
+                            # Internes Drag & Drop: Nur Position ändern
+                            source_position = portable_config['position']
+                            target_position = self.button_config['position']
+                            
+                            if source_position != target_position:
+                                print(f"Button von Position {source_position} nach {target_position} verschoben")
+                                self.parent.move_button(current_position=source_position, new_position=target_position)
+                        else:
+                            # Externes Drag & Drop: Button kopieren
+                            print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
+                            if self.parent.config.add_portable_button(portable_config, target_position=self.button_config['position']):
+                                print("Button erfolgreich kopiert")
+                                # Aktualisiere die Anzeige
+                                self.parent.update_buttons()
+                            else:
+                                print("Fehler beim Kopieren des Buttons")
+                                Gtk.drag_finish(drag_context, False, False, time)
+                                return
+                    else:
+                        # Altes Format: Nur Position
+                        source_position = int(portable_config)
                         target_position = self.button_config['position']
                         
                         if source_position != target_position:
                             print(f"Button von Position {source_position} nach {target_position} verschoben")
                             self.parent.move_button(current_position=source_position, new_position=target_position)
-                    else:
-                        # Externes Drag & Drop: Button kopieren
-                        print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
-                        if self.parent.config.add_portable_button(portable_config, target_position=self.button_config['position']):
-                            print("Button erfolgreich kopiert")
-                            # Aktualisiere die Anzeige
-                            self.parent.update_buttons()
-                        else:
-                            print("Fehler beim Kopieren des Buttons")
-                            Gtk.drag_finish(drag_context, False, False, time)
-                            return
-                else:
-                    # Altes Format: Nur Position
-                    source_position = int(portable_config)
-                    target_position = self.button_config['position']
-                    
-                    if source_position != target_position:
-                        print(f"Button von Position {source_position} nach {target_position} verschoben")
-                        self.parent.move_button(current_position=source_position, new_position=target_position)
-            
-            Gtk.drag_finish(drag_context, True, False, time)
-        except (ValueError, TypeError, json.JSONDecodeError) as e:
-            print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
-            Gtk.drag_finish(drag_context, False, False, time)
+                
+                Gtk.drag_finish(drag_context, True, False, time)
+            except (ValueError, TypeError, json.JSONDecodeError) as e:
+                print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
+                Gtk.drag_finish(drag_context, False, False, time)
 
     #########################################################################################################
     def on_eventbox_click(self, button, event):
@@ -683,24 +709,28 @@ class Soundbutton(Gtk.EventBox):
         if response == Gtk.ResponseType.OK:
             # Speichere den relativen Pfad zur Sounddatei
             full_path = dialog.get_filename()
-            rel_path = os.path.relpath(full_path, os.path.abspath(self.default_button['soundpfad_prefix']))
-            self.button_config['audio_file'] = rel_path
-            print(f"Sounddatei ausgewählt: {rel_path}")
-            
-            # Lade den neuen Sound
-            try:
-                self.sound = pygame.mixer.Sound(full_path)
-                self.sound.set_volume(self.button_config['volume'] / 100.0)
-                print(f"Neuer Sound geladen: {rel_path}")
-                self.update_status_icon()                 # Aktualisiere das Status-Icon
-                if self.parent and self.parent.config:
-                    self.parent.config.mark_changed()  # Markiere Änderungen
-            except Exception as e:
-                print(f"Fehler beim Laden des Sounds: {e}")
-        
+            self.add_sound(full_path)
         dialog.destroy()
         widget.get_parent().popdown()
 
+    #########################################################################################################
+    def add_sound(self, full_path):
+        """fügt eine Sounddatei hinzu"""
+        rel_path = os.path.relpath(full_path, os.path.abspath(self.default_button['soundpfad_prefix']))
+        self.button_config['audio_file'] = rel_path
+        print(f"Sounddatei ausgewählt: {rel_path}")
+        
+        # Lade den neuen Sound
+        try:
+            self.sound = pygame.mixer.Sound(full_path)
+            self.sound.set_volume(self.button_config['volume'] / 100.0)
+            print(f"Neuer Sound geladen: {rel_path}")
+            self.update_status_icon()                 # Aktualisiere das Status-Icon
+            if self.parent and self.parent.config:
+                self.parent.config.mark_changed()  # Markiere Änderungen
+        except Exception as e:
+            print(f"Fehler beim Laden des Sounds: {e}")
+    
     #########################################################################################################
     def on_toggle_loop(self, widget):
         """Schaltet die Endlosschleife ein oder aus"""

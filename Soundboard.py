@@ -6,6 +6,7 @@ import json
 import os    # Importiere os für Pfadoperationen
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
+from urllib.parse import unquote
 from config_manager import ConfigManager
 from Soundbutton import Soundbutton
 
@@ -30,7 +31,6 @@ class Soundboard(Gtk.Window):
         target_entries = Gtk.TargetEntry.new("text/uri-list", 0, 0)
         self.drag_dest_set(Gtk.DestDefaults.ALL, [target_entries], Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
         self.drag_dest_add_text_targets()
-        #self.connect('drag-data-received', self.on_window_drag_data_received)
         self.connect('drag-data-received', self.on_background_drag_data_received)
         
         # Erstelle ScrolledWindow mit optimierter Konfiguration
@@ -38,10 +38,10 @@ class Soundboard(Gtk.Window):
         self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.scrolled_window.set_hexpand(True)
         self.scrolled_window.set_vexpand(True)
-        self.add(self.scrolled_window)       # Füge ScrolledWindow zum Hauptfenster hinzu
+        self.add(self.scrolled_window)                          # Füge ScrolledWindow zum Hauptfenster hinzu
         
         # Erstelle FlowBox mit optimierter Konfiguration
-        self.flowbox = Gtk.FlowBox()         # FlowBox konfigurieren für automatische Anordnung
+        self.flowbox = Gtk.FlowBox()                            # FlowBox konfigurieren für automatische Anordnung
         self.flowbox.set_valign(Gtk.Align.START)                # Vertikale Ausrichtung am Anfang
         self.flowbox.set_halign(Gtk.Align.START)                # Horizontale Ausrichtung am Anfang
         self.flowbox.set_hexpand(True)                          # Ausdehnung in horizontaler Richtung
@@ -58,13 +58,11 @@ class Soundboard(Gtk.Window):
         self.flowbox.set_margin_bottom(5)                       # Abstand zum unteren Rand
         self.flowbox.set_activate_on_single_click(False)        # Deaktiviere automatische Aktivierung
         self.flowbox.set_filter_func(None)                      # Keine Filterfunktion
-        self.flowbox.set_sort_func(None)                        # Keine Sortierfunktion
-        
+        self.flowbox.set_sort_func(None)                        # Keine Sortierfunktion        
         # Aktiviere Drag & Drop für den Hintergrund
-        self.flowbox.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
+        self.flowbox.drag_dest_set(Gtk.DestDefaults.ALL, [target_entries], Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
         self.flowbox.drag_dest_add_text_targets()
         self.flowbox.connect('drag-data-received', self.on_background_drag_data_received)
-        
         self.scrolled_window.add(self.flowbox)
 
         # Erstelle Buttons aus der gefilterten Buttonliste (ohne Default-Button)
@@ -444,6 +442,29 @@ class Soundboard(Gtk.Window):
     def on_background_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         print(f"on_background_drag_data_received")
         """Handler für das Empfangen der Drag-and-Drop-Daten auf dem Hintergrund"""
+        uris = data.get_uris()
+        if uris:
+            print("Elementanzahl: ", len(uris))
+            print(f"uris: {uris}")
+            for uri in uris:
+                # Datei-URI -> Pfad dekodieren
+                path = unquote(uri.replace("file://", "").strip())
+
+                # Sicherheitshalber echte Pfade auflösen
+                path = os.path.abspath(path)
+                print("Dateipfad empfangen:", path)
+
+                # Optional: Datei-Endung prüfen
+                if path.endswith(('.jpg', '.png', '.mp3', '.wav')):
+                    print("Gültige Datei:", path)
+                else:
+                    print("Nicht unterstützter Dateityp.")
+        else:
+            print("Keine URIs empfangen")
+            print(f"uris: {uris}")
+
+            portable_config = json.loads(data.get_text())
+            print(f"portable_config: {portable_config}")
         try:
             # Versuche, die Daten als JSON zu parsen
             portable_config = json.loads(data.get_text())
