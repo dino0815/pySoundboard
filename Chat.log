@@ -816,3 +816,43 @@ Wenn du einen Button von Position 2 nach Position 5 ziehst, wird er tatsächlich
 Wenn du einen Button von Position 5 nach Position 2 ziehst, wird er an Position 2 eingefügt (keine Anpassung nötig)
 Diese Änderung sollte das Verhalten jetzt korrekt machen. Möchtest du die neue Funktionalität testen?
 8eea77f4363f4c07f52b780d2787bbc5de37dd5a DnD funktioniert nun auch auf den Hintergrund der FlowBox
+
+**Benutzer:** 
+Ja, jetzt funktioniert es wie gewünscht. Die Flowbox dehnt sich aber nicht bis zum unteren Fansterrand aus, bekommen wir es hin, das man auch dorthin einen Button "fallen lassen" kann und er dann am Ende der Liste angefügt wird?
+
+**Assistent:** 
+Ah .. ja, das können wir beheben. Das Problem ist, dass die FlowBox nicht den gesamten verfügbaren Platz nutzt. Wir müssen zwei Dinge anpassen:
+Die FlowBox so konfigurieren, dass sie den gesamten verfügbaren Platz nutzt
+Die Positionsberechnung anpassen, damit Buttons am Ende der Liste angehängt werden können
+Lass uns das Schritt für Schritt umsetzen:
+Jetzt müssen wir noch die Positionsberechnung anpassen, damit Buttons am Ende der Liste angehängt werden können, wenn sie in den unteren Bereich gezogen werden:
+Die Änderungen wurden erfolgreich implementiert. Jetzt sollte die FlowBox den gesamten verfügbaren Platz nutzen und Buttons können am Ende der Liste angehängt werden:
+Die FlowBox wurde so konfiguriert, dass sie den gesamten verfügbaren Platz nutzt:
+Apply to Chat.log
+Die Positionsberechnung wurde angepasst, um Buttons am Ende der Liste anzuhängen, wenn sie in den unteren Bereich gezogen werden:
+Apply to Chat.log
+Diese Änderungen sollten das gewünschte Verhalten ermöglichen. Möchtest du die neue Funktionalität testen?
+
+**Benutzer:** 
+Nein Stop, bitte rückgänig machen so zwerstört es die stabilität der buttongröße. 
+Ich dachte eher daran ob wir dem Fenster noch beibringen können die Buttons dort entgegen zu nehmen 
+und diese dann hizuzufügen, wenn es außerhalb der flowbox ist, ist immerhin auch schon klar, 
+das der button ans ende muss
+
+**Assistent:** 
+Ah .. verstanden! Du möchtest, dass wir die FlowBox-Konfiguration nicht ändern, sondern stattdessen dem Fenster selbst die Drag & Drop-Funktionalität geben. Das ist eine bessere Lösung. Lass uns das umsetzen:
+Zuerst machen wir die Änderungen an der FlowBox rückgängig
+Dann fügen wir dem Fenster die Drag & Drop-Funktionalität hinzu
+Die Änderungen wurden erfolgreich implementiert. Jetzt haben wir:
+Die FlowBox-Konfiguration wieder auf die ursprünglichen Werte zurückgesetzt:
+Apply to Chat.log
+Dem Fenster selbst die Drag & Drop-Funktionalität hinzugefügt:
+Apply to Chat.log
+Eine neue Methode on_window_drag_data_received implementiert, die:
+Prüft, ob der Drop außerhalb der FlowBox erfolgt (unterer Rand)
+Wenn ja, den Button ans Ende der Liste anhängt
+Wenn nein, den Drop an die FlowBox weiterleitet
+Diese Lösung sollte die Stabilität der Button-Größe nicht beeinträchtigen und trotzdem das gewünschte Verhalten ermöglichen. Möchtest du die neue Funktionalität testen?
+
+c51ffd3b4e98915c3176677564343e48503ab0ab DnD funktioniert nun überall im Soundboardfenster und wird wie erwartet einsortiert
+
