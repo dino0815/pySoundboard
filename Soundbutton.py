@@ -508,10 +508,14 @@ class Soundbutton(Gtk.EventBox):
                     else:
                         # Externes Drag & Drop: Button kopieren
                         print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
-                        # TODO: Implementierung des Button-Kopierens
-                        # Hier kommt später die Add_portableButton-Methode zum Einsatz
-                        Gtk.drag_finish(drag_context, False, False, time)
-                        return
+                        if self.parent.config.add_portable_button(portable_config, target_position=self.button_config['position']):
+                            print("Button erfolgreich kopiert")
+                            # Aktualisiere die Anzeige
+                            self.parent.update_buttons()
+                        else:
+                            print("Fehler beim Kopieren des Buttons")
+                            Gtk.drag_finish(drag_context, False, False, time)
+                            return
                 else:
                     # Altes Format: Nur Position
                     source_position = int(portable_config)

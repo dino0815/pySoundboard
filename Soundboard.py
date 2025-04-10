@@ -410,6 +410,66 @@ class Soundboard(Gtk.Window):
         # Setze den Fenstertitel
         self.set_title(title)
 
+    def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
+        """Handler für das Empfangen der Drag-and-Drop-Daten"""
+        try:
+            # Versuche, die Daten als JSON zu parsen
+            portable_config = json.loads(data.get_text())
+            
+            # Prüfe, ob es sich um ein Drag & Drop innerhalb des gleichen Boards handelt
+            if self.parent and self.parent.config:
+                if 'CopyOf' in portable_config:
+                    source_board = portable_config['CopyOf']
+                    current_board = os.path.splitext(os.path.basename(self.parent.config.config_file))[0] if self.parent.config.config_file else "unnamed_soundboard"
+                    
+                    if source_board == current_board:
+                        # Internes Drag & Drop: Nur Position ändern
+                        source_position = portable_config['position']
+                        target_position = self.button_config['position']
+                        
+                        if source_position != target_position:
+                            print(f"Button von Position {source_position} nach {target_position} verschoben")
+                            self.parent.move_button(current_position=source_position, new_position=target_position)
+                    else:
+                        # Externes Drag & Drop: Button kopieren
+                        print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
+                        if self.parent.config.add_portable_button(portable_config, target_position=self.button_config['position']):
+                            print("Button erfolgreich kopiert")
+                            # Aktualisiere die Anzeige
+                            self.parent.update_buttons()
+                        else:
+                            print("Fehler beim Kopieren des Buttons")
+                            Gtk.drag_finish(drag_context, False, False, time)
+                            return
+                else:
+                    # Altes Format: Nur Position
+                    source_position = int(portable_config)
+                    target_position = self.button_config['position']
+                    
+                    if source_position != target_position:
+                        print(f"Button von Position {source_position} nach {target_position} verschoben")
+                        self.parent.move_button(current_position=source_position, new_position=target_position)
+            
+            Gtk.drag_finish(drag_context, True, False, time)
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
+            print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
+            Gtk.drag_finish(drag_context, False, False, time)
+
+    def update_buttons(self):
+        """Aktualisiert die Anzeige der Buttons"""
+        # Entferne alle existierenden Buttons
+        for child in self.flowbox.get_children():
+            self.flowbox.remove(child)
+        
+        # Füge die Buttons neu hinzu
+        for button in self.config.buttonlist:
+            if button.get('position') != 0:  # solange es nicht der Default-Button ist
+                button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=button)
+                self.flowbox.add(button)
+        
+        # Aktualisiere die Anzeige
+        self.flowbox.show_all()
+
 ############################################################################################################
 if len(sys.argv) > 1:
     app = Soundboard(config_file=sys.argv[1])

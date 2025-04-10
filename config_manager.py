@@ -370,37 +370,90 @@ class ConfigManager:
 
     ###################################################################################################################################
     def import_portable_config(self, portable_config, target_position=None):
-        """Importiert eine portable Button-Konfiguration und konvertiert sie in eine lokale Konfiguration"""
-        import os
-        
-        # Erstelle eine Kopie der portablen Konfiguration
-        local_config = portable_config.copy()
-        
-        # Konvertiere absolute Pfade zurück zu relativen Pfaden
-        if 'audio_file' in local_config and local_config['audio_file']:
-            if os.path.isabs(local_config['audio_file']):
-                # Versuche, den Pfad relativ zum Konfigurationsverzeichnis zu machen
-                if self.config_file:
-                    base_path = os.path.dirname(self.config_file)
-                    try:
-                        local_config['audio_file'] = os.path.relpath(local_config['audio_file'], base_path)
-                    except ValueError:
-                        # Wenn der Pfad nicht relativ gemacht werden kann, behalte den absoluten Pfad
-                        pass
-        
-        if 'image_file' in local_config and local_config['image_file']:
-            if os.path.isabs(local_config['image_file']):
-                # Versuche, den Pfad relativ zum Konfigurationsverzeichnis zu machen
-                if self.config_file:
-                    base_path = os.path.dirname(self.config_file)
-                    try:
-                        local_config['image_file'] = os.path.relpath(local_config['image_file'], base_path)
-                    except ValueError:
-                        # Wenn der Pfad nicht relativ gemacht werden kann, behalte den absoluten Pfad
-                        pass
-        
-        # Setze die Position
-        #if target_position is not None:
-        #    local_config['position'] = target_position
-        
-        return local_config
+        """Importiert eine portable Konfiguration und konvertiert sie in eine lokale Konfiguration"""
+        try:
+            # Erstelle eine Kopie der Konfiguration
+            local_config = portable_config.copy()
+            
+            # Konvertiere absolute Pfade zurück zu relativen Pfaden
+            # if 'audio_file' in local_config and local_config['audio_file']:
+            #     try:
+            #         # Hole den soundpfad_prefix aus der Konfiguration oder verwende den Standard
+            #         soundpfad_prefix = self.data['Window'].get('soundpfad_prefix', 'sounds/')
+            #         # Versuche, den absoluten Pfad in einen relativen Pfad umzuwandeln
+            #         abs_path = os.path.abspath(local_config['audio_file'])
+            #         rel_path = os.path.relpath(abs_path, os.path.abspath(soundpfad_prefix))
+            #         local_config['audio_file'] = rel_path
+            #     except ValueError:
+            #         # Wenn die Konvertierung fehlschlägt, behalte den ursprünglichen Pfad bei
+            #         print(f"Warnung: Konnte Pfad nicht konvertieren: {local_config['audio_file']}")
+
+            if 'audio_file' in local_config and local_config['audio_file']:
+                if os.path.isabs(local_config['audio_file']):
+                    # Hole den imagepfad_prefix aus der Konfiguration oder verwende den Standard
+                    soundpfad_prefix = self.data['Window'].get('soundpfad_prefix', 'sounds/')
+                    # Versuche, den Pfad relativ zum Konfigurationsverzeichnis zu machen
+                    if self.config_file:
+                        base_path = os.path.dirname(self.config_file)
+                        try:
+                            local_config['audio_file'] = os.path.relpath(local_config['audio_file'], base_path)
+                        except ValueError:
+                            # Wenn der Pfad nicht relativ gemacht werden kann, behalte den absoluten Pfad
+                            pass
+
+            if 'image_file' in local_config and local_config['image_file']:
+                if os.path.isabs(local_config['image_file']):
+                    # Hole den imagepfad_prefix aus der Konfiguration oder verwende den Standard
+                    imagepfad_prefix = self.data['Window'].get('imagepfad_prefix', 'images/')
+                    # Versuche, den Pfad relativ zum Konfigurationsverzeichnis zu machen
+                    if self.config_file:
+                        base_path = os.path.dirname(self.config_file)
+                        try:
+                            local_config['image_file'] = os.path.relpath(local_config['image_file'], base_path)
+                        except ValueError:
+                            # Wenn der Pfad nicht relativ gemacht werden kann, behalte den absoluten Pfad
+                            pass
+            
+            # Setze die gewünschte Position, falls angegeben
+            if target_position is not None:
+                local_config['position'] = target_position
+            
+            return local_config
+        except Exception as e:
+            print(f"Fehler beim Importieren der portablen Konfiguration: {e}")
+            return None
+
+    def add_portable_button(self, portable_config, target_position=None):
+        """Fügt einen Button aus einer portablen Konfiguration hinzu"""
+        try:
+            # Importiere die portable Konfiguration
+            local_config = self.import_portable_config(portable_config, target_position)
+            if not local_config:
+                return False
+            
+            # Wenn keine Position angegeben wurde, füge den Button am Ende hinzu
+            if target_position is None:
+                target_position = len(self.buttonlist) + 1
+                local_config['position'] = target_position
+            
+            # Verschiebe existierende Buttons, um Platz zu machen
+            for button in self.buttonlist:
+                if button['position'] >= target_position:
+                    button['position'] += 1
+            
+            # Füge den neuen Button zur Liste hinzu
+            self.buttonlist.append(local_config)
+            
+            # Sortiere die Buttonliste nach Position
+            self.buttonlist.sort(key=lambda x: x.get('position', 0))
+            
+            # Aktualisiere die Konfiguration
+            self.data['buttons'] = self.buttonlist
+            
+            # Markiere Änderungen
+            self.mark_changed()
+            
+            return True
+        except Exception as e:
+            print(f"Fehler beim Hinzufügen des portablen Buttons: {e}")
+            return False
