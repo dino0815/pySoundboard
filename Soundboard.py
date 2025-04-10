@@ -133,9 +133,13 @@ class Soundboard(Gtk.Window):
         menu.popdown()
         
     ########################################################################################################
-    def on_add_button(self, widget=None):
+    def on_add_button(self, widget=None, sound_file=None, image_file=None):
         """Fügt einen neuen Button am Ende der Liste hinzu"""
         new_button_config = self.config.add_minimal_button() # Füge einen minimalen Button zur Konfiguration hinzu 
+        if sound_file:
+            new_button_config['audio_file'] = sound_file
+        if image_file:
+            new_button_config['image_file'] = image_file
         print(f"new_button_config: {new_button_config}")
         # Erstelle den neuen Button und füge ihn zur FlowBox hinzu
         new_button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=new_button_config)
@@ -446,80 +450,124 @@ class Soundboard(Gtk.Window):
         if uris:
             print("Elementanzahl: ", len(uris))
             print(f"uris: {uris}")
+            sound_files = []
+            image_files = []
             for uri in uris:
-                # Datei-URI -> Pfad dekodieren
-                path = unquote(uri.replace("file://", "").strip())
+                path = unquote(uri.replace("file://", "").strip())    # Datei-URI -> Pfad dekodieren
+                path = os.path.abspath(path)                          # Sicherheitshalber echte Pfade auflösen
 
-                # Sicherheitshalber echte Pfade auflösen
-                path = os.path.abspath(path)
-                print("Dateipfad empfangen:", path)
+                if path.endswith(('.jpg', '.png')):                   # Bilddatei erkannt
+                    print("Bilddatei:", path)
+                    image_files.append(path)
 
-                # Optional: Datei-Endung prüfen
-                if path.endswith(('.jpg', '.png', '.mp3', '.wav')):
-                    print("Gültige Datei:", path)
+                elif path.endswith(('.mp3', '.wav')):                 # Audio-Datei erkannt
+                    print("Audio-Datei:", path)
+                    sound_files.append(path)
                 else:
-                    print("Nicht unterstützter Dateityp.")
+                    print("Nicht unterstützter Dateityp:", path)
+            # Spezielles Vorgehen, wenn genau ein Sound und ein Bild übergeben wurden        
+            if len(sound_files) == 1 and len(image_files) == 1:
+                self.config.add_portable_button(sound_files[0], image_files[0])
+                self.on_add_button(None, sound_files[0], image_files[0])
+                print(f"Button mit Sound- und Bilddatei: {sound_files[0]} und {image_files[0]} erstellt")
+
+            elif len(sound_files) == 0 and len(image_files) == 0:
+                print("Keine unterstützten Dateien empfangen")
+
+            else:
+                for sound_file in sound_files:
+                    self.config.add_portable_button(sound_file)
+                    self.on_add_button(None, sound_file, None)
+                    print(f"Button mit Sounddatei: {sound_file} erstellt")
+                for image_file in image_files:
+                    self.config.add_portable_button(image_file)
+                    self.on_add_button(None, None, image_file)
+                    print(f"Button mit Bilddatei: {image_file} erstellt")
+
         else:
-            print("Keine URIs empfangen")
-            print(f"uris: {uris}")
+            #print("Keine URIs empfangen")
+            #print(f"uris: {uris}")
 
             portable_config = json.loads(data.get_text())
-            print(f"portable_config: {portable_config}")
-        try:
-            # Versuche, die Daten als JSON zu parsen
-            portable_config = json.loads(data.get_text())
-            
-            print("########################################################")
-            print(f"x:{x}, y:{y}")
-            # Hole die FlowBox-Dimensionen und Abstände
-            flowbox_width = self.flowbox.get_allocated_width()
-            print(f"flowbox_width: {flowbox_width}")
-            flowbox_height = self.flowbox.get_allocated_height()
-            print(f"flowbox_height: {flowbox_height}")
-            column_spacing = self.flowbox.get_column_spacing()
-            print(f"column_spacing: {column_spacing}")
-            row_spacing = self.flowbox.get_row_spacing()
-            print(f"row_spacing: {row_spacing}")
-            
-            # Hole die Button-Dimensionen (nehmen wir den ersten Button als Referenz)
-            children = self.flowbox.get_children()
-            if not children:
-                # Wenn keine Buttons vorhanden sind, ans Ende anhängen
-                target_position = 1
+            if portable_config:
+                print(f"portable_config: {portable_config}")
             else:
-                # Hole die Dimensionen des ersten Buttons
-                first_button = children[0].get_child()
-                button_width = first_button.get_allocated_width()
-                print(f"button_width: {button_width}")
-                button_height = first_button.get_allocated_height()
-                print(f"button_height: {button_height}")
-                # Berechne die maximale Anzahl von Buttons pro Zeile
-                max_buttons_per_row = int((flowbox_width + column_spacing) / (button_width + column_spacing))
-                print(f"max_buttons_per_row: {max_buttons_per_row}")
-                # Berechne die aktuelle Zeile und Spalte basierend auf der Drop-Position
-                current_row = int(y / (button_height + row_spacing))    
-                print(f"current_row: {current_row}")
-                current_col = int(x / (button_width + column_spacing))
-                print(f"current_col: {current_col}")
+                print("Keine portable_config empfangen")
+            try:
+                # Versuche, die Daten als JSON zu parsen
+                portable_config = json.loads(data.get_text())
                 
-                # Berechne die absolute Position
-                target_position = current_row * max_buttons_per_row + current_col + 1
-                print(f"target_position: {target_position}")
-                # Wenn der Button in den unteren Bereich gezogen wird, hänge ihn ans Ende an
-                if y > flowbox_height - row_spacing:
-                    target_position = len(children) + 1
-                print(f"target_position: {target_position}")
-                # Stelle sicher, dass die Position gültig ist
-                target_position = max(1, min(target_position, len(children) + 1))
-                print(f"target_position: {target_position}")
-            
-            if 'CopyOf' in portable_config:
-                source_board = portable_config['CopyOf']
-                current_board = os.path.splitext(os.path.basename(self.config.config_file))[0] if self.config.config_file else "unnamed_soundboard"
+                print("########################################################")
+                print(f"x:{x}, y:{y}")
+                # Hole die FlowBox-Dimensionen und Abstände
+                flowbox_width = self.flowbox.get_allocated_width()
+                print(f"flowbox_width: {flowbox_width}")
+                flowbox_height = self.flowbox.get_allocated_height()
+                print(f"flowbox_height: {flowbox_height}")
+                column_spacing = self.flowbox.get_column_spacing()
+                print(f"column_spacing: {column_spacing}")
+                row_spacing = self.flowbox.get_row_spacing()
+                print(f"row_spacing: {row_spacing}")
                 
-                if source_board == current_board:
-                    # Internes Drag & Drop: Button an berechnete Position verschieben
-                    source_position = portable_config['position']
+                # Hole die Button-Dimensionen (nehmen wir den ersten Button als Referenz)
+                children = self.flowbox.get_children()
+                if not children:
+                    # Wenn keine Buttons vorhanden sind, ans Ende anhängen
+                    target_position = 1
+                else:
+                    # Hole die Dimensionen des ersten Buttons
+                    first_button = children[0].get_child()
+                    button_width = first_button.get_allocated_width()
+                    print(f"button_width: {button_width}")
+                    button_height = first_button.get_allocated_height()
+                    print(f"button_height: {button_height}")
+                    # Berechne die maximale Anzahl von Buttons pro Zeile
+                    max_buttons_per_row = int((flowbox_width + column_spacing) / (button_width + column_spacing))
+                    print(f"max_buttons_per_row: {max_buttons_per_row}")
+                    # Berechne die aktuelle Zeile und Spalte basierend auf der Drop-Position
+                    current_row = int(y / (button_height + row_spacing))    
+                    print(f"current_row: {current_row}")
+                    current_col = int(x / (button_width + column_spacing))
+                    print(f"current_col: {current_col}")
+                    
+                    # Berechne die absolute Position
+                    target_position = current_row * max_buttons_per_row + current_col + 1
+                    print(f"target_position: {target_position}")
+                    # Wenn der Button in den unteren Bereich gezogen wird, hänge ihn ans Ende an
+                    if y > flowbox_height - row_spacing:
+                        target_position = len(children) + 1
+                    print(f"target_position: {target_position}")
+                    # Stelle sicher, dass die Position gültig ist
+                    target_position = max(1, min(target_position, len(children) + 1))
+                    print(f"target_position: {target_position}")
+                
+                if 'CopyOf' in portable_config:
+                    source_board = portable_config['CopyOf']
+                    current_board = os.path.splitext(os.path.basename(self.config.config_file))[0] if self.config.config_file else "unnamed_soundboard"
+                    
+                    if source_board == current_board:
+                        # Internes Drag & Drop: Button an berechnete Position verschieben
+                        source_position = portable_config['position']
+                        if source_position != target_position:
+                            # Wenn der Button von einer niedrigeren Position nach hinten verschoben wird,
+                            # müssen wir die Zielposition um 1 reduzieren
+                            if source_position < target_position:
+                                target_position -= 1
+                            print(f"Button von Position {source_position} nach {target_position} verschoben")
+                            self.move_button(current_position=source_position, new_position=target_position)
+                    else:
+                        # Externes Drag & Drop: Button an berechnete Position kopieren
+                        print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
+                        if self.config.add_portable_button(portable_config, target_position=target_position):
+                            print("Button erfolgreich kopiert")
+                            self.update_buttons()
+                        else:
+                            print("Fehler beim Kopieren des Buttons")
+                            Gtk.drag_finish(drag_context, False, False, time)
+                            return
+                else:
+                    # Altes Format: Button an berechnete Position verschieben
+                    source_position = int(portable_config)
                     if source_position != target_position:
                         # Wenn der Button von einer niedrigeren Position nach hinten verschoben wird,
                         # müssen wir die Zielposition um 1 reduzieren
@@ -527,32 +575,12 @@ class Soundboard(Gtk.Window):
                             target_position -= 1
                         print(f"Button von Position {source_position} nach {target_position} verschoben")
                         self.move_button(current_position=source_position, new_position=target_position)
-                else:
-                    # Externes Drag & Drop: Button an berechnete Position kopieren
-                    print(f"Button von Board '{source_board}' nach '{current_board}' kopiert")
-                    if self.config.add_portable_button(portable_config, target_position=target_position):
-                        print("Button erfolgreich kopiert")
-                        self.update_buttons()
-                    else:
-                        print("Fehler beim Kopieren des Buttons")
-                        Gtk.drag_finish(drag_context, False, False, time)
-                        return
-            else:
-                # Altes Format: Button an berechnete Position verschieben
-                source_position = int(portable_config)
-                if source_position != target_position:
-                    # Wenn der Button von einer niedrigeren Position nach hinten verschoben wird,
-                    # müssen wir die Zielposition um 1 reduzieren
-                    if source_position < target_position:
-                        target_position -= 1
-                    print(f"Button von Position {source_position} nach {target_position} verschoben")
-                    self.move_button(current_position=source_position, new_position=target_position)
-                    print(f"Altes Format sollte nicht mehr vorkommen")
-            
-            Gtk.drag_finish(drag_context, True, False, time)
-        except (ValueError, TypeError, json.JSONDecodeError) as e:
-            print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
-            Gtk.drag_finish(drag_context, False, False, time)
+                        print(f"Altes Format sollte nicht mehr vorkommen")
+                
+                Gtk.drag_finish(drag_context, True, False, time)
+            except (ValueError, TypeError, json.JSONDecodeError) as e:
+                print(f"Fehler beim Verarbeiten der Drag & Drop-Daten: {e}")
+                Gtk.drag_finish(drag_context, False, False, time)
 
  ############################################################################################################
 if len(sys.argv) > 1:

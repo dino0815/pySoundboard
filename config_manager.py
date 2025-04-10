@@ -377,19 +377,6 @@ class ConfigManager:
         try:
             # Erstelle eine Kopie der Konfiguration
             local_config = portable_config.copy()
-            
-            # Konvertiere absolute Pfade zurück zu relativen Pfaden
-            # if 'audio_file' in local_config and local_config['audio_file']:
-            #     try:
-            #         # Hole den soundpfad_prefix aus der Konfiguration oder verwende den Standard
-            #         soundpfad_prefix = self.data['Window'].get('soundpfad_prefix', 'sounds/')
-            #         # Versuche, den absoluten Pfad in einen relativen Pfad umzuwandeln
-            #         abs_path = os.path.abspath(local_config['audio_file'])
-            #         rel_path = os.path.relpath(abs_path, os.path.abspath(soundpfad_prefix))
-            #         local_config['audio_file'] = rel_path
-            #     except ValueError:
-            #         # Wenn die Konvertierung fehlschlägt, behalte den ursprünglichen Pfad bei
-            #         print(f"Warnung: Konnte Pfad nicht konvertieren: {local_config['audio_file']}")
 
             if 'audio_file' in local_config and local_config['audio_file']:
                 if os.path.isabs(local_config['audio_file']):
@@ -426,6 +413,7 @@ class ConfigManager:
             print(f"Fehler beim Importieren der portablen Konfiguration: {e}")
             return None
 
+    ###################################################################################################################################
     def add_portable_button(self, portable_config, target_position=None):
         """Fügt einen Button aus einer portablen Konfiguration hinzu"""
         try:
