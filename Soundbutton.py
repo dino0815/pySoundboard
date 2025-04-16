@@ -759,9 +759,11 @@ class Soundbutton(Gtk.EventBox):
         response = dialog.run()
         
         if response == Gtk.ResponseType.OK:
-            self.button_config['text'] = entry.get_text()
-            self.text_label.set_text(self.button_config['text'])
-            print(f"Neuer Button-Text: {self.button_config['text']}")
+            new_text = entry.get_text()
+            formatted_text = new_text.replace("\\n", "\n")
+            self.button_config['text'] = formatted_text
+            self.text_label.set_text(formatted_text)                     # Zeige den Text mit echten Zeilenumbrüchen im Label
+            print(f"Neuer Button-Text: {formatted_text}")
             if self.parent and self.parent.config:
                 self.parent.config.mark_changed()  # Markiere Änderungen
         
