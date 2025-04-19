@@ -29,6 +29,7 @@ class Soundbutton(Gtk.EventBox):
         self.last_click_time      = 0       # Für Cooldown
         self.drag_started         = False   # Für Drag-and-Drop
         self.click_position       = None    # Für Drag-and-Drop
+        self.changed_volume       = False   # Für Slider-Klick
 
         self.set_size_request(150, 75)
         self.set_hexpand(False)             # EventBox horizontal NICHT ausdehnen
@@ -340,6 +341,7 @@ class Soundbutton(Gtk.EventBox):
     #########################################################################################################
     def on_volume_changed(self, scale):
         """Handler für Lautstärkeänderungen"""
+        self.changed_volume = True
         volume = scale.get_value()
         # Runde den Volumenwert auf eine Ganzzahl
         volume_int = int(round(volume))
@@ -425,6 +427,12 @@ class Soundbutton(Gtk.EventBox):
     def on_button_release(self, widget, event):
         """Handler für das Loslassen der Maustaste"""
         if not self.drag_started and event.button == 1:
+            # Prüfe, ob der Slider gerade bewegt wird
+            #if self.volume.get_state_flags() & Gtk.StateFlags.ACTIVE:
+            if self.changed_volume:
+                self.changed_volume = False # Ende der Lautstärkeänderung
+                return True  # Wenn der Slider aktiv ist, ignoriere den Klick
+            
             # Wenn kein Drag-and-Drop gestartet wurde, normalen Klick behandeln
             if self.is_pressed:           # Zurück zum normalen Zustand
                 self.deactivate_button()  # Komplette Deaktivierung des Buttons                
