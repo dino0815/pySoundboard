@@ -120,6 +120,11 @@ class Soundboard(Gtk.Window):
         item3.connect("activate", self.on_save_config_as)
         menu.append(item3)
         
+        # Menüeintrag "Stop all Sounds" immer anzeigen
+        item4 = Gtk.MenuItem(label="Stop all Sounds")
+        item4.connect("activate", self.stop_all_sounds)
+        menu.append(item4)
+
         # Event-Handler für Klicks außerhalb des Menüs
         menu.connect("deactivate", self.on_menu_deactivate)
         
@@ -217,7 +222,7 @@ class Soundboard(Gtk.Window):
         self.flowbox.show_all()
 
     ########################################################################################################
-    def stop_all_sounds(self):
+    def stop_all_sounds(self, widget=None):
         """Stoppt alle Sounds"""
         for child in self.flowbox.get_children():
             if isinstance(child.get_child(), Soundbutton):  # Sicherstellen, dass es sich um einen Button handelt

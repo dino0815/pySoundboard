@@ -4,6 +4,7 @@ from gi.repository import Gtk, GLib, Gdk, GdkPixbuf
 import pygame
 import os
 import json
+import time
 from urllib.parse import unquote
 
 #############################################################################################################
@@ -30,6 +31,14 @@ class Soundbutton(Gtk.EventBox):
         self.drag_started         = False   # Für Drag-and-Drop
         self.click_position       = None    # Für Drag-and-Drop
         self.changed_volume       = False   # Für Slider-Klick
+        self.fade_time_ms         = 0       # Für Fortschrittsanzeige
+
+        #self.current_length       = 0       # Für Fortschrittsanzeige
+        #self.start_time           = None    # Für Fortschrittsanzeige
+
+        if 'fade_time_ms' in self.button_config:
+            self.fade_time_ms = self.button_config['fade_time_ms']
+            print(f"set fade_time_ms to {self.fade_time_ms}")
 
         self.set_size_request(150, 75)
         self.set_hexpand(False)             # EventBox horizontal NICHT ausdehnen
@@ -368,12 +377,25 @@ class Soundbutton(Gtk.EventBox):
         if self.sound:
             try:
                 if self.button_config.get('loop', False):   # Wenn Endlosschleife
-                    self.channel = self.sound.play(-1)
+                    self.channel = self.sound.play(loops=-1, fade_ms=self.fade_time_ms)
                 else:    
-                    self.channel = self.sound.play(0)
+                    self.channel = self.sound.play(loops=0, fade_ms=self.fade_time_ms)
                     self.timer_id = GLib.timeout_add(100, self.check_sound_end)
+                    self.current_length = self.sound.get_length()
+                    self.start_time = time.time()
+                    if self.fade_time_ms > 0:                          # Fade-Out nur wenn Fade-Time > 0
+                        fade_delay_ms = max(0, int((self.current_length * 1000) - self.fade_time_ms))
+                        print(f"fade_delay_ms: {fade_delay_ms}")
+                        GLib.timeout_add(fade_delay_ms, self.do_fade_out)
             except Exception as e:
                 print(f"Fehler beim Abspielen des Sounds: {e}")
+
+    #########################################################################################################
+    def do_fade_out(self):
+        print(f"do_fade_out")
+        if self.channel and self.channel.get_busy():
+            self.channel.fadeout(self.fade_time_ms)
+        return False
 
     #########################################################################################################
     def check_sound_end(self):
@@ -406,7 +428,8 @@ class Soundbutton(Gtk.EventBox):
         self.is_pressed = False
         # Stoppt den Sound
         if self.sound and self.channel:
-            self.channel.stop()
+            #self.channel.stop()
+            self.do_fade_out()
             self.channel = None
 
     #########################################################################################################

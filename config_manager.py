@@ -33,6 +33,7 @@ class ConfigManager:
                 "button_radius":                 10,
                 "audio_file":                    "",
                 "volume":                        50,
+                "fade_time_ms":                1000,
                 "loop":                       False,
                 "text":                    "Button",
                 "use_custom_text_position":    True,

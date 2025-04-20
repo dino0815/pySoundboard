@@ -12,6 +12,7 @@ Ein einfaches Soundboard für Linux, mit dem du Sounds per Klick abspielen kanns
 - Speichere deine Konfiguration für spätere Verwendung
 - Status-Anzeige für Sound-Zuordnung und Loop-Funktion
 - Verbesserte Pfadbehandlung für portable Konfigurationen
+- Jedem Button kann einzeln eine Zeit für FadeIn und FadeOut gesetzt werden
 
 ## Installation
 
@@ -67,13 +68,15 @@ Ein einfaches Soundboard für Linux, mit dem du Sounds per Klick abspielen kanns
 2. **Füge Sounds hinzu:**
    - Rechtsklick auf einen Button und wähle "Sounddatei auswählen"
    - Wähle eine Audiodatei aus (unterstützt werden MP3, WAV, OGG, etc.)
+   - oder ziehe einfach eine Sounddatei aus dem dateimanager auf den Button. (Drag&Drop)
 
 3. **Passe die Buttons an:**
    - Rechtsklick auf einen Button für das Kontextmenü
    - Ändere Text, Farbe, Bild und andere Eigenschaften
+   - oder ziehe einfach eine Bilddatei aus dem dateimanager auf den Button. (Drag&Drop)
 
 4. **Speichere deine Konfiguration:**
-   - Die Konfiguration wird automatisch gespeichert, wenn du Änderungen vornimmst
+   - "Strg-S"
 
 ## Verzeichnisstruktur
 - `Soundboard.py` - Hauptprogramm
