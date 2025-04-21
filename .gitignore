@@ -1,6 +1,4 @@
 __pycache__/
-sounds/
-images/
 *.py[cod]
 *$py.class
 .env
