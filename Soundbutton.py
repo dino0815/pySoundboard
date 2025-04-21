@@ -378,8 +378,12 @@ class Soundbutton(Gtk.EventBox):
             try:
                 if self.button_config.get('loop', False):   # Wenn Endlosschleife
                     self.channel = self.sound.play(loops=-1, fade_ms=self.fade_time_ms)
+                    self.parent.count_sounds += 1
+                    print(f"count_sounds: {self.parent.count_sounds}")
                 else:    
                     self.channel = self.sound.play(loops=0, fade_ms=self.fade_time_ms)
+                    self.parent.count_sounds += 1
+                    print(f"count_sounds: {self.parent.count_sounds}")
                     self.timer_id = GLib.timeout_add(100, self.check_sound_end)
                     self.current_length = self.sound.get_length()
                     self.start_time = time.time()
@@ -418,6 +422,8 @@ class Soundbutton(Gtk.EventBox):
     #########################################################################################################
     def deactivate_button(self):
         """Deaktiviert den Button visuell und stoppt den Sound"""
+        self.parent.count_sounds -= 1
+        print(f"count_sounds: {self.parent.count_sounds}")
         if self.timer_id:
             GLib.source_remove(self.timer_id)
             self.timer_id = None
@@ -532,12 +538,16 @@ class Soundbutton(Gtk.EventBox):
                     if not self.button_config.get('image_file', False):
                         self.button_config['image_file'] = path
                         self.apply_image()
-                elif path.endswith(('.mp3', '.wav')):                  # Audio-Datei erkannt
+                        if self.parent and self.parent.config:
+                            self.parent.config.mark_changed()                      # Markiere Änderungen
+                elif path.endswith(('.mp3', '.wav')):                              # Audio-Datei erkannt
                     print("Audio-Datei:", path)
                     if not self.button_config.get('audio_file', False):
                         #self.button_config['audio_file'] = path
                         self.add_sound(path)
                         self.update_status_icon()
+                        if self.parent and self.parent.config:
+                            self.parent.config.mark_changed()                      # Markiere Änderungen
                 else:
                     print("Nicht unterstützter Dateityp.")
         else:
@@ -758,6 +768,7 @@ class Soundbutton(Gtk.EventBox):
             print(f"Neuer Sound geladen: {rel_path}")
             self.update_status_icon()                 # Aktualisiere das Status-Icon
             if self.parent and self.parent.config:
+                print(f"Markiere Änderungen am Soundboard")
                 self.parent.config.mark_changed()  # Markiere Änderungen
         except Exception as e:
             print(f"Fehler beim Laden des Sounds: {e}")

@@ -19,13 +19,12 @@ class Soundboard(Gtk.Window):
         # Wenn keine Konfigurationsdatei angegeben wurde, verwende einen leeren String
         if config_file is None:
             config_file = ""
-        self.config = ConfigManager(config_file)
+        self.config = ConfigManager(parent=self, config_file=config_file)
         self.set_default_size(self.config.data['Window']['window_width'], self.config.data['Window']['window_height'])
         self.set_size_request(-1, -1)        # Keine Mindestgröße setzen
         self.default_button = None           # Default-Button
-        
-        # Aktualisiere den Fenstertitel
-        self.update_window_title()
+        self.count_sounds = 0                # Zähler für die Anzahl der laufenden Sounds
+        self.update_window_title()           # Aktualisiere den Fenstertitel
         
         # Aktiviere Drag & Drop für das Fenster
         target_entries = Gtk.TargetEntry.new("text/uri-list", 0, 0)
@@ -38,7 +37,7 @@ class Soundboard(Gtk.Window):
         self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.scrolled_window.set_hexpand(True)
         self.scrolled_window.set_vexpand(True)
-        self.add(self.scrolled_window)                          # Füge ScrolledWindow zum Hauptfenster hinzu
+        self.add(self.scrolled_window)       # Füge ScrolledWindow zum Hauptfenster hinzu
         
         # Erstelle FlowBox mit optimierter Konfiguration
         self.flowbox = Gtk.FlowBox()                            # FlowBox konfigurieren für automatische Anordnung
@@ -69,7 +68,7 @@ class Soundboard(Gtk.Window):
         for button in self.config.buttonlist:
             if button.get('position') != 0:  # solange es nicht der Default-Button ist
                 button = Soundbutton(parent=self, default_button=self.config.data['buttons'][0], button_config=button)
-                self.flowbox.add(button)                                 # FlowBox kümmert sich um die Positionierung
+                self.flowbox.add(button)                             # FlowBox kümmert sich um die Positionierung
             else:
                 self.default_button = button
 
@@ -77,12 +76,8 @@ class Soundboard(Gtk.Window):
         self.connect("button-press-event", self.on_background_click) # Für Klicks auf Fensterhintergrund
         self.connect("configure-event",    self.on_window_configure) # Signalhandler für Größenänderungen des Fensters
         self.connect("destroy",            self.on_destroy)          # Signalhandler für Fenster-Schließen
-        
-        # Signal-Handler für SIGINT (Strg+C) registrieren
-        signal.signal(signal.SIGINT, self.on_sigint)
-
-        # Abonniere das Signal für Änderungen des Themas
-        self.connect("realize", self.on_realize)
+        signal.signal(signal.SIGINT, self.on_sigint)                 # Signal-Handler für SIGINT (Strg+C) registrieren
+        self.connect("realize", self.on_realize)                     # Abonniere das Signal für Änderungen des Themas
         self.show_all()
 
     ########################################################################################################
@@ -110,7 +105,7 @@ class Soundboard(Gtk.Window):
         menu.append(item1)
         
         # Menüeintrag "Speichern" nur anzeigen, wenn ein Konfigurationsname bekannt ist
-        if self.config.config_file and self.config.config_file != "" and not self.config.is_new_config:
+        if self.config.has_unsaved_changes():
             item2 = Gtk.MenuItem(label="Speichern")
             item2.connect("activate", lambda w: self.config.save_config(self))
             menu.append(item2)
@@ -120,10 +115,11 @@ class Soundboard(Gtk.Window):
         item3.connect("activate", self.on_save_config_as)
         menu.append(item3)
         
-        # Menüeintrag "Stop all Sounds" immer anzeigen
-        item4 = Gtk.MenuItem(label="Stop all Sounds")
-        item4.connect("activate", self.stop_all_sounds)
-        menu.append(item4)
+        # Menüeintrag "Stop all Sounds" nur anzeigen, wenn Sounds laufen
+        if self.count_sounds > 0:
+            item4 = Gtk.MenuItem(label="Stop all Sounds")
+            item4.connect("activate", self.stop_all_sounds)
+            menu.append(item4)
 
         # Event-Handler für Klicks außerhalb des Menüs
         menu.connect("deactivate", self.on_menu_deactivate)
@@ -154,7 +150,6 @@ class Soundboard(Gtk.Window):
         if widget:                                      # Nur wenn ein Widget übergeben wurde (Menüpunkt)
             widget.get_parent().popdown()               # Menü schließen
         self.config.mark_changed()  # Markiere Änderungen
-        self.update_window_title()  # Aktualisiere den Fenstertitel
 
     ########################################################################################################
     def on_key_press(self, widget, event):
@@ -182,20 +177,17 @@ class Soundboard(Gtk.Window):
         
         if ctrl and keyname == 'q':                            # Strg+Q: Fenster schließen
             self.config.save_config(self)                      # Konfiguration speichern
-            self.update_window_title()                         # Aktualisiere den Fenstertitel
             self.destroy()                                     # Fenster schließen
             return True                                        # keine Weitergabe an andere Handler
         
         if ctrl and shift and keyname == 'S':                  # Strg+Shift+S: Konfiguration unter neuem Namen speichern
             print("Konfiguration unter neuem Namen speichern")
             self.config.save_config_as_dialog(self)            # Öffne den Dialog zum Speichern unter einem neuen Namen
-            self.update_window_title()                         # Aktualisiere den Fenstertitel
             return True                                        # keine Weitergabe an andere Handler
 
         if ctrl and keyname == 's':                            # Strg+S: Konfiguration speichern
             print("Konfiguration gespeichert")
             self.config.save_config(self)                      # Konfiguration speichern
-            self.update_window_title()                         # Aktualisiere den Fenstertitel
             return True                                        # keine Weitergabe an andere Handler
         
         return False                                           # Weitergabe an andere Handler
@@ -242,7 +234,6 @@ class Soundboard(Gtk.Window):
         self.config.data['buttons'] = buttonlist
         self.flowbox.show_all()
         self.config.mark_changed()  # Markiere Änderungen
-        self.update_window_title()  # Aktualisiere den Fenstertitel
 
     #########################################################################################################
     def remove_button(self, button):
@@ -252,7 +243,6 @@ class Soundboard(Gtk.Window):
             self.flowbox.show_all()
             button.delete_button()       
             self.config.mark_changed()  # Markiere Änderungen
-            self.update_window_title()  # Aktualisiere den Fenstertitel
             return True
         return False
 
@@ -260,10 +250,7 @@ class Soundboard(Gtk.Window):
     def on_save_config_as(self, widget=None):
         """Öffnet einen Dateiauswahldialog zum Speichern der Konfiguration unter einem neuen Namen"""
         self.config.save_config_as_dialog(self)
-        # Aktualisiere den Fenstertitel nach dem Speichern
-        self.update_window_title()
-        # Wenn die Methode über das Kontextmenü aufgerufen wurde, schließe das Menü
-        if widget:
+        if widget:                  # Wenn die Methode über das Kontextmenü aufgerufen wurde, schließe das Menü
             widget.get_parent().popdown()
 
     ########################################################################################################
@@ -295,7 +282,6 @@ class Soundboard(Gtk.Window):
                 if response == Gtk.ResponseType.YES:
                     # Speichern unter neuem Namen
                     self.config.save_config_as_dialog(self)
-                    self.update_window_title()  # Aktualisiere den Fenstertitel
                     self.cleanup_resources()
                     Gtk.main_quit()
                 else:  # NO
@@ -323,13 +309,11 @@ class Soundboard(Gtk.Window):
                 if response == Gtk.ResponseType.YES:
                     # Speichern in der aktuellen Datei
                     self.config.save_config(self)
-                    self.update_window_title()  # Aktualisiere den Fenstertitel
                     self.cleanup_resources()
                     Gtk.main_quit()
                 elif response == Gtk.ResponseType.ACCEPT:
                     # Speichern unter neuem Namen
                     self.config.save_config_as_dialog(self)
-                    self.update_window_title()  # Aktualisiere den Fenstertitel
                     self.cleanup_resources()
                     Gtk.main_quit()
                 else:  # NO

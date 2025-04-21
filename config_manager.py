@@ -6,7 +6,8 @@ from gi.repository import Gtk
 
 ###################################################################################################################################
 class ConfigManager:
-    def __init__(self, config_file='config.json'):
+    def __init__(self, parent=None, config_file='config.json'):
+        self.parent = parent
         self.config_file = config_file
         self.data = self.load_config()
         self.buttonlist = self.load_buttonlist()
@@ -150,6 +151,7 @@ class ConfigManager:
                 
                 if response == Gtk.ResponseType.OK:
                     return self.save_config_as_dialog(parent_window)
+
                 else:
                     return False
             else:
@@ -301,11 +303,12 @@ class ConfigManager:
     def add_minimal_button(self):
         """Fügt einen minimalen Button zur Konfiguration hinzu"""
         new_position = len(self.data['buttons'])              # Bestimme die neue Position basierend auf der Länge der Liste
-        print(f"new_position: {new_position}")
+        print(f"Add new minimal button at position: {new_position}")
         new_button = self.DEFAULT_CONFIG['buttons'][1].copy() # Kopiere den minimalen Button aus der Standardkonfiguration
         new_button['position'] = new_position                 # Setze die neue Position
         self.data['buttons'].append(new_button)               # Füge den neuen Button zur Konfiguration hinzu
         self.buttonlist = self.load_buttonlist()              # Aktualisiere die Buttonliste
+        #self.mark_changed()                                   # Markiere, dass es Änderungen am Soundboard gegeben hat
         return new_button
 
     ###################################################################################################################################
@@ -322,17 +325,21 @@ class ConfigManager:
     def mark_changed(self):
         """Markiert, dass es Änderungen am Soundboard gegeben hat"""
         self.has_changes = True
+        self.parent.update_window_title()  # Aktualisiere den Fenstertitel
         return True
         
     ###################################################################################################################################
     def mark_saved(self):
         """Markiert, dass alle Änderungen gespeichert wurden"""
         self.has_changes = False
+        self.parent.update_window_title()  # Aktualisiere den Fenstertitel
+
         return True
         
     ###################################################################################################################################
     def has_unsaved_changes(self):
         """Gibt zurück, ob es ungespeicherte Änderungen gibt"""
+        print(f"has_changes: {self.has_changes}")
         return self.has_changes
 
     ###################################################################################################################################
