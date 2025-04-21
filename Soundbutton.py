@@ -378,19 +378,21 @@ class Soundbutton(Gtk.EventBox):
             try:
                 if self.button_config.get('loop', False):   # Wenn Endlosschleife
                     self.channel = self.sound.play(loops=-1, fade_ms=self.fade_time_ms)
-                    self.parent.count_sounds += 1
-                    print(f"count_sounds: {self.parent.count_sounds}")
+                    if self.channel and self.channel.get_busy():
+                        self.parent.count_sounds += 1
+                        print(f"Sound gestartet (Loop). Aktive Sounds: {self.parent.count_sounds}")
                 else:    
                     self.channel = self.sound.play(loops=0, fade_ms=self.fade_time_ms)
-                    self.parent.count_sounds += 1
-                    print(f"count_sounds: {self.parent.count_sounds}")
-                    self.timer_id = GLib.timeout_add(100, self.check_sound_end)
-                    self.current_length = self.sound.get_length()
-                    self.start_time = time.time()
-                    if self.fade_time_ms > 0:                          # Fade-Out nur wenn Fade-Time > 0
-                        fade_delay_ms = max(0, int((self.current_length * 1000) - self.fade_time_ms))
-                        print(f"fade_delay_ms: {fade_delay_ms}")
-                        GLib.timeout_add(fade_delay_ms, self.do_fade_out)
+                    if self.channel and self.channel.get_busy():
+                        self.parent.count_sounds += 1
+                        print(f"Sound gestartet. Aktive Sounds: {self.parent.count_sounds}")
+                        self.timer_id = GLib.timeout_add(100, self.check_sound_end)
+                        self.current_length = self.sound.get_length()
+                        self.start_time = time.time()
+                        if self.fade_time_ms > 0:                          # Fade-Out nur wenn Fade-Time > 0
+                            fade_delay_ms = max(0, int((self.current_length * 1000) - self.fade_time_ms))
+                            print(f"fade_delay_ms: {fade_delay_ms}")
+                            GLib.timeout_add(fade_delay_ms, self.do_fade_out)
             except Exception as e:
                 print(f"Fehler beim Abspielen des Sounds: {e}")
 
@@ -422,8 +424,10 @@ class Soundbutton(Gtk.EventBox):
     #########################################################################################################
     def deactivate_button(self):
         """Deaktiviert den Button visuell und stoppt den Sound"""
-        self.parent.count_sounds -= 1
-        print(f"count_sounds: {self.parent.count_sounds}")
+        if self.is_pressed:  # Nur wenn der Button aktiv war
+            self.parent.count_sounds -= 1
+            print(f"Sound gestoppt. Aktive Sounds: {self.parent.count_sounds}")
+            
         if self.timer_id:
             GLib.source_remove(self.timer_id)
             self.timer_id = None
