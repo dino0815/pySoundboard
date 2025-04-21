@@ -7,8 +7,16 @@
 [x] Verschieben implementieren
 [x] Konfig Filename als Fenster Titel
 [x] * im Titel, wenn ungespeicherte änderungen bestehen
+[x] ChangeStatus bei änderungen am Button
+[x] Anzahl der laufenden Sounds korrekt verwalten
+[x] "Stop all Sounds" nur wenn Sounds laufen
+[x] Neu erstellte Buttons als MinimalButton und nicht als Button1   
+
+[ ] Frotschritsbalken auf Buttons
+[ ] bei Loop entfernen, FadeOut auf nächster '
+
 [ ] Button vorschau im Button-Dialog, der sofort aktualisiert wird
 [ ] Dialog Globale-Einstellingen
-[ ] Titel über kontextmenu ändern
 
 # #############################################################################################################
+

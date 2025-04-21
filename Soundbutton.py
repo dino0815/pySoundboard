@@ -32,6 +32,7 @@ class Soundbutton(Gtk.EventBox):
         self.click_position       = None    # Für Drag-and-Drop
         self.changed_volume       = False   # Für Slider-Klick
         self.fade_time_ms         = 0       # Für Fortschrittsanzeige
+        self.sound_loaded         = False   # Flag für geladenen Sound
 
         #self.current_length       = 0       # Für Fortschrittsanzeige
         #self.start_time           = None    # Für Fortschrittsanzeige
@@ -143,13 +144,8 @@ class Soundbutton(Gtk.EventBox):
 
         # Lade den Sound beim Initialisieren
         if 'audio_file' in button_config and button_config['audio_file']:
-            try:
-                # Konstruiere den vollständigen Pfad mit Prefix
-                full_sound_path = os.path.join(self.default_button['soundpfad_prefix'], button_config['audio_file'])
-                self.sound = pygame.mixer.Sound(full_sound_path)        # Lade den Sound
-                self.sound.set_volume(button_config['volume'] / 100.0)  # Setze die Lautstärke
-            except Exception as e:
-                print(f"Fehler beim Laden des Sounds: {e}")
+            if self.button_config.get('preload', False):
+                self.load_sound()
 
         hbox.pack_start(self.volume, False, False, 0)  # Füge den Slider zur horizontalen Box hinzu
 
@@ -361,6 +357,20 @@ class Soundbutton(Gtk.EventBox):
             self.parent.config.mark_changed()  # Markiere Änderungen
 
     #########################################################################################################
+    def load_sound(self):
+        """Lädt den Sound, falls noch nicht geladen"""
+        if not self.sound_loaded and 'audio_file' in self.button_config and self.button_config['audio_file']:
+            try:
+                # Konstruiere den vollständigen Pfad mit Prefix
+                full_sound_path = os.path.join(self.default_button['soundpfad_prefix'], self.button_config['audio_file'])
+                self.sound = pygame.mixer.Sound(full_sound_path)        # Lade den Sound
+                self.sound.set_volume(self.button_config['volume'] / 100.0)  # Setze die Lautstärke
+                self.sound_loaded = True
+                print(f"Sound geladen: {self.button_config['audio_file']}")
+            except Exception as e:
+                print(f"Fehler beim Laden des Sounds: {e}")
+
+    #########################################################################################################
     def activate_button(self):
         """Aktiviert den Button visuell und spielt den Sound ab"""
         # Wenn der Button bereits aktiv ist, nichts tun
@@ -374,25 +384,30 @@ class Soundbutton(Gtk.EventBox):
         self.is_pressed = True
 
         """Spielt den Sound ab"""
-        if self.sound:
+        if 'audio_file' in self.button_config and self.button_config['audio_file']:
             try:
-                if self.button_config.get('loop', False):   # Wenn Endlosschleife
-                    self.channel = self.sound.play(loops=-1, fade_ms=self.fade_time_ms)
-                    if self.channel and self.channel.get_busy():
-                        self.parent.count_sounds += 1
-                        print(f"Sound gestartet (Loop). Aktive Sounds: {self.parent.count_sounds}")
-                else:    
-                    self.channel = self.sound.play(loops=0, fade_ms=self.fade_time_ms)
-                    if self.channel and self.channel.get_busy():
-                        self.parent.count_sounds += 1
-                        print(f"Sound gestartet. Aktive Sounds: {self.parent.count_sounds}")
-                        self.timer_id = GLib.timeout_add(100, self.check_sound_end)
-                        self.current_length = self.sound.get_length()
-                        self.start_time = time.time()
-                        if self.fade_time_ms > 0:                          # Fade-Out nur wenn Fade-Time > 0
-                            fade_delay_ms = max(0, int((self.current_length * 1000) - self.fade_time_ms))
-                            print(f"fade_delay_ms: {fade_delay_ms}")
-                            GLib.timeout_add(fade_delay_ms, self.do_fade_out)
+                # Lade den Sound wenn noch nicht geladen
+                if not self.sound_loaded:
+                    self.load_sound()
+                
+                if self.sound:
+                    if self.button_config.get('loop', False):   # Wenn Endlosschleife
+                        self.channel = self.sound.play(loops=-1, fade_ms=self.fade_time_ms)
+                        if self.channel and self.channel.get_busy():
+                            self.parent.count_sounds += 1
+                            print(f"Sound gestartet (Loop). Aktive Sounds: {self.parent.count_sounds}")
+                    else:    
+                        self.channel = self.sound.play(loops=0, fade_ms=self.fade_time_ms)
+                        if self.channel and self.channel.get_busy():
+                            self.parent.count_sounds += 1
+                            print(f"Sound gestartet. Aktive Sounds: {self.parent.count_sounds}")
+                            self.timer_id = GLib.timeout_add(100, self.check_sound_end)
+                            self.current_length = self.sound.get_length()
+                            self.start_time = time.time()
+                            if self.fade_time_ms > 0:                          # Fade-Out nur wenn Fade-Time > 0
+                                fade_delay_ms = max(0, int((self.current_length * 1000) - self.fade_time_ms))
+                                print(f"fade_delay_ms: {fade_delay_ms}")
+                                GLib.timeout_add(fade_delay_ms, self.do_fade_out)
             except Exception as e:
                 print(f"Fehler beim Abspielen des Sounds: {e}")
 
@@ -765,18 +780,18 @@ class Soundbutton(Gtk.EventBox):
         self.button_config['audio_file'] = rel_path
         print(f"Sounddatei ausgewählt: {rel_path}")
         
-        # Lade den neuen Sound
-        try:
-            self.sound = pygame.mixer.Sound(full_path)
-            self.sound.set_volume(self.button_config['volume'] / 100.0)
-            print(f"Neuer Sound geladen: {rel_path}")
-            self.update_status_icon()                 # Aktualisiere das Status-Icon
-            if self.parent and self.parent.config:
-                print(f"Markiere Änderungen am Soundboard")
-                self.parent.config.mark_changed()  # Markiere Änderungen
-        except Exception as e:
-            print(f"Fehler beim Laden des Sounds: {e}")
-    
+        # Lade den neuen Sound nur wenn preload=True
+        if self.button_config.get('preload', False):
+            self.load_sound()
+        else:
+            self.sound_loaded = False
+            self.sound = None
+            
+        self.update_status_icon()                 # Aktualisiere das Status-Icon
+        if self.parent and self.parent.config:
+            print(f"Markiere Änderungen am Soundboard")
+            self.parent.config.mark_changed()  # Markiere Änderungen
+
     #########################################################################################################
     def on_toggle_loop(self, widget):
         """Schaltet die Endlosschleife ein oder aus"""
