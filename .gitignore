@@ -1,6 +1,4 @@
 __pycache__/
-sounds/
-images/
 *.py[cod]
 *$py.class
 .env
@@ -10,4 +8,6 @@ venv/
 trash/
 temp/
 *.diff
-*.json
+sounds/
+images/
+*.jsonx
