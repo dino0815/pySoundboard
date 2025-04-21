@@ -18,7 +18,7 @@ class ConfigManager:
     # Konstanten für die Konfiguration
     DEFAULT_CONFIG = {
         "Window": {
-            "title_prefix":             "Soundboard: ",
+            "title_prefix":    "Soundboard: ",
             "window_width":               400,
             "window_height":              200,
             "read_only":                False
@@ -34,7 +34,7 @@ class ConfigManager:
                 "button_radius":                 10,
                 "audio_file":                    "",
                 "volume":                        50,
-                "fade_time_ms":                1000,
+                "fade_time_ms":                 500,
                 "loop":                       False,
                 "text":                    "Button",
                 "use_custom_text_position":    True,

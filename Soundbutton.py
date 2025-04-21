@@ -40,6 +40,9 @@ class Soundbutton(Gtk.EventBox):
         if 'fade_time_ms' in self.button_config:
             self.fade_time_ms = self.button_config['fade_time_ms']
             print(f"set fade_time_ms to {self.fade_time_ms}")
+        elif 'fade_time_ms' in self.default_button:
+            self.fade_time_ms = self.default_button['fade_time_ms']
+            print(f"set fade_time_ms from default to {self.fade_time_ms}")
 
         self.set_size_request(150, 75)
         self.set_hexpand(False)             # EventBox horizontal NICHT ausdehnen
