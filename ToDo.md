@@ -13,5 +13,5 @@
 - [x] Neu erstellte Buttons als MinimalButton und nicht als Button1   
 - [x] Sounddateien erst bei Aktivierung laden, außer wenn der Parameter preload=true gesetzt ist.
 - [ ] bei Loop entfernen, FadeOut auf nächster '
-- [ ] Frotschritsbalken auf Buttons
+- [ ] Fortschrittsbalken auf Buttons
 - [ ] Button vorschau im Button-Dialog, der sofort aktualisiert wird
